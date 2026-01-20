@@ -1,217 +1,22 @@
 /**
  * Design Tokens
  *
- * NOTE: 색상값은 임시값이며 추후 변경될 수 있습니다.
- *
  * 정책:
  * - 유틸리티 클래스 생성이 필요한 토큰 → @theme
- * - 유틸리티에 매핑할 필요가 없거나 계산/조합이 필요한 토큰 → :root
+ * - 유틸리티에 매핑할 필요가 없거나(혹은 지원 네임스페이스 밖), 계산/조합이 필요한 토큰 → :root
+ *
+ * 컨벤션:
+ * - :root = "Source tokens" (순수 값: HEX/px/ms 등, 계산/조합 포함 가능)
+ * - @theme = "Export + Role tokens" (Tailwind 유틸리티로 사용할 토큰)
+ *   - palette export: --color-xxx-*  (bg-*, text-*, border-* 등)
+ *   - role mapping : --color-surface, --color-border, --color-text 등 (의미 기반)
  */
 
-@theme {
-  /* Colors - Primary */
-  --color-primary-50: #f0f9ff;
-  --color-primary-100: #e0f2fe;
-  --color-primary-200: #bae6fd;
-  --color-primary-300: #7dd3fc;
-  --color-primary-400: #38bdf8;
-  --color-primary-500: #0ea5e9;
-  --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
-  --color-primary-800: #075985;
-  --color-primary-900: #0c4a6e;
-  --color-primary-950: #082f49;
-
-  /* Colors - Secondary */
-  --color-secondary-50: #faf5ff;
-  --color-secondary-100: #f3e8ff;
-  --color-secondary-200: #e9d5ff;
-  --color-secondary-300: #d8b4fe;
-  --color-secondary-400: #c084fc;
-  --color-secondary-500: #a855f7;
-  --color-secondary-600: #9333ea;
-  --color-secondary-700: #7e22ce;
-  --color-secondary-800: #6b21a8;
-  --color-secondary-900: #581c87;
-  --color-secondary-950: #3b0764;
-
-  /* Colors - Accent (Point) */
-  --color-accent-50: #fff7ed;
-  --color-accent-100: #ffedd5;
-  --color-accent-200: #fed7aa;
-  --color-accent-300: #fdba74;
-  --color-accent-400: #fb923c;
-  --color-accent-500: #f97316;
-  --color-accent-600: #ea580c;
-  --color-accent-700: #c2410c;
-  --color-accent-800: #9a3412;
-  --color-accent-900: #7c2d12;
-  --color-accent-950: #431407;
-
-  /* Colors - Neutral (Gray) */
-  --color-neutral-50: #f9fafb;
-  --color-neutral-100: #f3f4f6;
-  --color-neutral-200: #e5e7eb;
-  --color-neutral-300: #d1d5db;
-  --color-neutral-400: #9ca3af;
-  --color-neutral-500: #6b7280;
-  --color-neutral-600: #4b5563;
-  --color-neutral-700: #374151;
-  --color-neutral-800: #1f2937;
-  --color-neutral-900: #111827;
-  --color-neutral-950: #030712;
-
-  /* Colors - Semantic */
-  --color-success-50: #f0fdf4;
-  --color-success-100: #dcfce7;
-  --color-success-200: #bbf7d0;
-  --color-success-300: #86efac;
-  --color-success-400: #4ade80;
-  --color-success-500: #22c55e;
-  --color-success-600: #16a34a;
-  --color-success-700: #15803d;
-  --color-success-800: #166534;
-  --color-success-900: #14532d;
-
-  --color-warning-50: #fffbeb;
-  --color-warning-100: #fef3c7;
-  --color-warning-200: #fde68a;
-  --color-warning-300: #fcd34d;
-  --color-warning-400: #fbbf24;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
-  --color-warning-800: #92400e;
-  --color-warning-900: #78350f;
-
-  --color-error-50: #fef2f2;
-  --color-error-100: #fee2e2;
-  --color-error-200: #fecaca;
-  --color-error-300: #fca5a5;
-  --color-error-400: #f87171;
-  --color-error-500: #ef4444;
-  --color-error-600: #dc2626;
-  --color-error-700: #b91c1c;
-  --color-error-800: #991b1b;
-  --color-error-900: #7f1d1d;
-
-  --color-info-50: #eff6ff;
-  --color-info-100: #dbeafe;
-  --color-info-200: #bfdbfe;
-  --color-info-300: #93c5fd;
-  --color-info-400: #60a5fa;
-  --color-info-500: #3b82f6;
-  --color-info-600: #2563eb;
-  --color-info-700: #1d4ed8;
-  --color-info-800: #1e40af;
-  --color-info-900: #1e3a8a;
-
-  /* Spacing */
-  --spacing-0: 0;
-  --spacing-1: 0.25rem; /* 4px */
-  --spacing-2: 0.5rem; /* 8px */
-  --spacing-3: 0.75rem; /* 12px */
-  --spacing-4: 1rem; /* 16px */
-  --spacing-5: 1.25rem; /* 20px */
-  --spacing-6: 1.5rem; /* 24px */
-  --spacing-7: 1.75rem; /* 28px */
-  --spacing-8: 2rem; /* 32px */
-  --spacing-10: 2.5rem; /* 40px */
-  --spacing-12: 3rem; /* 48px */
-  --spacing-14: 3.5rem; /* 56px */
-  --spacing-16: 4rem; /* 64px */
-  --spacing-20: 5rem; /* 80px */
-  --spacing-24: 6rem; /* 96px */
-  --spacing-28: 7rem; /* 112px */
-  --spacing-32: 8rem; /* 128px */
-
-  /* Font Family */
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
-
-  /* Font Size */
-  --font-size-xs: 0.75rem; /* 12px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-base: 1rem; /* 16px */
-  --font-size-lg: 1.125rem; /* 18px */
-  --font-size-xl: 1.25rem; /* 20px */
-  --font-size-2xl: 1.5rem; /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
-  --font-size-4xl: 2.25rem; /* 36px */
-  --font-size-5xl: 3rem; /* 48px */
-
-  /* Font Weight */
-  --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
-
-  /* Line Height */
-  --line-height-none: 1;
-  --line-height-tight: 1.25;
-  --line-height-snug: 1.375;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.625;
-  --line-height-loose: 2;
-
-  /* Border Radius */
-  --radius-none: 0;
-  --radius-sm: 0.125rem; /* 2px */
-  --radius-base: 0.25rem; /* 4px */
-  --radius-md: 0.375rem; /* 6px */
-  --radius-lg: 0.5rem; /* 8px */
-  --radius-xl: 0.75rem; /* 12px */
-  --radius-2xl: 1rem; /* 16px */
-  --radius-3xl: 1.5rem; /* 24px */
-  --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-
-  /* Breakpoints */
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-
-  /* Transitions */
-  --transition-fast: 150ms;
-  --transition-base: 200ms;
-  --transition-slow: 300ms;
-  --transition-slower: 500ms;
-
-  /* Transition Timing Functions */
-  --ease-linear: linear;
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ========================================
-   Root Variables (계산/조합용, 비유틸리티)
-   ======================================== */
-
 :root {
-  /* Z-Index 레이어 시스템 */
-
-  /* Base layers */
+  /* ----------------------------------------
+     Z-Index (non-utility / relative system)
+     ---------------------------------------- */
   --z-base: 0;
-  --z-above: 1;
-  --z-below: -1;
-
-  /* Component layers */
   --z-dropdown: 100;
   --z-sticky: 200;
   --z-fixed: 300;
@@ -221,82 +26,260 @@
   --z-tooltip: 700;
   --z-toast: 800;
 
-  /* Composite z-index values */
-  --z-dropdown-above: calc(var(--z-dropdown) + var(--z-above));
-  --z-dropdown-below: calc(var(--z-dropdown) + var(--z-below));
-  --z-sticky-above: calc(var(--z-sticky) + var(--z-above));
-  --z-sticky-below: calc(var(--z-sticky) + var(--z-below));
-  --z-modal-above: calc(var(--z-modal) + var(--z-above));
-  --z-modal-below: calc(var(--z-modal) + var(--z-below));
-  --z-popover-above: calc(var(--z-popover) + var(--z-above));
-  --z-popover-below: calc(var(--z-popover) + var(--z-below));
-  --z-tooltip-above: calc(var(--z-tooltip) + var(--z-above));
-  --z-tooltip-below: calc(var(--z-tooltip) + var(--z-below));
-  --z-toast-above: calc(var(--z-toast) + var(--z-above));
-  --z-toast-below: calc(var(--z-toast) + var(--z-below));
+  /* ----------------------------------------
+     Palette Sources (raw)
+     ---------------------------------------- */
 
-  /* Component-specific tokens (계산/조합용) */
-  --input-height-sm: 2rem; /* 32px */
-  --input-height-md: 2.5rem; /* 40px */
-  --input-height-lg: 3rem; /* 48px */
+  /* Brand (Single) */
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-300: #93c5fd;
+  --brand-400: #60a5fa;
+  --brand-500: #3b82f6; /* base */
+  --brand-600: #2563eb; /* hover */
+  --brand-700: #1d4ed8; /* active */
+  --brand-800: #1e40af;
+  --brand-900: #1e3a8a;
 
-  --button-height-sm: 2rem; /* 32px */
-  --button-height-md: 2.5rem; /* 40px */
-  --button-height-lg: 3rem; /* 48px */
+  /* Neutral (Cool Gray) */
+  --neutral-0: #ffffff;
+  --neutral-25: #fcfcfd;
+  --neutral-50: #f9fafb;
+  --neutral-100: #f3f4f6;
+  --neutral-200: #e5e7eb;
+  --neutral-300: #d1d5db;
+  --neutral-400: #9ca3af;
+  --neutral-500: #6b7280;
+  --neutral-600: #4b5563;
+  --neutral-700: #374151;
+  --neutral-800: #1f2937;
+  --neutral-900: #111827;
+  --neutral-950: #0b1220;
 
-  /* Focus ring */
+  /* Semantic */
+  --success-50: #ecfdf3;
+  --success-100: #d1fadf;
+  --success-200: #a6f4c5;
+  --success-300: #6ce9a6;
+  --success-400: #32d583;
+  --success-500: #12b76a;
+  --success-600: #039855;
+  --success-700: #027a48;
+  --success-800: #05603a;
+  --success-900: #054f31;
+
+  --warning-50: #fffaeb;
+  --warning-100: #fef0c7;
+  --warning-200: #fedf89;
+  --warning-300: #fec84b;
+  --warning-400: #fdb022;
+  --warning-500: #f79009;
+  --warning-600: #dc6803;
+  --warning-700: #b54708;
+  --warning-800: #93370d;
+  --warning-900: #7a2e0e;
+
+  --error-50: #fef3f2;
+  --error-100: #fee4e2;
+  --error-200: #fecdca;
+  --error-300: #fda29b;
+  --error-400: #f97066;
+  --error-500: #f04438;
+  --error-600: #d92d20;
+  --error-700: #b42318;
+  --error-800: #912018;
+  --error-900: #7a271a;
+
+  --info-50: #eff8ff;
+  --info-100: #d1e9ff;
+  --info-200: #b2ddff;
+  --info-300: #84caff;
+  --info-400: #53b1fd;
+  --info-500: #2e90fa;
+  --info-600: #1570ef;
+  --info-700: #175cd3;
+  --info-800: #1849a9;
+  --info-900: #194185;
+
+  /* ----------------------------------------
+     Non-utility tokens / composition
+     ---------------------------------------- */
+
+  /* Focus ring (계산/조합) */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
-  --focus-ring-color: var(--color-primary-500);
 
-  /* Disabled state */
+  /* Disabled */
   --disabled-opacity: 0.5;
   --disabled-cursor: not-allowed;
 
-  /* ========================================
-     App Color Roles (단일 라이트 테마 기준)
-     - 컴포넌트에서는 팔레트(Primary-500 등) 직접 사용보다
-       아래 Role 토큰을 우선 사용 권장
-     ======================================== */
+  /* Computed colors (계산/조합) */
+  --input-ring: color-mix(in srgb, var(--brand-500) 22%, transparent);
+  --toast-border: color-mix(in srgb, var(--neutral-0) 12%, transparent);
 
-  /* Background / Surface */
-  --color-bg: var(--color-neutral-50);
-  --color-bg-subtle: var(--color-neutral-100);
-  --color-bg-muted: var(--color-neutral-200);
+  /* Overlay */
+  --overlay: rgb(17 24 39 / 0.55);
+}
 
-  --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
-  --color-overlay: rgb(0 0 0 / 0.5);
+/* ========================================
+   Theme Tokens (Tailwind utilities export)
+   ======================================== */
 
-  /* Foreground (Text / Icon) */
-  --color-fg: var(--color-neutral-900);
-  --color-fg-muted: var(--color-neutral-600);
-  --color-fg-subtle: var(--color-neutral-500);
-  --color-fg-inverse: #ffffff;
+@theme {
+  /* ----------------------------------------
+     Palette Export 
+     ---------------------------------------- */
+
+  /* Brand */
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+
+  /* Neutral */
+  --color-neutral-0: var(--neutral-0);
+  --color-neutral-25: var(--neutral-25);
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+  --color-neutral-950: var(--neutral-950);
+
+  /* Semantic */
+  --color-success-50: var(--success-50);
+  --color-success-100: var(--success-100);
+  --color-success-200: var(--success-200);
+  --color-success-300: var(--success-300);
+  --color-success-400: var(--success-400);
+  --color-success-500: var(--success-500);
+  --color-success-600: var(--success-600);
+  --color-success-700: var(--success-700);
+  --color-success-800: var(--success-800);
+  --color-success-900: var(--success-900);
+
+  --color-warning-50: var(--warning-50);
+  --color-warning-100: var(--warning-100);
+  --color-warning-200: var(--warning-200);
+  --color-warning-300: var(--warning-300);
+  --color-warning-400: var(--warning-400);
+  --color-warning-500: var(--warning-500);
+  --color-warning-600: var(--warning-600);
+  --color-warning-700: var(--warning-700);
+  --color-warning-800: var(--warning-800);
+  --color-warning-900: var(--warning-900);
+
+  --color-error-50: var(--error-50);
+  --color-error-100: var(--error-100);
+  --color-error-200: var(--error-200);
+  --color-error-300: var(--error-300);
+  --color-error-400: var(--error-400);
+  --color-error-500: var(--error-500);
+  --color-error-600: var(--error-600);
+  --color-error-700: var(--error-700);
+  --color-error-800: var(--error-800);
+  --color-error-900: var(--error-900);
+
+  --color-info-50: var(--info-50);
+  --color-info-100: var(--info-100);
+  --color-info-200: var(--info-200);
+  --color-info-300: var(--info-300);
+  --color-info-400: var(--info-400);
+  --color-info-500: var(--info-500);
+  --color-info-600: var(--info-600);
+  --color-info-700: var(--info-700);
+  --color-info-800: var(--info-800);
+  --color-info-900: var(--info-900);
+
+  /* ----------------------------------------
+     Roles (utilities 필요) 
+     ---------------------------------------- */
+
+  /* Surfaces */
+  --color-bg: var(--color-neutral-25);
+  --color-bg-subtle: var(--color-neutral-50);
+  --color-bg-muted: var(--color-neutral-100);
+
+  --color-surface: var(--color-neutral-0);
+  --color-surface-elevated: var(--color-neutral-0);
+
+  --color-overlay: var(--overlay);
+
+  /* Text */
+  --color-text: var(--color-neutral-900);
+  --color-text-muted: var(--color-neutral-600);
+  --color-text-subtle: var(--color-neutral-500);
+  --color-text-disabled: var(--color-neutral-400);
+  --color-text-inverse: var(--color-neutral-0);
 
   /* Border / Divider */
   --color-border: var(--color-neutral-200);
   --color-border-strong: var(--color-neutral-300);
   --color-divider: var(--color-neutral-200);
 
-  /* Brand roles - Primary */
-  --color-brand: var(--color-primary-600);
-  --color-brand-hover: var(--color-primary-700);
-  --color-brand-active: var(--color-primary-800);
-  --color-brand-contrast: #ffffff;
+  /* Brand roles */
+  --color-brand: var(--color-brand-600);
+  --color-brand-hover: var(--color-brand-700);
+  --color-brand-active: var(--color-brand-800);
+  --color-brand-contrast: var(--color-neutral-0);
 
-  /* Brand roles - Secondary */
-  --color-brand-secondary: var(--color-secondary-600);
-  --color-brand-secondary-hover: var(--color-secondary-700);
-  --color-brand-secondary-active: var(--color-secondary-800);
-  --color-brand-secondary-contrast: #ffffff;
+  /* Link roles */
+  --color-link: var(--color-brand-600);
+  --color-link-hover: var(--color-brand-700);
+  --color-link-active: var(--color-brand-800);
+  --color-link-visited: var(--color-brand-700);
 
-  /* Point (Accent) */
-  --color-point: var(--color-accent-500);
-  --color-point-hover: var(--color-accent-600);
-  --color-point-active: var(--color-accent-700);
-  --color-point-contrast: #ffffff;
+  /* Semantic roles (base) */
+  --color-success: var(--color-success-600);
+  --color-warning: var(--color-warning-600);
+  --color-danger: var(--color-error-600);
+  --color-info: var(--color-info-600);
 
-  /* Focus ring (Role) */
-  --color-focus-ring: var(--color-primary-500);
+  /* Focus / Ring */
+  --color-focus-ring: var(--color-brand-500);
+  --color-input-ring: var(--input-ring);
+
+  /* Toast */
+  --color-toast-bg: var(--color-neutral-900);
+  --color-toast-fg: var(--color-neutral-0);
+  --color-toast-border: var(--toast-border);
+
+  /* ----------------------------------------
+     Radius / Shadow / Motion (utilities 필요)
+     ---------------------------------------- */
+
+  /* Radius */
+  --radius-none: 0;
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-base: 0.5rem; /* 8px */
+  --radius-md: 0.75rem; /* 12px */
+  --radius-lg: 1rem; /* 16px */
+  --radius-xl: 1.25rem; /* 20px */
+  --radius-2xl: 1.5rem; /* 24px */
+  --radius-full: 9999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px 0 rgb(17 24 39 / 0.04);
+  --shadow-base: 0 1px 3px 0 rgb(17 24 39 / 0.06), 0 1px 2px -1px rgb(17 24 39 / 0.06);
+  --shadow-md: 0 6px 16px -8px rgb(17 24 39 / 0.16);
+  --shadow-lg: 0 16px 32px -20px rgb(17 24 39 / 0.22);
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 260ms;
+
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
 }
