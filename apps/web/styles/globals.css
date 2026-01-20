@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* packages/ui 안의 컴포넌트에서 쓰는 Tailwind class도 스캔 대상에 포함 */
+@source '../../../packages/ui/src/**/*.{js,jsx,ts,tsx}';
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
