@@ -1,3 +1,4 @@
+import { Button } from '@repo/ui/button';
 import type { ChangeEvent } from 'react';
 import { useState } from 'react';
 
@@ -8,7 +9,7 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
 
   return (
-    <form className="space-y-4">
+    <div className="flex flex-col gap-4 space-y-4">
       <EmailField
         id="email"
         name="email"
@@ -25,12 +26,7 @@ export function LoginForm() {
         required
       />
 
-      <button
-        type="submit"
-        className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-      >
-        Sign in
-      </button>
-    </form>
+      <Button>로그인 하기</Button>
+    </div>
   );
 }
