@@ -1,0 +1,346 @@
+name: Frontend CI/CD
+
+permissions:
+  contents: write
+  pull-requests: read
+
+on: 
+  pull_request:
+    types: [opened, synchronize, closed]
+    branches: [develop, main]
+    paths:
+      # 핵심 애플리케이션 코드
+      - 'apps/web/**'
+      - 'packages/**'
+      
+      # 의존성 관리
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'  
+      
+      # 빌드 설정
+      - 'turbo.json'     
+      - 'tooling/**'
+      - 'eslint.config.mjs'
+      
+      # 패키지 관리자 설정
+      - '.npmrc'                
+ 
+      # CI/CD 워크플로우
+      - '.github/workflows/frontend-ci-cd.yml'
+
+jobs:
+  build-and-test: # PR 대상: Full CI (Build → Test → Artifact)
+    # closed는 제외 (병합 시에는 CD만 실행)
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 코드 체크아웃
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      # 2. pnpm 설치
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      
+      # 3. Node.js 환경 설정 (pnpm 캐싱 포함)
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24.13.0'
+          cache: 'pnpm' # 의존성: ~/.pnpm-store 캐싱
+      
+      # 4. 의존성 설치
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 5. Turbo 빌드 캐시 복원
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      # 6. Next.js 빌드 캐시 복원
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/**/*.{js,ts,jsx,tsx}', 'packages/**/*.{js,ts,jsx,tsx}') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-
+
+      # Phase 1: Build
+      - name: Build Next.js application
+        run: pnpm turbo build --filter=web
+
+      # Phase 2: Artifact Preparation (모노레포 경로 처리)
+      - name: Bundle Artifacts
+        working-directory: apps/web
+        run: |
+          STANDALONE_ROOT=".next/standalone"
+          
+          # 모노레포 중첩 구조 찾기
+          if [ -d "$STANDALONE_ROOT/1-team-one-fe/apps/web" ]; then
+            APP_DIR="$STANDALONE_ROOT/1-team-one-fe/apps/web"
+          elif [ -d "$STANDALONE_ROOT/apps/web" ]; then
+            APP_DIR="$STANDALONE_ROOT/apps/web"
+          else
+            echo "ERROR: Cannot find standalone app directory"
+            ls -la $STANDALONE_ROOT
+            exit 1
+          fi
+          
+          mkdir -p $APP_DIR/.next
+          cp -r .next/static $APP_DIR/.next/
+          cp -r public $APP_DIR/
+
+          cd $STANDALONE_ROOT
+          tar -czf $GITHUB_WORKSPACE/frontend.tar.gz .
+    
+          ls -lh $GITHUB_WORKSPACE/frontend.tar.gz
+      
+      # Phase 3: Artifact Upload
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-${{ github.sha }}
+          path: frontend.tar.gz
+          retention-days: 14
+          compression-level: 0 # tar.gz는 이미 압축됨
+
+      # Discord 알림 추가 (성공/실패 여부 + 커밋 아이디)
+      - name: Notify Discord - CI Result
+        if: always()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          MENTION_USER: ${{ secrets.DISCORD_MENTION_USER_ID }}
+        run: |
+          STATUS="${{ job.status }}"  # job.status로 변경
+          curl -s -X POST -H "Content-Type: application/json" \
+            -d "{\"content\":\"<@${MENTION_USER}> Frontend CI **${STATUS}** | PR #${{ github.event.pull_request.number }} | \`${GITHUB_SHA:0:7}\`\"}" \
+            "$DISCORD_WEBHOOK_URL"
+
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 코드 체크아웃 (태깅용)
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Git Tag 생성 위해 전체 히스토리 필요함
+
+      # 2. Artifact Download (변경)
+      - name: Download build artifact
+        uses: dawidd6/action-download-artifact@v6
+        # 다른 워크플로우 실행의 Artifact도 다운로드 가능한 커스텀 액션
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: frontend-ci-cd.yml  # Artifact를 생성한 워크플로우 파일명
+          pr: ${{ github.event.pull_request.number }}  # PR 번호로 검색
+          workflow_conclusion: success # 성공한 워크플로우만 검색
+          name_is_regexp: true # Artifact 이름을 정규표현식으로 검색 true는 패턴 매칭 가능
+          name: "frontend-.*"
+          path: ./artifacts
+
+      # 3. 타임스탬프로 tar.gz 파일명 변경
+      - name: Prepare artifact with timestamp
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          cd artifacts
+          cd $(ls -d frontend-* | head -n 1)
+          TAR_FILE=$(ls *.tar.gz | head -n 1)
+          mv $TAR_FILE ../../frontend-${TIMESTAMP}.tar.gz
+          cd ../..
+          echo "TAR_FILENAME=frontend-${TIMESTAMP}.tar.gz" >> $GITHUB_ENV
+          echo "DEPLOY_TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+
+      # 4. release/ 디렉토리로 tar.gz 전송
+      - name: Transfer artifact to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          source: "frontend-${{ env.DEPLOY_TIMESTAMP }}.tar.gz" # 전송할 파일
+          target: "~/frontend/release/"
+          strip_components: 0 # 경로에서 제거할 디렉토리 깊이: 지금 이미 파일명만 있음
+          # 0: 원본 경로 그대로 유지
+          # 1: 첫 번째 디렉토리 제거 (artifacts/file.tar.gz → file.tar.gz)
+
+      # 5. 배포 실행 (압축 해제 + PM2 재시작 방식)
+      - name: Deploy via SSH
+        id: deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # NVM 로드 (PM2 경로 설정)
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  
+
+            FRONTEND_DIR="/home/ubuntu/frontend"
+            RELEASE_DIR="$FRONTEND_DIR/release"
+            NEW_TAR="$RELEASE_DIR/frontend-${{ env.DEPLOY_TIMESTAMP }}.tar.gz"
+            APP_DIR="$FRONTEND_DIR/app"
+            
+            echo "1. 기존 애플리케이션 중지"
+            pm2 stop frontend || true
+            
+            echo "2. 기존 파일 백업"
+            if [ -d "$APP_DIR" ]; then
+              mv $APP_DIR ${APP_DIR}_backup_$(date +%Y%m%d%H%M%S)
+            fi
+            
+            echo "3. 새 버전 압축 해제"
+            mkdir -p $APP_DIR
+            tar -xzf $NEW_TAR -C $APP_DIR
+            
+            echo "4. 모노레포 구조 찾기"
+            if [ -d "$APP_DIR/1-team-one-fe/apps/web" ]; then
+              ACTUAL_APP_DIR="$APP_DIR/1-team-one-fe/apps/web"
+            elif [ -d "$APP_DIR/apps/web" ]; then
+              ACTUAL_APP_DIR="$APP_DIR/apps/web"
+            else
+              echo "ERROR: Cannot find app directory"
+              ls -la $APP_DIR
+              exit 1
+            fi
+            
+            echo "Found app at: $ACTUAL_APP_DIR"
+            
+            echo "5. PM2로 애플리케이션 시작"
+            cd $ACTUAL_APP_DIR
+            pm2 start server.js --name frontend --time || pm2 restart frontend
+            
+            echo "6. PM2 상태 확인"
+            pm2 status
+            pm2 save
+            
+            echo "7. 프로세스 시작 대기"
+            sleep 10
+
+      # 6. Health Check
+      - name: Health Check
+        id: healthcheck
+        uses: appleboy/ssh-action@v1.0.0
+        # continue-on-error: true
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            echo "Health Check 시작"
+            MAX_RETRY=10
+            RETRY_COUNT=0
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRY ]; do
+              if curl -f -s http://localhost:3000 > /dev/null; then
+                echo "Health check passed!"
+                exit 0
+              fi
+            
+              RETRY_COUNT=$((RETRY_COUNT+1))
+              echo "Retry $RETRY_COUNT/$MAX_RETRY..."
+              sleep 5
+            done
+            
+            # fail 시 롤백 + 디스코드 알림 추가 예정
+            
+            echo "Health check failed!"
+            pm2 logs frontend --lines 30 --nostream
+            exit 1
+
+      # 7. 시맨틱 버전 태그 생성
+      - name: Create Semantic Version Tag
+        if: |
+          steps.healthcheck.outcome == 'success' && 
+          github.event.pull_request.base.ref == 'main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 최신 태그 가져오기 (없으면 frontend-v0.0.0)
+          # git describe --tags: 가장 가까운 태그 찾기
+          # --abbrev=0: 커밋 해시 표시 안 함 (태그만)
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match "frontend-v*.*.*" 2>/dev/null || echo "frontend-v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+          
+          # 버전 파싱
+          VERSION=${LATEST_TAG#frontend-v}
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+          
+          # Patch 버전 자동 증가 (0.0.0 → 0.0.1)
+          # 단 패치버전에 대해서만 가능, 메이저의 경우 수동으로 업데이트가 필요
+          PATCH=$((PATCH + 1))
+          NEW_VERSION="frontend-v${MAJOR}.${MINOR}.${PATCH}"
+          
+          echo "New version: $NEW_VERSION"
+          
+          # Git 설정 (커밋 작성자 정보)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 태그 생성 및 푸시
+          git tag -a $NEW_VERSION -m "Release $NEW_VERSION
+          
+          Deploy Timestamp: ${{ env.DEPLOY_TIMESTAMP }}
+          TAR File: ${{ env.TAR_FILENAME }}
+          Commit: ${{ github.sha }}
+          PR: #${{ github.event.pull_request.number }}
+          Merged by: ${{ github.event.pull_request.user.login }}"
+          
+          git push origin $NEW_VERSION
+          echo "DEPLOY_TAG=$NEW_VERSION" >> $GITHUB_ENV
+          echo "Tag created: $NEW_VERSION"
+
+      # 8. 오래된 release/ 파일 정리 (배포 성공 시)
+      - name: Cleanup Old Releases
+        if: steps.healthcheck.outcome == 'success'
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            RELEASE_DIR="/home/ubuntu/frontend/release"
+            
+            echo "Cleanup old releases"
+            
+            # 최근 5개만 유지, 나머지 삭제
+            cd $RELEASE_DIR
+            OLD_TARS=$(ls -t frontend-*.tar.gz 2>/dev/null | tail -n +6)
+            
+            if [ -n "$OLD_TARS" ]; then
+              echo "Removing old releases:"
+              echo "$OLD_TARS" | xargs -r rm -v
+            else
+              echo "No old releases to clean up"
+            fi
+            
+            # 오래된 백업 정리 (7일 이상)
+            find /home/ubuntu/frontend/app_backup_* -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+
+      # Discord 알림 추가 (성공/실패 여부 + 커밋 아이디)
+      - name: Notify Discord - CD Result
+        if: always()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          MENTION_USER: ${{ secrets.DISCORD_MENTION_USER_ID }}
+        run: |
+          STATUS="${{ job.status }}"  # job.status로 변경
+          TAG="${{ env.DEPLOY_TAG }}"
+          curl -s -X POST -H "Content-Type: application/json" \
+            -d "{\"content\":\"<@${MENTION_USER}> Frontend CD **${STATUS}** | Tag: ${TAG} | \`${GITHUB_SHA:0:7}\`\"}" \
+            "$DISCORD_WEBHOOK_URL"
