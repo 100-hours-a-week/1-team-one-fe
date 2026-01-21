@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 
-import { AppShell } from '@/src/widgets/app-shell';
+import { AuthenticatedShell } from '@/src/widgets/authenticated-shell';
 import { MobileShell } from '@/src/widgets/mobile-shell';
 import { PublicShell } from '@/src/widgets/public-shell';
 
@@ -8,14 +8,22 @@ import { PublicShell } from '@/src/widgets/public-shell';
  * public pages
  */
 export function withPublicLayout(page: ReactElement): ReactNode {
-  return <PublicShell>{page}</PublicShell>;
+  return (
+    <MobileShell>
+      <PublicShell>{page}</PublicShell>
+    </MobileShell>
+  );
 }
 
 /**
  * authenticated
  */
-export function withAppLayout(page: ReactElement): ReactNode {
-  return <AppShell>{page}</AppShell>;
+export function withAuthenticatedLayout(page: ReactElement): ReactNode {
+  return (
+    <MobileShell>
+      <AuthenticatedShell>{page}</AuthenticatedShell>
+    </MobileShell>
+  );
 }
 
 /**
