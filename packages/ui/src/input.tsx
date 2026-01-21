@@ -240,6 +240,30 @@ function InputRightIcon({ className, children, ...props }: InputIconProps) {
   );
 }
 
+/** right slot */
+export interface InputRightAddonProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
+}
+
+function InputRightAddon({ className, children, ...props }: InputRightAddonProps) {
+  const { size } = useInputContext();
+
+  return (
+    <div
+      className={cn(
+        'flex items-center',
+        size === 'sm' && 'gap-1',
+        size === 'md' && 'gap-2',
+        size === 'lg' && 'gap-2',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
 /* Helper Text Component */
 
 export interface InputHelperTextProps
@@ -265,5 +289,6 @@ export const Input = {
   Field: InputField,
   LeftIcon: InputLeftIcon,
   RightIcon: InputRightIcon,
+  RightAddon: InputRightAddon,
   HelperText: InputHelperText,
 };
