@@ -1,8 +1,14 @@
+import { SignupForm } from '@/src/features/auth/signup';
+import { signup } from '@/src/features/auth/signup/api';
+
 export function SignupPage() {
-  return (
-    <div>
-      <h1>Signup Page</h1>
-      <p>Route: /signup</p>
-    </div>
-  );
+  const handleSubmit = async (values) => {
+    await signup({
+      email: values.email,
+      nickname: values.nickname,
+      password: values.password,
+    });
+  };
+
+  return <SignupForm onSubmit={handleSubmit} />;
 }

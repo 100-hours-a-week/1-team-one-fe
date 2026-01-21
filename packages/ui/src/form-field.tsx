@@ -2,7 +2,8 @@ import { Input } from './input';
 import type { ChangeEvent, FocusEvent, KeyboardEvent, ReactNode } from 'react';
 import { cn } from './lib/utils';
 
-type DupStatus = 'idle' | 'checking' | 'available' | 'unavailable' | 'error';
+//TODO: 타입 분리
+export type DupStatus = 'idle' | 'checking' | 'available' | 'unavailable' | 'error';
 
 interface DuplicationCheckOption {
   enabled: boolean;
