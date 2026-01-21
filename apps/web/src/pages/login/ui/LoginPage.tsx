@@ -1,8 +1,12 @@
+import { LoginForm } from '@/src/features/auth/login/LoginForm';
+
 export function LoginPage() {
   return (
-    <div>
-      <h1>Login Page</h1>
-      <p>Route: /login</p>
+    <div className="flex h-full flex-col items-center justify-center">
+      <div>
+        <h1 className="text-2xl font-bold">로그인</h1>
+      </div>
+      <LoginForm />
     </div>
   );
 }
