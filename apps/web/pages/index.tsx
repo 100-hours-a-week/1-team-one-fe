@@ -1,6 +1,6 @@
 import { Button } from '@repo/ui/button';
 
-import { withPublicLayout } from '@/src/shared/lib/layout';
+import { createPublicLayout } from '@/src/shared/lib/layout';
 import type { NextPageWithLayout } from '@/src/shared/types';
 
 const Home: NextPageWithLayout = function Home() {
@@ -11,6 +11,6 @@ const Home: NextPageWithLayout = function Home() {
   );
 };
 
-Home.getLayout = withPublicLayout;
+Home.getLayout = createPublicLayout();
 
 export default Home;

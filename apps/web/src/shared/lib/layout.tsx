@@ -4,15 +4,20 @@ import { AuthenticatedShell } from '@/src/widgets/authenticated-shell';
 import { MobileShell } from '@/src/widgets/mobile-shell';
 import { PublicShell } from '@/src/widgets/public-shell';
 
-/**
- * public pages
- */
-export function withPublicLayout(page: ReactElement): ReactNode {
-  return (
-    <MobileShell>
-      <PublicShell>{page}</PublicShell>
-    </MobileShell>
-  );
+type PublicLayoutOptions = {
+  showFooter?: boolean;
+};
+
+export function createPublicLayout(options: PublicLayoutOptions = {}) {
+  const { showFooter = true } = options;
+
+  return function withPublicLayout(page: ReactElement): ReactNode {
+    return (
+      <MobileShell showFooter={showFooter}>
+        <PublicShell>{page}</PublicShell>
+      </MobileShell>
+    );
+  };
 }
 
 /**
