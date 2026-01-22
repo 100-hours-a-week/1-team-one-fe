@@ -10,8 +10,9 @@ const DEFAULT_HEADERS = {
 } as const;
 
 function createClient(baseURL: string): AxiosInstance {
+  const basePrefix = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
   const client = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL + baseURL,
+    baseURL: basePrefix ? `${basePrefix}${baseURL}` : baseURL,
     timeout: API_CONFIG.DEFAULT_TIMEOUT,
     headers: DEFAULT_HEADERS,
     withCredentials: true,

@@ -1,10 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 
-import { isApiError } from '@/src/shared/mock-api';
+import { isApiError } from '@/src/shared/api';
 
 import { EmailField, NicknameField, PasswordField } from '../../ui';
-import { checkEmailDuplication, checkNicknameDuplication } from '../api';
 import { FORM_MESSAGES } from '../config/form-messages';
 import { useEmailDuplication } from '../lib/use-email-duplication';
 import { useNicknameDuplication } from '../lib/use-nickname-duplication';
@@ -27,13 +26,8 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
     },
   });
 
-  const emailDup = useEmailDuplication(control, checkEmailDuplication, setError, clearErrors);
-  const nicknameDup = useNicknameDuplication(
-    control,
-    checkNicknameDuplication,
-    setError,
-    clearErrors,
-  );
+  const emailDup = useEmailDuplication(control, setError, clearErrors);
+  const nicknameDup = useNicknameDuplication(control, setError, clearErrors);
 
   const handleFormSubmit = async (values: SignupFormValues) => {
     //TODO: early return
@@ -52,7 +46,6 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
       });
       return;
     }
-    //TODO: react query 연결 후 리팩토링
     try {
       await onSubmit(values);
     } catch (error: unknown) {
