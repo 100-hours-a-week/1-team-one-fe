@@ -1,4 +1,12 @@
-export { checkEmailDuplication } from './check-email-duplication';
-export { checkNicknameDuplication } from './check-nickname-duplication';
-export { signup } from './signup';
-export type { DuplicationCheckResponse, SignupRequest, SignupResponse } from './types';
+export { useEmailAvailabilityQuery } from './email-availability';
+export { useNicknameAvailabilityQuery } from './nickname-availability';
+export { useSignupMutation } from './signup-mutation';
+export type {
+  EmailAvailabilityData,
+  EmailAvailabilityResponse,
+  NicknameAvailabilityData,
+  NicknameAvailabilityResponse,
+  SignupData,
+  SignupRequest,
+  SignupResponse,
+} from './types';
