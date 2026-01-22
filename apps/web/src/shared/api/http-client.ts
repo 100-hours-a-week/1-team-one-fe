@@ -9,8 +9,8 @@ const DEFAULT_HEADERS = {
   'Content-Type': 'application/json',
 } as const;
 
-function createClient(baseURL: string): AxiosInstance {
-  const basePrefix = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+function createClient(baseURL: string, useBasePrefix: boolean): AxiosInstance {
+  const basePrefix = useBasePrefix ? (process.env.NEXT_PUBLIC_API_BASE_URL ?? '') : '';
   const client = axios.create({
     baseURL: basePrefix ? `${basePrefix}${baseURL}` : baseURL,
     timeout: API_CONFIG.DEFAULT_TIMEOUT,
@@ -34,8 +34,8 @@ function createClient(baseURL: string): AxiosInstance {
   return client;
 }
 
-export const realClient = createClient(API_CONFIG.REAL_BASE_URL);
-export const bffClient = createClient(API_CONFIG.BFF_BASE_URL);
+export const realClient = createClient(API_CONFIG.REAL_BASE_URL, true);
+export const bffClient = createClient(API_CONFIG.BFF_BASE_URL, false);
 
 export interface ClientOptions {
   requiresAuth?: boolean;
