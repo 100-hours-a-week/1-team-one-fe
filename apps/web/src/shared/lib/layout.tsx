@@ -1,39 +1,40 @@
 import type { ReactElement, ReactNode } from 'react';
 
-import { AuthenticatedShell } from '@/src/widgets/authenticated-shell';
-import { MobileShell } from '@/src/widgets/mobile-shell';
-import { PublicShell } from '@/src/widgets/public-shell';
+import { AuthenticatedShell } from '@/src/widgets/layout/authenticated-shell';
+import { MobileShell } from '@/src/widgets/layout/mobile-shell';
+import { HeaderConfig } from '@/src/widgets/layout/page-header';
+import { PublicShell } from '@/src/widgets/layout/public-shell';
 
 type PublicLayoutOptions = {
   showFooter?: boolean;
+  headerConfig?: HeaderConfig;
 };
 
 export function createPublicLayout(options: PublicLayoutOptions = {}) {
-  const { showFooter = true } = options;
+  const { showFooter = true, headerConfig } = options;
 
   return function withPublicLayout(page: ReactElement): ReactNode {
     return (
-      <MobileShell showFooter={showFooter}>
+      <MobileShell showFooter={showFooter} headerConfig={headerConfig}>
         <PublicShell>{page}</PublicShell>
       </MobileShell>
     );
   };
 }
 
-/**
- * authenticated
- */
-export function withAuthenticatedLayout(page: ReactElement): ReactNode {
+/** authenticated */
+export function withAuthenticatedLayout(
+  page: ReactElement,
+  headerConfig?: HeaderConfig,
+): ReactNode {
   return (
-    <MobileShell>
+    <MobileShell headerConfig={headerConfig}>
       <AuthenticatedShell>{page}</AuthenticatedShell>
     </MobileShell>
   );
 }
 
-/**
- * mobile footer navigation
- */
-export function withMobileLayout(page: ReactElement): ReactNode {
-  return <MobileShell>{page}</MobileShell>;
+/** mobile  */
+export function withMobileLayout(page: ReactElement, headerConfig?: HeaderConfig): ReactNode {
+  return <MobileShell headerConfig={headerConfig}>{page}</MobileShell>;
 }
