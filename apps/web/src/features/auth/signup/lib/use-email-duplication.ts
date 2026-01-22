@@ -6,19 +6,20 @@ import {
   useWatch,
 } from 'react-hook-form';
 
+import { useEmailAvailabilityQuery } from '../api';
 import { FORM_MESSAGES } from '../config/form-messages';
 import type { SignupFormValues } from '../model/signup-schema';
 import type { DupState } from './types';
 
 export function useEmailDuplication(
   control: Control<SignupFormValues>,
-  checkFn: (email: string) => Promise<{ available: boolean }>,
   setError: UseFormSetError<SignupFormValues>,
   clearErrors: UseFormClearErrors<SignupFormValues>,
 ) {
   const [state, setState] = useState<DupState>({ status: 'idle' });
   const lastCheckedRef = useRef<string | undefined>(undefined);
   const emailValue = useWatch({ control, name: 'email' });
+  const { refetch } = useEmailAvailabilityQuery(emailValue ?? '', { enabled: false });
 
   useEffect(() => {
     if (emailValue !== lastCheckedRef.current && lastCheckedRef.current !== undefined) {
@@ -47,21 +48,22 @@ export function useEmailDuplication(
     setState({ status: 'checking', message: FORM_MESSAGES.EMAIL.DUP_CHECKING });
 
     try {
-      const result = await checkFn(currentEmail);
+      const result = await refetch();
+      const available = result.data?.available;
 
       if (emailValue !== currentEmail) {
         console.log('Race condition: email changed during check');
         return;
       }
 
-      if (result.available) {
+      if (available) {
         setState({
           status: 'available',
           message: FORM_MESSAGES.EMAIL.AVAILABLE,
         });
         lastCheckedRef.current = currentEmail;
         clearErrors('email');
-      } else {
+      } else if (available === false) {
         setState({
           status: 'unavailable',
           message: FORM_MESSAGES.EMAIL.UNAVAILABLE,
@@ -69,6 +71,11 @@ export function useEmailDuplication(
         setError('email', {
           type: 'duplicate',
           message: FORM_MESSAGES.EMAIL.UNAVAILABLE,
+        });
+      } else {
+        setState({
+          status: 'error',
+          message: FORM_MESSAGES.EMAIL.DUP_CHECK_FAILED,
         });
       }
     } catch (error) {
