@@ -80,6 +80,8 @@ jobs:
 
       # Phase 2: Build
       - name: Build Next.js application
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ github.base_ref == 'main' && secrets.PROD_API_BASE_URL || secrets.DEV_API_BASE_URL }}
         run: pnpm turbo build --filter=web
 
       # Phase 3: Test
