@@ -5,12 +5,12 @@ import { MobileShell } from '@/src/widgets/layout/mobile-shell';
 import { HeaderConfig } from '@/src/widgets/layout/page-header';
 import { PublicShell } from '@/src/widgets/layout/public-shell';
 
-type PublicLayoutOptions = {
+type LayoutOptions = {
   showFooter?: boolean;
   headerConfig?: HeaderConfig;
 };
 
-export function createPublicLayout(options: PublicLayoutOptions = {}) {
+export function createPublicLayout(options: LayoutOptions = {}) {
   const { showFooter = true, headerConfig } = options;
 
   return function withPublicLayout(page: ReactElement): ReactNode {
@@ -23,15 +23,17 @@ export function createPublicLayout(options: PublicLayoutOptions = {}) {
 }
 
 /** authenticated */
-export function withAuthenticatedLayout(
-  page: ReactElement,
-  headerConfig?: HeaderConfig,
-): ReactNode {
-  return (
-    <MobileShell headerConfig={headerConfig}>
-      <AuthenticatedShell>{page}</AuthenticatedShell>
-    </MobileShell>
-  );
+
+export function createAuthenticatedLayout(options: LayoutOptions = {}) {
+  const { showFooter = true, headerConfig } = options;
+
+  return function withAuthenticatedLayout(page: ReactElement): ReactNode {
+    return (
+      <MobileShell showFooter={showFooter} headerConfig={headerConfig}>
+        <AuthenticatedShell>{page}</AuthenticatedShell>
+      </MobileShell>
+    );
+  };
 }
 
 /** mobile  */

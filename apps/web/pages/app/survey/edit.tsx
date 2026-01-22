@@ -1,8 +1,8 @@
 import { SurveyEditPage } from '@/src/pages/survey-edit';
-import { withAuthenticatedLayout } from '@/src/shared/lib/layout';
+import { createAuthenticatedLayout } from '@/src/shared/lib/layout';
 import type { NextPageWithLayout } from '@/src/shared/types';
 
 const Page: NextPageWithLayout = SurveyEditPage;
-Page.getLayout = withAuthenticatedLayout;
+Page.getLayout = createAuthenticatedLayout({ showFooter: false });
 
 export default Page;
