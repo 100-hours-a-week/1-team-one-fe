@@ -30,5 +30,5 @@ export function proxy(request: NextRequest) {
 
 //TODO: matcher 상세화
 export const config = {
-  matcher: ['/app/:path*', '/login', '/signup'],
+  matcher: ['/app/:path*', '/login', '/signup', '/onboarding/:path*'],
 };
