@@ -1,7 +1,7 @@
 import '@/styles/globals.css';
 
+import { withProviders } from '@/src/providers/withProviders';
 import type { AppPropsWithLayout } from '@/src/shared/types';
-import { withProviders } from '@/src/widgets/providers/withProviders';
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);

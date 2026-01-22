@@ -1,7 +1,7 @@
 import { AppShell } from '@repo/ui/appshell';
 import type { ReactNode } from 'react';
 
-import { FooterNav } from '@/src/widgets/footer-nav';
+import { FooterNav } from '@/src/widgets/layout/footer-nav';
 
 export interface MobileShellProps {
   children: ReactNode;
