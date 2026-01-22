@@ -20,7 +20,7 @@ const radioItemVariants = cva([
 
   //선택
   'data-[state=checked]:bg-brand-50/50',
-  'data-[state=checked]:shadow-[0_8px_20px_rgba(0,0,0,0.06)]',
+  'data-[state=checked]:shadow-[0_0_0_rgba(0,0,0,0.06)]',
 
   'focus-visible:outline-none',
   'focus-visible:ring-2',
