@@ -11,12 +11,12 @@ const BEARER_PREFIX = 'Bearer';
 const BFF_PREFIX = 'bff';
 const REAL_API_PREFIX = '/api';
 
-interface RefreshTokens {
-  accessToken: string;
-  refreshToken: string;
+interface Tokens {
+  accessToken: { token: string; expiresAt: string };
+  refreshToken: { token: string; expiresAt: string };
 }
 
-type RefreshResponse = ApiResponse<{ tokens: RefreshTokens }>;
+type RefreshResponse = ApiResponse<{ tokens: Tokens }>;
 
 type ProxyResponse = ApiResponse<Record<string, unknown>>;
 
@@ -70,6 +70,48 @@ function joinUrl(base: string, path: string): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+/**
+ * api 응답에서 accesstoken, refreshtoken 추출
+ */
+function extractTokens(payload: unknown): Tokens | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const data = payload.data;
+
+  if (!isRecord(data)) {
+    return null;
+  }
+
+  const tokens = data.tokens;
+  console.log(tokens);
+
+  if (!isRecord(tokens)) {
+    return null;
+  }
+
+  const accessToken = tokens.accessToken;
+  const refreshToken = tokens.refreshToken;
+
+  if (!isRecord(accessToken) || !isRecord(refreshToken)) {
+    return null;
+  }
+
+  const accessTokenString = accessToken.token;
+  const refreshTokenString = refreshToken.token;
+
+  if (typeof accessTokenString !== 'string' || typeof refreshTokenString !== 'string') {
+    return null;
+  }
+
+  //TODO: expiresAt 도 검사에 추가 예정
+  return {
+    accessToken: { token: accessTokenString, expiresAt: '' },
+    refreshToken: { token: refreshTokenString, expiresAt: '' },
+  };
 }
 
 function stripTokens(payload: unknown): unknown {
@@ -131,7 +173,7 @@ function buildAuthHeader(accessToken?: string): string | undefined {
   return `${BEARER_PREFIX} ${accessToken}`;
 }
 
-function setAuthCookies(res: NextApiResponse, tokens: RefreshTokens): void {
+function setAuthCookies(res: NextApiResponse, tokens: Tokens): void {
   const secure = process.env.NODE_ENV === 'production';
   const baseOptions = {
     httpOnly: true,
@@ -142,12 +184,12 @@ function setAuthCookies(res: NextApiResponse, tokens: RefreshTokens): void {
 
   const accessTokenCookie = serializeCookie(
     AUTH_CONFIG.ACCESS_TOKEN_COOKIE,
-    tokens.accessToken,
+    tokens.accessToken.token,
     baseOptions,
   );
   const refreshTokenCookie = serializeCookie(
     AUTH_CONFIG.REFRESH_TOKEN_COOKIE,
-    tokens.refreshToken,
+    tokens.refreshToken.token,
     baseOptions,
   );
 
@@ -176,7 +218,7 @@ async function requestJson<TResponse>(
   return { status: response.status, json, headers: response.headers };
 }
 
-async function refreshTokens(baseUrl: string, refreshToken: string): Promise<RefreshTokens | null> {
+async function refreshTokens(baseUrl: string, refreshToken: string): Promise<Tokens | null> {
   const refreshUrl = joinUrl(baseUrl, `${REAL_API_PREFIX}${AUTH_CONFIG.REFRESH_ENDPOINT}`);
   const init: RequestInit = {
     method: 'POST',
@@ -229,6 +271,25 @@ async function forwardRequest(
   return requestJson<ProxyResponse>(targetUrl, init);
 }
 
+/**
+ * token 있으면 set-cookie 후 응답에서 token 지우고 응답하는 방식
+ */
+function respondWithPayload(res: NextApiResponse, status: number, payload: ProxyResponse | null) {
+  if (!payload) {
+    res.status(status).end();
+    return;
+  }
+  console.log(payload);
+
+  const tokens = extractTokens(payload);
+  if (tokens) {
+    setAuthCookies(res, tokens);
+  }
+
+  const sanitizedPayload = stripTokens(payload);
+  res.status(status).json(sanitizedPayload);
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const pathSegments = getPathSegments(req.query.path);
 
@@ -262,38 +323,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const initialResponse = await forwardRequest(targetUrl, req, accessToken);
 
   if (initialResponse.status !== HTTP_STATUS.UNAUTHORIZED || !refreshToken) {
-    if (!initialResponse.json) {
-      res.status(initialResponse.status).end();
-      return;
-    }
-
-    const sanitizedPayload = stripTokens(initialResponse.json);
-    res.status(initialResponse.status).json(sanitizedPayload);
+    respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
   }
 
   const refreshedTokens = await refreshTokens(baseUrl, refreshToken);
 
   if (!refreshedTokens) {
-    if (!initialResponse.json) {
-      res.status(initialResponse.status).end();
-      return;
-    }
-
-    const sanitizedPayload = stripTokens(initialResponse.json);
-    res.status(initialResponse.status).json(sanitizedPayload);
+    respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
   }
 
   setAuthCookies(res, refreshedTokens);
 
-  const retryResponse = await forwardRequest(targetUrl, req, refreshedTokens.accessToken);
+  const retryResponse = await forwardRequest(targetUrl, req, refreshedTokens.accessToken.token);
 
-  if (!retryResponse.json) {
-    res.status(retryResponse.status).end();
-    return;
-  }
-
-  const sanitizedPayload = stripTokens(retryResponse.json);
-  res.status(retryResponse.status).json(sanitizedPayload);
+  respondWithPayload(res, retryResponse.status, retryResponse.json);
 }
