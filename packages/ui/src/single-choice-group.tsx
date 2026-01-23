@@ -52,7 +52,7 @@ export interface SingleChoiceOption {
 export interface SingleChoiceGroupProps {
   ref?: React.Ref<HTMLDivElement>;
   options: SingleChoiceOption[];
-  value?: string;
+  value: string;
   onChange?: (value: string) => void;
   error?: boolean;
   errorMessage?: string;
@@ -65,7 +65,7 @@ export interface SingleChoiceGroupProps {
 export function SingleChoiceGroup({
   ref,
   options,
-  value,
+  value = '', //uncontrolled 경고 방지
   onChange,
   error = false,
   errorMessage,

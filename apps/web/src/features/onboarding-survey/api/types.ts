@@ -19,3 +19,19 @@ export interface SurveyData {
 }
 
 export type SurveyResponse = ApiResponse<SurveyData>;
+
+export interface SurveySubmissionResponseItem {
+  questionId: number;
+  optionId: number;
+}
+
+export interface SurveySubmissionRequest {
+  surveyId: number;
+  responses: SurveySubmissionResponseItem[];
+}
+
+export interface SurveySubmissionData {
+  submission_id: number;
+}
+
+export type SurveySubmissionResponse = ApiResponse<SurveySubmissionData>;

@@ -1,6 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { OnboardingSurveyFormProps, SurveyQuestion } from '@/src/features/onboarding-survey';
+import type { SurveyData, SurveyQuestion, SurveySubmissionResponseItem } from '../api/types';
+
+interface UseSurveyFormOptions {
+  data?: SurveyData;
+  onBack: () => void;
+}
 
 type SurveyAnswers = Record<number, number>;
 
@@ -8,13 +13,9 @@ function sortByOrder<T extends { sortOrder: number }>(items: T[]): T[] {
   return [...items].sort((left, right) => left.sortOrder - right.sortOrder);
 }
 
-export function useSurveyForm({
-  onBack,
-  onComplete,
-  data,
-}: OnboardingSurveyFormProps & { data: { questions: SurveyQuestion[] } | undefined }) {
+export function useSurveyForm({ data, onBack }: UseSurveyFormOptions) {
   const [answers, setAnswers] = useState<SurveyAnswers>({});
-  const [currentIndex, setCurrentIndex] = useState(0); //현재 질문 인덱스
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const questions = useMemo(() => {
     if (!data) {
@@ -27,9 +28,31 @@ export function useSurveyForm({
     }));
   }, [data]);
 
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [questions.length]);
+
   const currentQuestion = questions[currentIndex];
   const selectedOptionId = currentQuestion ? answers[currentQuestion.questionId] : undefined;
   const hasSelection = selectedOptionId !== undefined;
+  const isLast = currentIndex === questions.length - 1;
+
+  const responses = useMemo(() => {
+    return questions
+      .map<SurveySubmissionResponseItem | null>((question) => {
+        const optionId = answers[question.questionId];
+
+        if (optionId === undefined) {
+          return null;
+        }
+
+        return {
+          questionId: question.questionId,
+          optionId,
+        };
+      })
+      .filter((item): item is SurveySubmissionResponseItem => item !== null);
+  }, [answers, questions]);
 
   const handleSelect = (questionId: number, optionId: number) => {
     setAnswers((prev) => ({
@@ -49,17 +72,15 @@ export function useSurveyForm({
 
   const handleNext = () => {
     if (!hasSelection) {
-      return;
+      return false;
     }
-
-    const isLast = currentIndex === questions.length - 1;
 
     if (!isLast) {
       setCurrentIndex((prev) => prev + 1);
-      return;
+      return false;
     }
 
-    onComplete();
+    return true;
   };
 
   const selectedValue = selectedOptionId !== undefined ? String(selectedOptionId) : '';
@@ -88,7 +109,9 @@ export function useSurveyForm({
     currentQuestion,
     selectedValue,
     options,
+    responses,
     hasSelection,
+    isLast,
     handleChoiceChange,
     handleBackClick,
     handleNext,
