@@ -1,8 +1,6 @@
 import { Button } from '@repo/ui/button';
 import { Minus, Plus } from 'lucide-react';
 
-import { FORM_MESSAGES } from '../config';
-
 interface IntervalStepperProps {
   value: number;
   onChange: (value: number) => void;
@@ -50,10 +48,7 @@ export function IntervalStepper({
           <Minus className="h-4 w-4" />
         </Button>
         <div className="flex-1 text-center">
-          <span className="text-text text-lg font-semibold">
-            {value}
-            {FORM_MESSAGES.INTERVAL.UNIT}
-          </span>
+          <span className="text-text text-lg font-semibold">{value}분</span>
         </div>
         <Button
           type="button"
