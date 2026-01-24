@@ -2,7 +2,9 @@ import {
   createAccuracyEngine,
   type AccuracyEngine,
   type AccuracyResult,
+  type ExerciseType,
   type PoseFrame,
+  type ReferencePose,
   type Landmark2D,
 } from '@repo/stretching-accuracy';
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
@@ -15,6 +17,10 @@ export type CreateSessionOptions = {
   video: HTMLVideoElement;
   modelAssetPath: string;
   wasmRoot: string;
+  referencePose: ReferencePose;
+  getProgressRatio: () => number;
+  exerciseType: ExerciseType;
+  getPhase: () => string;
   onFrame?: (frame: PoseFrame) => void;
   onAccuracy?: (result: AccuracyResult, frame: PoseFrame) => void;
   onError?: (error: Error) => void;
@@ -60,6 +66,10 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     video,
     modelAssetPath,
     wasmRoot,
+    referencePose,
+    getProgressRatio,
+    exerciseType,
+    getPhase,
     onFrame,
     onAccuracy,
     onError,
@@ -122,7 +132,16 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     if (frame) {
       onFrame?.(frame);
 
-      const accuracy = accuracyEngine.evaluate(frame);
+      // TODO: 세션 내부에서 정확도 평가 진행(진행률 정책 확정 후 외부 이동 검토 for 관심사 분리)
+      const progressRatio = getProgressRatio();
+      const phase = getPhase();
+      const accuracy = accuracyEngine.evaluate({
+        frame,
+        referencePose,
+        progressRatio,
+        type: exerciseType,
+        phase,
+      });
       onAccuracy?.(accuracy, frame);
     }
 
