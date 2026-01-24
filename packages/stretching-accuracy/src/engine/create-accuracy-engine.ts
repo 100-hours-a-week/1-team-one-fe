@@ -1,4 +1,9 @@
-import type { AccuracyEngine, AccuracyEvaluateInput, AccuracyResult } from '../types';
+import type {
+  AccuracyEngine,
+  AccuracyEvaluateInput,
+  AccuracyResult,
+  CountedStatus,
+} from '../types';
 
 /**
  * @description ai 정확도 구현 로직
@@ -8,7 +13,13 @@ import type { AccuracyEngine, AccuracyEvaluateInput, AccuracyResult } from '../t
  */
 
 const evaluate = (_input: AccuracyEvaluateInput): AccuracyResult => {
-  return { score: 0 };
+  const counted: CountedStatus = _input.type === 'REPS' ? 'NOT_INCREMENTED' : 'NOT_APPLICABLE';
+
+  return {
+    score: 0,
+    phase: _input.phase,
+    counted,
+  };
 };
 
 export function createAccuracyEngine(): AccuracyEngine {
