@@ -28,7 +28,7 @@ export function WeekdaySelector({
   return (
     <div className="w-full">
       {label && <label className="text-text mb-1.5 block text-sm font-medium">{label}</label>}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap justify-center gap-2">
         {WEEKDAY_OPTIONS.map((option) => (
           <Chip
             key={option.value}
