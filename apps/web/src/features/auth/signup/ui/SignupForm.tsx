@@ -34,7 +34,7 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
     if (emailDup.state.status !== 'available') {
       setError('email', {
         type: 'manual',
-        message: FORM_MESSAGES.EMAIL.DUP_CHECK_REQUIRED,
+        message: FORM_MESSAGES.ERROR.EMAIL_DUP_CHECK_REQUIRED,
       });
       return;
     }
@@ -42,7 +42,7 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
     if (nicknameDup.state.status !== 'available') {
       setError('nickname', {
         type: 'manual',
-        message: FORM_MESSAGES.NICKNAME.DUP_CHECK_REQUIRED,
+        message: FORM_MESSAGES.ERROR.NICKNAME_DUP_CHECK_REQUIRED,
       });
       return;
     }
@@ -82,7 +82,7 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
               enabled: true,
               status: emailDup.state.status,
               message: emailDup.state.message,
-              buttonText: FORM_MESSAGES.BUTTON.DUP_CHECK,
+              buttonText: '중복 확인',
               disabled:
                 !field.value ||
                 (fieldState.invalid &&
@@ -109,7 +109,7 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
               enabled: true,
               status: nicknameDup.state.status,
               message: nicknameDup.state.message,
-              buttonText: FORM_MESSAGES.BUTTON.DUP_CHECK,
+              buttonText: '중복 확인',
               disabled:
                 !field.value ||
                 (fieldState.invalid &&
@@ -129,12 +129,12 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
           <PasswordField
             {...field}
             id="password"
-            label={FORM_MESSAGES.PASSWORD.LABEL}
+            label="비밀번호"
             autoComplete="new-password"
             required
             error={fieldState.invalid}
             errorMessage={fieldState.error?.message}
-            helperText={FORM_MESSAGES.PASSWORD.HELPER_TEXT}
+            helperText="최소 8자 이상 입력해주세요."
           />
         )}
       />
@@ -146,7 +146,7 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
           <PasswordField
             {...field}
             id="passwordConfirm"
-            label={FORM_MESSAGES.PASSWORD.CONFIRM_LABEL}
+            label="비밀번호 확인"
             autoComplete="new-password"
             required
             error={fieldState.invalid}
@@ -164,9 +164,7 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
         disabled={isPending || formState.isSubmitting}
         className="bg-brand-600 hover:bg-brand-700 w-full rounded-md px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isPending || formState.isSubmitting
-          ? FORM_MESSAGES.BUTTON.SUBMIT_PENDING
-          : FORM_MESSAGES.BUTTON.SUBMIT_DEFAULT}
+        {isPending || formState.isSubmitting ? '처리 중...' : '회원가입'}
       </button>
     </form>
   );

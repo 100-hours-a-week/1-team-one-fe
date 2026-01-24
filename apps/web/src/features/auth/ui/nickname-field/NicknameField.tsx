@@ -1,13 +1,11 @@
 import { FormField, type FormFieldProps } from '@repo/ui/form-field';
 import { UserCircle } from 'lucide-react';
 
-import { FORM_MESSAGES } from '../../signup/config/form-messages';
-
 export type NicknameFieldProps = Omit<FormFieldProps, 'type' | 'leftIcon'>;
 
 export function NicknameField({
-  label = FORM_MESSAGES.NICKNAME.LABEL,
-  placeholder = FORM_MESSAGES.NICKNAME.PLACEHOLDER,
+  label = '닉네임',
+  placeholder = '닉네임을 입력해주세요',
   autoComplete = 'username',
   ...props
 }: NicknameFieldProps) {
