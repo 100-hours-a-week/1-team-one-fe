@@ -25,7 +25,7 @@ export function useEmailDuplication(
     if (emailValue !== lastCheckedRef.current && lastCheckedRef.current !== undefined) {
       setState({
         status: 'idle',
-        message: FORM_MESSAGES.EMAIL.DUP_CHECK_REQUIRED,
+        message: FORM_MESSAGES.ERROR.EMAIL_DUP_CHECK_REQUIRED,
       });
     }
   }, [emailValue]);
@@ -45,7 +45,7 @@ export function useEmailDuplication(
       return;
     }
 
-    setState({ status: 'checking', message: FORM_MESSAGES.EMAIL.DUP_CHECKING });
+    setState({ status: 'checking', message: '확인 중...' });
 
     try {
       const result = await refetch();
@@ -59,23 +59,23 @@ export function useEmailDuplication(
       if (available) {
         setState({
           status: 'available',
-          message: FORM_MESSAGES.EMAIL.AVAILABLE,
+          message: '사용 가능한 이메일입니다.',
         });
         lastCheckedRef.current = currentEmail;
         clearErrors('email');
       } else if (available === false) {
         setState({
           status: 'unavailable',
-          message: FORM_MESSAGES.EMAIL.UNAVAILABLE,
+          message: FORM_MESSAGES.ERROR.EMAIL_UNAVAILABLE,
         });
         setError('email', {
           type: 'duplicate',
-          message: FORM_MESSAGES.EMAIL.UNAVAILABLE,
+          message: FORM_MESSAGES.ERROR.EMAIL_UNAVAILABLE,
         });
       } else {
         setState({
           status: 'error',
-          message: FORM_MESSAGES.EMAIL.DUP_CHECK_FAILED,
+          message: FORM_MESSAGES.ERROR.EMAIL_DUP_CHECK_FAILED,
         });
       }
     } catch (error) {
@@ -85,7 +85,7 @@ export function useEmailDuplication(
 
       setState({
         status: 'error',
-        message: FORM_MESSAGES.EMAIL.DUP_CHECK_FAILED,
+        message: FORM_MESSAGES.ERROR.EMAIL_DUP_CHECK_FAILED,
       });
       console.error('Email duplication check failed:', error);
     }
