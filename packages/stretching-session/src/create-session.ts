@@ -54,8 +54,10 @@ export type CreateSessionOptions = {
   modelAssetPath: string;
   wasmRoot: string;
   referencePose: ReferencePose;
+  getReferencePose?: () => ReferencePose;
   getProgressRatio: () => number;
   exerciseType: ExerciseType;
+  getExerciseType?: () => ExerciseType;
   getPhase: () => string;
   segmentation?: SegmentationOptions;
   silhouette?: SilhouetteOptions;
@@ -105,8 +107,10 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     modelAssetPath,
     wasmRoot,
     referencePose,
+    getReferencePose,
     getProgressRatio,
     exerciseType,
+    getExerciseType,
     getPhase,
     segmentation,
     silhouette,
@@ -433,6 +437,12 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
 
     silhouetteContext.save();
     silhouetteContext.imageSmoothingEnabled = true;
+    silhouetteContext.setTransform(1, 0, 0, 1, 0, 0);
+
+    //거울모드
+    silhouetteContext.translate(width, 0);
+    silhouetteContext.scale(-1, 1);
+
     silhouetteContext.clearRect(0, 0, width, height);
     silhouetteContext.fillStyle = `rgba(${background.r}, ${background.g}, ${background.b}, ${background.a / 255})`;
     silhouetteContext.fillRect(0, 0, width, height);
@@ -593,11 +603,17 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
       // TODO: 세션 내부에서 정확도 평가 진행(진행률 정책 확정 후 외부 이동 검토 for 관심사 분리)
       const progressRatio = getProgressRatio();
       const phase = getPhase();
+      const resolvedReferencePose = getReferencePose ? getReferencePose() : referencePose;
+      const resolvedExerciseType = getExerciseType ? getExerciseType() : exerciseType;
+      if (!resolvedReferencePose || !resolvedExerciseType) {
+        scheduleNextFrame();
+        return;
+      }
       const accuracy = accuracyEngine.evaluate({
         frame,
-        referencePose,
+        referencePose: resolvedReferencePose,
         progressRatio,
-        type: exerciseType,
+        type: resolvedExerciseType,
         phase,
       });
       onAccuracy?.(accuracy, frame);
