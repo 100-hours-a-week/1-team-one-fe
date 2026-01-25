@@ -14,6 +14,7 @@
     "@repo/ui": "workspace:*",
     "@repo/tokens": "workspace:*",
     "@tanstack/react-query": "^5.90.19",
+    "@repo/stretching-session": "workspace:*",
     "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^0.469.0",

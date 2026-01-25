@@ -1,5 +1,6 @@
+import { ErrorView } from '@repo/ui/error-view';
+
 import { ERROR_MESSAGES } from '@/src/shared/config/error-messages';
-import { ErrorView } from '@/src/shared/ui/error-view';
 
 export type ErrorPageVariant = 'not-found' | 'server-error' | 'unexpected';
 

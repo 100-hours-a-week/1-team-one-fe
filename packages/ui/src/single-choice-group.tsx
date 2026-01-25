@@ -20,7 +20,7 @@ const radioItemVariants = cva([
 
   //선택
   'data-[state=checked]:bg-brand-50/50',
-  'data-[state=checked]:shadow-[0_8px_20px_rgba(0,0,0,0.06)]',
+  'data-[state=checked]:shadow-[0_0_0_rgba(0,0,0,0.06)]',
 
   'focus-visible:outline-none',
   'focus-visible:ring-2',
@@ -52,7 +52,7 @@ export interface SingleChoiceOption {
 export interface SingleChoiceGroupProps {
   ref?: React.Ref<HTMLDivElement>;
   options: SingleChoiceOption[];
-  value?: string;
+  value: string;
   onChange?: (value: string) => void;
   error?: boolean;
   errorMessage?: string;
@@ -65,7 +65,7 @@ export interface SingleChoiceGroupProps {
 export function SingleChoiceGroup({
   ref,
   options,
-  value,
+  value = '', //uncontrolled 경고 방지
   onChange,
   error = false,
   errorMessage,

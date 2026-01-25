@@ -6,6 +6,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "start": "pnpm --filter web run start",
     "format": "prettier . --check",
     "format:write": "prettier . --write",
     "test": "turbo test",

@@ -1,34 +1,12 @@
 export const FORM_MESSAGES = {
-  EMAIL: {
-    LABEL: '이메일',
-    PLACEHOLDER: '이메일을 입력해주세요',
-    DUP_CHECK_REQUIRED: '이메일 중복 확인이 필요합니다.',
-    DUP_CHECKING: '확인 중...',
-    AVAILABLE: '사용 가능한 이메일입니다.',
-    UNAVAILABLE: '이미 사용 중인 이메일입니다.',
-    DUP_CHECK_FAILED: '중복 확인에 실패했습니다. 다시 시도해주세요.',
-  },
-  NICKNAME: {
-    LABEL: '닉네임',
-    PLACEHOLDER: '닉네임을 입력해주세요',
-    DUP_CHECK_REQUIRED: '닉네임 중복 확인이 필요합니다.',
-    DUP_CHECKING: '확인 중...',
-    AVAILABLE: '사용 가능한 닉네임입니다.',
-    UNAVAILABLE: '이미 사용 중인 닉네임입니다.',
-    DUP_CHECK_FAILED: '중복 확인에 실패했습니다. 다시 시도해주세요.',
-  },
-  PASSWORD: {
-    LABEL: '비밀번호',
-    CONFIRM_LABEL: '비밀번호 확인',
-    HELPER_TEXT: '최소 8자 이상 입력해주세요.',
-  },
-  BUTTON: {
-    DUP_CHECK: '중복 확인',
-    SUBMIT_PENDING: '처리 중...',
-    SUBMIT_DEFAULT: '회원가입',
-  },
   ERROR: {
     SIGNUP_FAILED: '회원가입에 실패했습니다. 다시 시도해주세요.',
+    EMAIL_DUP_CHECK_REQUIRED: '이메일 중복 확인이 필요합니다.',
+    EMAIL_UNAVAILABLE: '이미 사용 중인 이메일입니다.',
+    EMAIL_DUP_CHECK_FAILED: '중복 확인에 실패했습니다. 다시 시도해주세요.',
+    NICKNAME_DUP_CHECK_REQUIRED: '닉네임 중복 확인이 필요합니다.',
+    NICKNAME_UNAVAILABLE: '이미 사용 중인 닉네임입니다.',
+    NICKNAME_DUP_CHECK_FAILED: '중복 확인에 실패했습니다. 다시 시도해주세요.',
   },
 } as const;
 

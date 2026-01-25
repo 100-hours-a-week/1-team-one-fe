@@ -1,8 +1,8 @@
 import { AppSettingsNotificationsPage } from '@/src/pages/app-settings';
-import { withAuthenticatedLayout } from '@/src/shared/lib/layout';
+import { createAuthenticatedLayout } from '@/src/shared/lib/layout';
 import type { NextPageWithLayout } from '@/src/shared/types';
 
 const Page: NextPageWithLayout = AppSettingsNotificationsPage;
-Page.getLayout = withAuthenticatedLayout;
+Page.getLayout = createAuthenticatedLayout({ showFooter: false });
 
 export default Page;
