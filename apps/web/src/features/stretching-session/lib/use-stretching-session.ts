@@ -12,13 +12,15 @@ const toExerciseType = (type: string): ExerciseType => {
 };
 
 export type UseStretchingSessionResult = {
-  videoRef: RefObject<HTMLVideoElement>;
+  videoRef: RefObject<HTMLVideoElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
   isLoading: boolean;
   currentStep?: ExerciseSessionStep;
 };
 
 export function useStretchingSession(sessionId: string | null): UseStretchingSessionResult {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { data, isLoading } = useExerciseSessionQuery(sessionId ?? '', {
     enabled: Boolean(sessionId),
   });
@@ -44,6 +46,7 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
   useEffect(() => {
     if (!videoRef.current) return;
     if (!referencePose) return;
+    if (!canvasRef.current) return;
     if (!exerciseType) return;
 
     const session: StretchingSession = createSession({
@@ -54,6 +57,15 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
       getProgressRatio,
       exerciseType,
       getPhase,
+      silhouette: {
+        canvas: canvasRef.current,
+        foregroundColor: STRETCHING_SESSION_CONFIG.SILHOUETTE_FOREGROUND_RGBA,
+        backgroundColor: STRETCHING_SESSION_CONFIG.SILHOUETTE_BACKGROUND_RGBA,
+        visibilityMin: STRETCHING_SESSION_CONFIG.SILHOUETTE_VISIBILITY_MIN,
+        smoothingAlpha: STRETCHING_SESSION_CONFIG.SILHOUETTE_SMOOTHING_ALPHA,
+        headRadiusRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_HEAD_RADIUS_RATIO,
+        strokeWidthRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_STROKE_WIDTH_RATIO,
+      },
     });
 
     void session.start();
@@ -65,6 +77,7 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
 
   return {
     videoRef,
+    canvasRef,
     isLoading,
     currentStep,
   };
