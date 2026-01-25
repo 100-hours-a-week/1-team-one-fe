@@ -62,6 +62,13 @@ export type CreateSessionOptions = {
   segmentation?: SegmentationOptions;
   silhouette?: SilhouetteOptions;
   onFrame?: (frame: PoseFrame) => void;
+  onTick?: (payload: {
+    timestampMs: number;
+    hasPose: boolean;
+    videoWidth: number;
+    videoHeight: number;
+  }) => void;
+  onLog?: (event: { type: string; detail?: Readonly<Record<string, unknown>> }) => void;
   onAccuracy?: (result: AccuracyResult, frame: PoseFrame) => void;
   onError?: (error: Error) => void;
   accuracyEngine?: AccuracyEngine;
@@ -115,6 +122,8 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     segmentation,
     silhouette,
     onFrame,
+    onTick,
+    onLog,
     onAccuracy,
     onError,
     accuracyEngine = createAccuracyEngine(),
@@ -132,6 +141,10 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
   let segmentationColors: { foreground: RgbaColor; background: RgbaColor } | null = null;
   let lastSegmentationAt = 0;
   let lastNoMaskAt = 0;
+  let lastFrameLoopAt = 0;
+  let hasLoggedFrameCallback = false;
+  let hasLoggedFrameCallbackWhileStopped = false;
+  let frameStartTimeoutId: number | null = null;
   let silhouetteContext: CanvasRenderingContext2D | null = null;
   let silhouetteColors: { foreground: RgbaColor; background: RgbaColor } | null = null;
   let smoothedLandmarks: ReadonlyArray<Landmark2D> | null = null;
@@ -139,6 +152,11 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
   const emitError = (error: unknown): void => {
     if (!onError) return;
     onError(toError(error));
+  };
+
+  const emitLog = (type: string, detail?: Readonly<Record<string, unknown>>): void => {
+    if (!onLog) return;
+    onLog({ type, detail });
   };
 
   const resolveCssColor = (value: string): string => {
@@ -539,12 +557,35 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     silhouetteContext.restore();
   };
 
+  const renderSilhouetteBackground = (): void => {
+    if (!silhouette || !silhouetteContext || !silhouetteColors) return;
+
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+    if (width === 0 || height === 0) return;
+
+    if (silhouette.canvas.width !== width) {
+      silhouette.canvas.width = width;
+    }
+    if (silhouette.canvas.height !== height) {
+      silhouette.canvas.height = height;
+    }
+
+    const { background } = silhouetteColors;
+    silhouetteContext.save();
+    silhouetteContext.clearRect(0, 0, width, height);
+    silhouetteContext.fillStyle = `rgba(${background.r}, ${background.g}, ${background.b}, ${background.a / 255})`;
+    silhouetteContext.fillRect(0, 0, width, height);
+    silhouetteContext.restore();
+  };
+
   /**
    * mediapipe 초기화
    */
   const ensureLandmarker = async (): Promise<void> => {
     if (landmarker) return;
 
+    emitLog('landmarker_init_start');
     const fileset = await FilesetResolver.forVisionTasks(wasmRoot);
     landmarker = await PoseLandmarker.createFromOptions(fileset, {
       baseOptions: {
@@ -552,6 +593,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
       },
       runningMode: 'VIDEO',
     });
+    emitLog('landmarker_init_success');
   };
 
   const ensureSegmenter = async (): Promise<void> => {
@@ -576,6 +618,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
   const ensureVideoStream = async (): Promise<void> => {
     if (mediaStream) return;
 
+    emitLog('video_stream_request');
     mediaStream = await navigator.mediaDevices.getUserMedia({
       video: videoConstraints ?? true,
       audio: false,
@@ -583,6 +626,11 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
 
     video.srcObject = mediaStream;
     await video.play(); //재생
+    emitLog('video_play_started', {
+      readyState: video.readyState,
+      videoWidth: video.videoWidth,
+      videoHeight: video.videoHeight,
+    });
   };
 
   const scheduleNextFrame = (): void => {
@@ -590,62 +638,112 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
   };
 
   const processFrame = (): void => {
-    if (!isRunning) return;
-    if (!landmarker) return scheduleNextFrame();
+    if (!isRunning) {
+      if (!hasLoggedFrameCallbackWhileStopped) {
+        hasLoggedFrameCallbackWhileStopped = true;
+        emitLog('frame_loop_callback_while_stopped');
+      }
+      return;
+    }
+    if (!hasLoggedFrameCallback) {
+      hasLoggedFrameCallback = true;
+      emitLog('frame_loop_callback');
+    }
+    const loopNow = performance.now();
+    lastFrameLoopAt = loopNow;
 
-    const timestampMs = performance.now();
-    const result = landmarker.detectForVideo(video, timestampMs) as PoseLandmarkerResultLike;
-    const frame = toPoseFrame(result, timestampMs);
-
-    if (frame) {
-      onFrame?.(frame);
-
-      // TODO: 세션 내부에서 정확도 평가 진행(진행률 정책 확정 후 외부 이동 검토 for 관심사 분리)
-      const progressRatio = getProgressRatio();
-      const phase = getPhase();
-      const resolvedReferencePose = getReferencePose ? getReferencePose() : referencePose;
-      const resolvedExerciseType = getExerciseType ? getExerciseType() : exerciseType;
-      if (!resolvedReferencePose || !resolvedExerciseType) {
+    try {
+      if (!landmarker) {
         scheduleNextFrame();
         return;
       }
-      const accuracy = accuracyEngine.evaluate({
-        frame,
-        referencePose: resolvedReferencePose,
-        progressRatio,
-        type: resolvedExerciseType,
-        phase,
+
+      const timestampMs = loopNow;
+      if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+        if (silhouette) renderSilhouetteBackground();
+        onTick?.({
+          timestampMs,
+          hasPose: false,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight,
+        });
+        scheduleNextFrame();
+        return;
+      }
+
+      let frame: PoseFrame | null = null;
+      try {
+        const result = landmarker.detectForVideo(video, timestampMs) as PoseLandmarkerResultLike;
+        frame = toPoseFrame(result, timestampMs);
+      } catch (error) {
+        onTick?.({
+          timestampMs,
+          hasPose: false,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight,
+        });
+        scheduleNextFrame();
+        return;
+      }
+
+      if (frame) {
+        onFrame?.(frame);
+        // TODO: 세션 내부에서 정확도 평가 진행(진행률 정책 확정 후 외부 이동 검토 for 관심사 분리)
+        const progressRatio = getProgressRatio();
+        const phase = getPhase();
+        const resolvedReferencePose = getReferencePose ? getReferencePose() : referencePose;
+        const resolvedExerciseType = getExerciseType ? getExerciseType() : exerciseType;
+        if (!resolvedReferencePose || !resolvedExerciseType) {
+          scheduleNextFrame();
+          return;
+        }
+        const accuracy = accuracyEngine.evaluate({
+          frame,
+          referencePose: resolvedReferencePose,
+          progressRatio,
+          type: resolvedExerciseType,
+          phase,
+        });
+        onAccuracy?.(accuracy, frame);
+
+        if (silhouette) renderSilhouette(frame.landmarks);
+      } else {
+        if (silhouette) renderSilhouetteBackground();
+      }
+
+      onTick?.({
+        timestampMs,
+        hasPose: Boolean(frame),
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight,
       });
-      onAccuracy?.(accuracy, frame);
 
-      if (silhouette) {
-        renderSilhouette(frame.landmarks);
+      if (segmenter && segmentation && shouldUseSegmentation) {
+        const minIntervalMs = segmentation.minIntervalMs ?? 0;
+        if (timestampMs - lastSegmentationAt >= minIntervalMs) {
+          const result = segmenter.segmentForVideo(video, timestampMs);
+          const categoryMask = result.categoryMask;
+          if (categoryMask) {
+            renderCategoryMask(categoryMask);
+          }
+
+          const confidenceMask = categoryMask ? null : getConfidenceMask(result);
+          if (confidenceMask) {
+            renderConfidenceMask(confidenceMask);
+          }
+
+          if (!categoryMask && !confidenceMask) {
+            warnNoMask(timestampMs);
+          }
+          result.close();
+          lastSegmentationAt = timestampMs;
+        }
       }
+
+      scheduleNextFrame();
+    } catch (error) {
+      scheduleNextFrame();
     }
-
-    if (segmenter && segmentation && shouldUseSegmentation) {
-      const minIntervalMs = segmentation.minIntervalMs ?? 0;
-      if (timestampMs - lastSegmentationAt >= minIntervalMs) {
-        const result = segmenter.segmentForVideo(video, timestampMs);
-        const categoryMask = result.categoryMask;
-        if (categoryMask) {
-          renderCategoryMask(categoryMask);
-        }
-
-        const confidenceMask = categoryMask ? null : getConfidenceMask(result);
-        if (confidenceMask) {
-          renderConfidenceMask(confidenceMask);
-        }
-
-        if (!categoryMask && !confidenceMask) {
-          warnNoMask(timestampMs);
-        }
-        result.close();
-        lastSegmentationAt = timestampMs;
-      }
-    }
-
-    scheduleNextFrame();
   };
 
   const start = async (): Promise<void> => {
@@ -653,6 +751,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     isRunning = true;
 
     try {
+      emitLog('session_start');
       await ensureLandmarker();
       await ensureSegmenter();
       if (shouldUseSegmentation) {
@@ -661,8 +760,18 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
       ensureSilhouetteContext();
       await ensureVideoStream();
       scheduleNextFrame();
+      emitLog('frame_loop_start_requested');
+      if (frameStartTimeoutId) {
+        window.clearTimeout(frameStartTimeoutId);
+      }
+      frameStartTimeoutId = window.setTimeout(() => {
+        if (!isRunning) return;
+        if (lastFrameLoopAt > 0) return;
+        emitLog('frame_loop_stalled');
+      }, 2000);
     } catch (error) {
       isRunning = false;
+      emitLog('session_start_error', { message: toError(error).message });
       emitError(error);
     }
   };
@@ -670,10 +779,15 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
   const stop = async (): Promise<void> => {
     if (!isRunning) return;
     isRunning = false;
+    emitLog('session_stop');
 
     if (frameRequestId !== null) {
       cancelAnimationFrame(frameRequestId);
       frameRequestId = null;
+    }
+    if (frameStartTimeoutId) {
+      window.clearTimeout(frameStartTimeoutId);
+      frameStartTimeoutId = null;
     }
 
     if (mediaStream) {

@@ -18,6 +18,8 @@ const toExerciseType = (type: string): ExerciseType => {
   return 'DURATION';
 };
 
+//TODO: 로직 리팩토링 필요
+
 export type UseStretchingSessionResult = {
   videoRef: RefObject<HTMLVideoElement | null>;
   canvasRef: RefObject<HTMLCanvasElement | null>;
@@ -97,6 +99,7 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
   const transitionTimeoutRef = useRef<number | null>(null);
   const repsPopupTimeoutRef = useRef<number | null>(null);
   const isCanvasReadyRef = useRef(false);
+  const hasLoggedMissingDataRef = useRef(false);
 
   const currentStepRef = useRef<ExerciseSessionStep | null>(null);
   const referencePoseRef = useRef(currentStepRef.current?.exercise.pose.referencePose ?? null);
@@ -122,6 +125,7 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
   const lastUiHoldSecondsRef = useRef(0);
   const lastUiTimerSecondsRef = useRef<number | null>(null);
   const lastUiAccuracyCommitAtRef = useRef<number>(0);
+  const canStopRef = useRef(false);
 
   const { data, isLoading } = useExerciseSessionQuery(sessionId ?? '', {
     enabled: Boolean(sessionId),
@@ -140,14 +144,29 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
     return toExerciseType(currentStep.exercise.type);
   }, [currentStep]);
 
-  const initialReferencePose = useMemo(
-    () => steps[0]?.exercise.pose.referencePose ?? null,
-    [steps],
-  );
+  const initialReferencePose = useMemo(() => steps[0]?.exercise.pose.referencePose, [steps]);
   const initialExerciseType = useMemo(() => {
-    if (!steps[0]) return null;
+    if (!steps[0]) return 'DURATION';
     return toExerciseType(steps[0].exercise.type);
   }, [steps]);
+
+  const isInitialDataReady = Boolean(initialReferencePose && initialExerciseType && totalSteps > 0);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    if (isInitialDataReady) {
+      hasLoggedMissingDataRef.current = false;
+      return;
+    }
+    if (hasLoggedMissingDataRef.current) return;
+
+    console.debug('[stretching-session] waiting_for_initial_data', {
+      hasReferencePose: Boolean(initialReferencePose),
+      hasExerciseType: Boolean(initialExerciseType),
+      totalSteps,
+    });
+    hasLoggedMissingDataRef.current = true;
+  }, [initialReferencePose, initialExerciseType, isInitialDataReady, totalSteps]);
 
   // TODO 정책 확정 전: identity 고정 함수로 둠
   const getProgressRatio = useCallback(() => STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO, []);
@@ -270,13 +289,12 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
 
   //세션/steps 바뀔 때 초기화
   useEffect(() => {
-    if (steps.length === 0) return;
-
     setCurrentStepIndex(0);
     setStepResults([]);
     setIsSessionComplete(false);
     setIsCanvasReady(false);
     isCanvasReadyRef.current = false;
+    canStopRef.current = false;
 
     //ui cache refs도 초기화
     lastUiAccuracyPercentRef.current = 0;
@@ -360,8 +378,7 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
   useEffect(() => {
     if (!videoRef.current) return;
     if (!canvasRef.current) return;
-    if (!initialReferencePose) return;
-    if (!initialExerciseType) return;
+    if (!isInitialDataReady) return;
 
     isCanvasReadyRef.current = false;
     setIsCanvasReady(false);
@@ -371,18 +388,26 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
       modelAssetPath: STRETCHING_SESSION_CONFIG.MODEL_ASSET_PATH,
       wasmRoot: STRETCHING_SESSION_CONFIG.WASM_ROOT,
 
-      referencePose: initialReferencePose,
-      getReferencePose: () => referencePoseRef.current ?? initialReferencePose,
+      referencePose: initialReferencePose!,
+      getReferencePose: () => referencePoseRef.current ?? initialReferencePose!,
 
       getProgressRatio,
       exerciseType: initialExerciseType,
       getExerciseType: () => exerciseTypeRef.current ?? initialExerciseType,
 
       getPhase,
-      onFrame: () => {
+      onTick: ({ videoWidth, videoHeight }) => {
         if (isCanvasReadyRef.current) return;
+        if (videoWidth === 0 || videoHeight === 0) return;
         isCanvasReadyRef.current = true;
+        canStopRef.current = true;
         setIsCanvasReady(true);
+      },
+      onLog: ({ type, detail }) => {
+        if (process.env.NODE_ENV === 'production') return;
+        const payload = detail ?? {};
+
+        console.debug(`[stretching-session] ${type}`, payload);
       },
       onAccuracy: handleAccuracy,
 
@@ -398,23 +423,27 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
     });
 
     sessionRef.current = session;
-    void session.start();
+    void session.start().then(() => {});
 
     return () => {
       session.destroy();
       sessionRef.current = null;
       isCanvasReadyRef.current = false;
       setIsCanvasReady(false);
+      canStopRef.current = false;
     };
-  }, [getPhase, getProgressRatio, handleAccuracy, initialExerciseType, initialReferencePose]);
+  }, [getPhase, getProgressRatio, handleAccuracy, isInitialDataReady]);
 
   //complete 시 stop
   useEffect(() => {
     if (!isSessionComplete) return;
+    if (totalSteps === 0) return;
+    if (stepResults.length === 0) return;
+    if (!canStopRef.current) return;
     const session = sessionRef.current;
     if (!session) return;
     void session.stop();
-  }, [isSessionComplete]);
+  }, [isCanvasReady, isSessionComplete, stepResults.length, totalSteps]);
 
   //ref 최신화
   useEffect(() => {
