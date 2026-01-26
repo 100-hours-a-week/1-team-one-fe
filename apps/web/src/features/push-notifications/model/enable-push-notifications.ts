@@ -40,11 +40,21 @@ function bindForegroundNotifications(messaging: ReturnType<typeof getMessaging>)
 export async function enablePushNotifications(
   putFcm: (payload: PutFcmTokenRequest) => Promise<void>,
 ) {
+  if (!('serviceWorker' in navigator)) return;
+
+  let swReg: ServiceWorkerRegistration;
+  try {
+    swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    await navigator.serviceWorker.ready;
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[push-notifications] service_worker_register_failed', { error });
+    }
+    return;
+  }
+
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return;
-
-  const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-  await navigator.serviceWorker.ready;
 
   const messaging = getMessaging(app);
   bindForegroundNotifications(messaging);
