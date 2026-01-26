@@ -17,6 +17,24 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // for svgr
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      use: [
+        {
+          loader: '@svgr/webpack',
+          options: {
+            dimensions: false, //width height 속성 제거
+            expandProps: 'end', //props를 맨 뒤에 추가
+          },
+        },
+      ],
+    });
+
+    return config;
+  },
 };
 
 export default nextConfig;
