@@ -17,8 +17,8 @@ export function MobileShell({ children, showFooter = true, headerConfig }: Mobil
   );
 
   return (
-    <div className="bg-bg-muted flex min-h-dvh justify-center">
-      <div className="bg-bg relative flex min-h-dvh w-full max-w-md flex-col">
+    <div className="bg-bg flex min-h-dvh justify-center">
+      <div className="relative flex h-full w-full max-w-md flex-col">
         {resolvedHeader}
 
         <main
