@@ -78,13 +78,18 @@ jobs:
       #- name: Run ESLint
       #  run: pnpm lint -- --max-warnings 50 # Next.js 내장 ESLint 설정 사용
 
-      - name: Setup environment variables
-        run: echo "${{ secrets.ENV_PRODUCTION }}" > apps/web/.env.production
-
       # Phase 2: Build
       - name: Build Next.js application
         env:
           NEXT_PUBLIC_API_BASE_URL: ${{ github.base_ref == 'main' && secrets.PROD_API_BASE_URL || secrets.DEV_API_BASE_URL }}
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+          NEXT_PUBLIC_FIREBASE_VAPID_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
         run: pnpm turbo build --filter=web
 
       # Phase 3: Test
