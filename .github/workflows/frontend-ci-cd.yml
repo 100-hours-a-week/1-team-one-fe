@@ -78,13 +78,14 @@ jobs:
       #- name: Run ESLint
       #  run: pnpm lint -- --max-warnings 50 # Next.js 내장 ESLint 설정 사용
 
+      - name: Setup environment variables
+        run: echo "${{ secrets.ENV_PRODUCTION }}" > apps/web/.env.production
+
       # Phase 2: Build
       - name: Build Next.js application
         env:
           NEXT_PUBLIC_API_BASE_URL: ${{ github.base_ref == 'main' && secrets.PROD_API_BASE_URL || secrets.DEV_API_BASE_URL }}
-        run: |
-          echo "${{ secrets.ENV_PRODUCTION }}" > apps/web/.env.production
-          pnpm turbo build --filter=web
+        run: pnpm turbo build --filter=web
 
       # Phase 3: Test
       #- name: Run unit tests
