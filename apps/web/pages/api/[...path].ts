@@ -10,6 +10,7 @@ const JSON_CONTENT_TYPE = 'application/json';
 const BEARER_PREFIX = 'Bearer';
 const BFF_PREFIX = 'bff';
 const REAL_API_PREFIX = '/api';
+const SHOULD_LOG_PROXY = process.env.NODE_ENV !== 'production';
 
 interface Tokens {
   accessToken: { token: string; expiresAt: string };
@@ -87,7 +88,6 @@ function extractTokens(payload: unknown): Tokens | null {
   }
 
   const tokens = data.tokens;
-  console.log(tokens);
 
   if (!isRecord(tokens)) {
     return null;
@@ -279,7 +279,6 @@ function respondWithPayload(res: NextApiResponse, status: number, payload: Proxy
     res.status(status).end();
     return;
   }
-  console.log(payload);
 
   const tokens = extractTokens(payload);
   if (tokens) {
@@ -290,15 +289,32 @@ function respondWithPayload(res: NextApiResponse, status: number, payload: Proxy
   res.status(status).json(sanitizedPayload);
 }
 
+function logProxyNotFound(
+  source: 'bff' | 'real',
+  req: NextApiRequest,
+  detail?: Readonly<Record<string, unknown>>,
+): void {
+  if (!SHOULD_LOG_PROXY) return;
+   
+  console.info('[bff-proxy] not_found', {
+    source,
+    method: req.method,
+    path: req.url,
+    ...detail,
+  });
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const pathSegments = getPathSegments(req.query.path);
 
   if (pathSegments.length === 0) {
+    logProxyNotFound('bff', req, { reason: 'missing_path' });
     res.status(HTTP_STATUS.NOT_FOUND).end();
     return;
   }
 
   if (pathSegments[0] !== BFF_PREFIX) {
+    logProxyNotFound('bff', req, { reason: 'invalid_prefix' });
     res.status(HTTP_STATUS.NOT_FOUND).end();
     return;
   }
@@ -306,6 +322,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
   if (!baseUrl) {
+    logProxyNotFound('bff', req, { reason: 'missing_base_url' });
     res.status(HTTP_STATUS.SERVER_ERROR_MIN).json({
       code: 'INTERNAL_ERROR',
       errors: [{ reason: 'missing api base url' }],
@@ -322,6 +339,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const initialResponse = await forwardRequest(targetUrl, req, accessToken);
 
+  if (initialResponse.status === HTTP_STATUS.NOT_FOUND) {
+    logProxyNotFound('real', req, { targetUrl, attempt: 'initial' });
+  }
+
   if (initialResponse.status !== HTTP_STATUS.UNAUTHORIZED || !refreshToken) {
     respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
@@ -337,6 +358,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   setAuthCookies(res, refreshedTokens);
 
   const retryResponse = await forwardRequest(targetUrl, req, refreshedTokens.accessToken.token);
+
+  if (retryResponse.status === HTTP_STATUS.NOT_FOUND) {
+    logProxyNotFound('real', req, { targetUrl, attempt: 'retry' });
+  }
 
   respondWithPayload(res, retryResponse.status, retryResponse.json);
 }
