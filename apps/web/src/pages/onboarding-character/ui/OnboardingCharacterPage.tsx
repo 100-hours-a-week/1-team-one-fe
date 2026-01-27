@@ -37,11 +37,18 @@ export function OnboardingCharacterPage() {
     isPending,
     isSuccess,
   } = useCharacterSelectionMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      queryClient.setQueryData(ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(), (prev: any) => ({
+        ...prev,
+        onboardingCompleted: true,
+      }));
+
+      //동기화도 진행
       void queryClient.invalidateQueries({
         queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
       });
     },
+
     onError: (error) => {
       if (isApiError(error) && error.code === 'CHARACTER_ALREADY_SET') {
         setErrorMessage(ERROR_ALREADY_SET);
