@@ -17,15 +17,12 @@ import { ROUTES } from '@/src/shared/routes/routes';
 export function OnboardingAlarmPage() {
   const router = useRouter();
   const { mutateAsync: putFcmToken } = usePutFcmTokenMutation();
-  const { mutateAsync } = useAlarmSettingsMutation({
-    onSuccess: () => {
-      router.push(ROUTES.ONBOARDING_TUTORIAL);
-    },
-  });
+  const { mutateAsync } = useAlarmSettingsMutation();
 
   const handleSubmit = async (values: AlarmSettingsValues) => {
     await mutateAsync(toAlarmSettingsRequest(values));
     await enablePushNotifications(putFcmToken);
+    void router.push(ROUTES.ONBOARDING_CHARACTER);
   };
 
   return (
