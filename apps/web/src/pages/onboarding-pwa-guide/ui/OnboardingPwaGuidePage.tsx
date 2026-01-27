@@ -4,6 +4,7 @@ import { cn } from '@repo/ui/lib/utils';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
+import { isIosUserAgent } from '@/src/shared/lib/device/user-agent';
 import { ROUTES } from '@/src/shared/routes';
 import { usePwaInstall } from '@/src/widgets/pwa-install';
 
@@ -26,17 +27,12 @@ type Slide =
       steps: ReadonlyArray<string>;
     };
 
-const resolvePlatform = (): Platform => {
-  if (typeof navigator === 'undefined') {
+const resolvePlatform = (userAgent?: string): Platform => {
+  if (!userAgent) {
     return 'browser';
   }
 
-  const userAgent = navigator.userAgent.toLowerCase();
-  if (/iphone|ipad|ipod/.test(userAgent)) {
-    return 'ios';
-  }
-
-  return 'browser';
+  return isIosUserAgent(userAgent) ? 'ios' : 'browser';
 };
 
 export function OnboardingPwaGuidePage() {
@@ -46,7 +42,11 @@ export function OnboardingPwaGuidePage() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    setPlatform(resolvePlatform());
+    if (typeof navigator === 'undefined') {
+      return;
+    }
+
+    setPlatform(resolvePlatform(navigator.userAgent));
   }, []);
 
   useEffect(() => {

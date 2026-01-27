@@ -1,4 +1,5 @@
 import { Button } from '@repo/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
@@ -6,7 +7,9 @@ import {
   type CharacterType,
   useCharacterSelectionMutation,
 } from '@/src/features/character-selection';
+import { ONBOARDING_STATUS_QUERY_KEYS } from '@/src/features/onboarding-status/config/query-keys';
 import { isApiError } from '@/src/shared/api';
+import { isMobileUserAgent } from '@/src/shared/lib/device/user-agent';
 import { ROUTES } from '@/src/shared/routes';
 
 import { CHARACTER_CARDS } from '../config/characters';
@@ -25,6 +28,7 @@ const {
 
 export function OnboardingCharacterPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [selectedType, setSelectedType] = useState<CharacterType | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFolderOpen, setIsFolderOpen] = useState(false);
@@ -33,6 +37,11 @@ export function OnboardingCharacterPage() {
     isPending,
     isSuccess,
   } = useCharacterSelectionMutation({
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
+      });
+    },
     onError: (error) => {
       if (isApiError(error) && error.code === 'CHARACTER_ALREADY_SET') {
         setErrorMessage(ERROR_ALREADY_SET);
@@ -69,9 +78,7 @@ export function OnboardingCharacterPage() {
 
   const handleGoToApp = () => {
     if (typeof navigator !== 'undefined') {
-      const userAgent = navigator.userAgent.toLowerCase();
-      const isIpadOs = /macintosh/.test(userAgent) && /mobile/.test(userAgent);
-      const isMobile = /iphone|ipad|ipod|android/.test(userAgent) || isIpadOs;
+      const isMobile = isMobileUserAgent(navigator.userAgent);
       if (isMobile) {
         void router.push(ROUTES.ONBOARDING_PWA_GUIDE);
         return;
