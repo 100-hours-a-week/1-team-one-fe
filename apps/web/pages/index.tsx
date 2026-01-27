@@ -1,16 +1,7 @@
-import { Button } from '@repo/ui/button';
-
-import { createPublicLayout } from '@/src/shared/lib/layout';
+import { SplashPage } from '@/src/pages/splash';
 import type { NextPageWithLayout } from '@/src/shared/types';
 
-const Home: NextPageWithLayout = function Home() {
-  return (
-    <Button variant="secondary" size="md">
-      Click me
-    </Button>
-  );
-};
+const Page: NextPageWithLayout = SplashPage;
+Page.getLayout = (page) => page;
 
-Home.getLayout = createPublicLayout();
-
-export default Home;
+export default Page;

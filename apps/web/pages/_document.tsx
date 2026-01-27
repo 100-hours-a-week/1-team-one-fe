@@ -1,5 +1,10 @@
 import { Head, Html, Main, NextScript } from 'next/document';
 
+const PRELOAD_FONTS = [
+  '/fonts/Pretendard-Medium.woff2',
+  '/fonts/Pretendard-SemiBold.woff2',
+] as const;
+
 export default function Document() {
   return (
     <Html lang="ko">
@@ -10,6 +15,16 @@ export default function Document() {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Growing Developer" />
+        {PRELOAD_FONTS.map((font) => (
+          <link
+            key={font}
+            rel="preload"
+            href={font}
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+        ))}
       </Head>
       <body className="antialiased">
         <Main />
