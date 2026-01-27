@@ -11,8 +11,6 @@ export function proxy(request: NextRequest) {
   const refreshToken = request.cookies.get(AUTH_CONFIG.REFRESH_TOKEN_COOKIE)?.value;
   const hasRefreshToken = !!refreshToken;
 
-  console.log('Proxy middleware triggered for path:', refreshToken);
-
   if (!hasRefreshToken && pathname.startsWith(PROTECTED_PREFIX)) {
     const url = request.nextUrl.clone();
     url.pathname = ROUTES.LOGIN;
