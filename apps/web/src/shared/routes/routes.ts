@@ -9,6 +9,7 @@ export const PUBLIC_ROUTES = {
   ONBOARDING_SURVEY: '/onboarding/survey',
   ONBOARDING_ALARM: '/onboarding/alarm',
   ONBOARDING_TUTORIAL: '/onboarding/tutorial',
+  ONBOARDING_PWA_GUIDE: '/onboarding/pwa-guide',
 } as const;
 
 export const APP_ROUTES = {
@@ -33,6 +34,7 @@ export const ROUTE_GROUPS = {
     PUBLIC_ROUTES.ONBOARDING_SURVEY,
     PUBLIC_ROUTES.ONBOARDING_ALARM,
     PUBLIC_ROUTES.ONBOARDING_TUTORIAL,
+    PUBLIC_ROUTES.ONBOARDING_PWA_GUIDE,
   ],
   LEGAL: [PUBLIC_ROUTES.LEGAL_TERMS],
   GUIDE: [PUBLIC_ROUTES.GUIDE_INSTALL],
