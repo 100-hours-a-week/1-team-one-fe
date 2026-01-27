@@ -1,10 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-import {
-  type OnboardingStatus,
-  useOnboardingStatusQuery,
-} from '@/src/features/auth/onboarding-status';
+import { type OnboardingStatus, useOnboardingStatusQuery } from '@/src/features/onboarding-status';
 import { ROUTES } from '@/src/shared/routes';
 
 function resolveNextPath(onboardingStatus: OnboardingStatus): string {
