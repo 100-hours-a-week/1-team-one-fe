@@ -35,8 +35,3 @@ export function createAuthenticatedLayout(options: LayoutOptions = {}) {
     );
   };
 }
-
-/** mobile  */
-export function withMobileLayout(page: ReactElement, headerConfig?: HeaderConfig): ReactNode {
-  return <MobileShell headerConfig={headerConfig}>{page}</MobileShell>;
-}
