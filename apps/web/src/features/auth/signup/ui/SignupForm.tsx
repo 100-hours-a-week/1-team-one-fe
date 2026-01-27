@@ -66,7 +66,10 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <form
+      onSubmit={handleSubmit(handleFormSubmit)}
+      className="flex w-full flex-col justify-center gap-6"
+    >
       {/* TODO: 설정 모아서 map 으로 변경 */}
       <Controller
         name="email"

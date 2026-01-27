@@ -42,6 +42,7 @@ export function useOnboardingStatusQuery(options?: OnboardingStatusQueryOptions)
     queryFn: fetchOnboardingStatus,
     retry: 0,
     staleTime: Infinity, // 진입 최초에만 확인하면 됨
+    gcTime: 1000 * 60 * 60 * 24, //24시간
     ...options,
   });
 }

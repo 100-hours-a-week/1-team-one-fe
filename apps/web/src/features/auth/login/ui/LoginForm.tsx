@@ -35,7 +35,7 @@ export function LoginForm({ onSubmit, isPending }: LoginFormProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4 space-y-4">
+    <div className="flex w-full flex-col gap-4 p-6">
       <EmailField id="email" name="email" value={email} onChange={handleEmailChange} required />
 
       <PasswordField

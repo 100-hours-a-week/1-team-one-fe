@@ -7,10 +7,14 @@ import { ROUTES } from '@/src/shared/routes';
 
 export function LoginPage() {
   const router = useRouter();
-  const loginMutation = useLoginMutation();
+  const { mutateAsync, isPending } = useLoginMutation();
   const handleSignUp = () => router.push(ROUTES.SIGNUP);
   const handleSubmit = async (values: LoginFormValues) => {
-    await loginMutation.mutateAsync(values);
+    await mutateAsync(values, {
+      onSuccess: () => {
+        router.push(ROUTES.MAIN);
+      },
+    });
   };
 
   return (
@@ -18,7 +22,7 @@ export function LoginPage() {
       <div>
         <h1 className="text-2xl font-bold">로그인</h1>
       </div>
-      <LoginForm onSubmit={handleSubmit} isPending={loginMutation.isPending} />
+      <LoginForm onSubmit={handleSubmit} isPending={isPending} />
       <Button variant="ghost" onClick={handleSignUp}>
         회원가입 하기
       </Button>
