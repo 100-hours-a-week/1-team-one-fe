@@ -22,7 +22,7 @@ export function MobileShell({ children, showFooter = true, headerConfig }: Mobil
         {resolvedHeader}
 
         <main
-          className="flex-1 overflow-y-auto"
+          className="flex-1"
           style={{
             paddingBottom: showFooter ? 'calc(4rem + env(safe-area-inset-bottom))' : undefined,
           }}
