@@ -1,0 +1,11 @@
+{
+  "extends": "@tooling/typescript-config/react-library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "paths": {
+      "@repo/stretching-accuracy": ["../stretching-accuracy/src/index.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
