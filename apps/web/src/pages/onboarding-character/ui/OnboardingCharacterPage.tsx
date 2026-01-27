@@ -19,7 +19,7 @@ const {
   ERROR_ALREADY_SET,
   ERROR_UNKNOWN,
   IMAGE_ALT_SUFFIX,
-  CTA_TO_APP,
+  CTA_NEXT,
   QUESTION_MARK,
 } = ONBOARDING_CHARACTER_MESSAGES;
 
@@ -68,6 +68,16 @@ export function OnboardingCharacterPage() {
   };
 
   const handleGoToApp = () => {
+    if (typeof navigator !== 'undefined') {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isIpadOs = /macintosh/.test(userAgent) && /mobile/.test(userAgent);
+      const isMobile = /iphone|ipad|ipod|android/.test(userAgent) || isIpadOs;
+      if (isMobile) {
+        void router.push(ROUTES.ONBOARDING_PWA_GUIDE);
+        return;
+      }
+    }
+
     void router.push(ROUTES.MAIN);
   };
 
@@ -124,7 +134,7 @@ export function OnboardingCharacterPage() {
 
       {/* {isSuccess && ( */}
       <Button variant="primary" size="lg" fullWidth onClick={handleGoToApp}>
-        {CTA_TO_APP}
+        {CTA_NEXT}
       </Button>
       {/* )} */}
     </div>

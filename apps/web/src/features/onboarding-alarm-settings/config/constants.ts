@@ -21,11 +21,11 @@ export const DND_OPTION_VALUES = {
 } as const;
 
 export const WEEKDAY_OPTIONS = [
-  { value: 'MON', label: '월' },
-  { value: 'TUE', label: '화' },
-  { value: 'WED', label: '수' },
-  { value: 'THU', label: '목' },
-  { value: 'FRI', label: '금' },
+  { value: 'MONDAY', label: '월' },
+  { value: 'TUESDAY', label: '화' },
+  { value: 'WEDNESDAY', label: '수' },
+  { value: 'THURSDAY', label: '목' },
+  { value: 'FRIDAY', label: '금' },
 ] as const;
 
-export const DEFAULT_WEEKDAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI'] as const;
+export const DEFAULT_WEEKDAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const;
