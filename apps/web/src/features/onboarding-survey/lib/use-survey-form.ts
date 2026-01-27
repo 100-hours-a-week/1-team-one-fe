@@ -63,7 +63,6 @@ export function useSurveyForm({ data, onBack }: UseSurveyFormOptions) {
 
   const handleBackClick = () => {
     if (currentIndex === 0) {
-      onBack();
       return;
     }
 
