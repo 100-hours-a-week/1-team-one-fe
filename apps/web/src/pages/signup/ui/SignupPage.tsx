@@ -24,5 +24,9 @@ export function SignupPage() {
     );
   };
 
-  return <SignupForm onSubmit={handleSubmit} isPending={signupMutation.isPending} />;
+  return (
+    <div className="flex h-full items-center gap-6 p-6">
+      <SignupForm onSubmit={handleSubmit} isPending={signupMutation.isPending} />
+    </div>
+  );
 }
