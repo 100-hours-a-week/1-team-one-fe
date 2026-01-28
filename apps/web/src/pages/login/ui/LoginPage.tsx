@@ -12,11 +12,13 @@ export function LoginPage() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useLoginMutation();
   const handleSignUp = () => router.push(ROUTES.SIGNUP);
+
   const handleSubmit = async (values: LoginFormValues) => {
     await mutateAsync(values, {
       onSuccess: async () => {
-        await queryClient.invalidateQueries({
+        await queryClient.refetchQueries({
           queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
+          type: 'all',
         });
         router.push(ROUTES.MAIN);
       },
