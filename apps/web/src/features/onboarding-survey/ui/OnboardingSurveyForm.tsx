@@ -51,7 +51,7 @@ export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFor
   };
 
   return (
-    <section className="flex flex-col justify-between gap-20">
+    <div className="flex h-full flex-col justify-evenly gap-20 p-6">
       <header className="flex flex-col gap-2 text-center">
         <h1 className="text-2xl font-semibold text-neutral-900">{SURVEY_MESSAGES.TITLE}</h1>
         <p className="text-sm text-neutral-600">{SURVEY_MESSAGES.DESCRIPTION}</p>
@@ -81,6 +81,6 @@ export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFor
           {SURVEY_MESSAGES.NEXT}
         </Button>
       </div>
-    </section>
+    </div>
   );
 }

@@ -7,4 +7,5 @@ export const AUTH_CONFIG = {
   REFRESH_ENDPOINT: '/auth/refresh',
   COOKIE_PATH: '/',
   COOKIE_SAME_SITE: 'lax',
+  LOGIN_ENDPOINT: '/auth/login',
 } as const;

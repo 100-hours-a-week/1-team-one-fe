@@ -21,6 +21,7 @@ export interface ApiResponse<T> {
 export type ApiErrorCode =
   | 'AUTH_INVALID_CREDENTIALS'
   | 'AUTH_UNAUTHORIZED'
+  | 'CHARACTER_ALREADY_SET'
   | 'NOT_FOUND'
   | 'METHOD_NOT_ALLOWED'
   | 'INTERNAL_ERROR'
