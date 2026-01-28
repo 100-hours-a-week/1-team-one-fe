@@ -208,9 +208,9 @@
      ---------------------------------------- */
 
   /* Surfaces */
-  --color-bg: var(--color-neutral-25);
-  --color-bg-subtle: var(--color-neutral-50);
-  --color-bg-muted: var(--color-neutral-100);
+  --color-bg: var(--color-neutral-50);
+  --color-bg-subtle: var(--color-neutral-100);
+  --color-bg-muted: var(--color-neutral-150);
 
   --color-surface: var(--color-neutral-0);
   --color-surface-elevated: var(--color-neutral-0);
