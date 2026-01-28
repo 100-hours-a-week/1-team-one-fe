@@ -1,4 +1,4 @@
-import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
+import { RadioGroup as RadioGroupPrimitive } from 'radix-ui';
 import { cva } from 'class-variance-authority';
 import { cn } from './lib/utils';
 
