@@ -21,6 +21,13 @@ type RefreshResponse = ApiResponse<{ tokens: Tokens }>;
 
 type ProxyResponse = ApiResponse<Record<string, unknown>>;
 
+const NO_AUTH_PATHS = new Set<string>([AUTH_CONFIG.LOGIN_ENDPOINT, AUTH_CONFIG.REFRESH_ENDPOINT]);
+
+function shouldSkipAuth(targetPath: string): boolean {
+  const apiPath = targetPath.replace(/^\/api/, '');
+  return NO_AUTH_PATHS.has(apiPath);
+}
+
 function getPathSegments(pathParam: string | string[] | undefined): string[] {
   if (typeof pathParam === 'string') {
     return [pathParam];
@@ -241,9 +248,10 @@ async function forwardRequest(
   targetUrl: string,
   req: NextApiRequest,
   accessToken?: string,
+  skipAuth = false,
 ): Promise<{ status: number; json: ProxyResponse | null; headers: Headers }> {
   const body = getRequestBody(req);
-  const authorization = buildAuthHeader(accessToken);
+  const authorization = skipAuth ? undefined : buildAuthHeader(accessToken); // 조건부로 토큰 추가
   const headers: Record<string, string> = {};
 
   const contentType = Array.isArray(req.headers['content-type'])
@@ -295,7 +303,7 @@ function logProxyNotFound(
   detail?: Readonly<Record<string, unknown>>,
 ): void {
   if (!SHOULD_LOG_PROXY) return;
-   
+
   console.info('[bff-proxy] not_found', {
     source,
     method: req.method,
@@ -337,7 +345,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const accessToken = getAccessTokenFromCookies(req);
   const refreshToken = getRefreshTokenFromCookies(req);
 
-  const initialResponse = await forwardRequest(targetUrl, req, accessToken);
+  const skipAuth = shouldSkipAuth(targetPath); // 인증 스킵 여부 확인
+  const initialResponse = await forwardRequest(targetUrl, req, accessToken, skipAuth);
 
   if (initialResponse.status === HTTP_STATUS.NOT_FOUND) {
     logProxyNotFound('real', req, { targetUrl, attempt: 'initial' });
@@ -347,8 +356,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
   }
+  // console.log('initialResponse', initialResponse);
+  // console.log('targetUrl', targetUrl);
+  // console.log('req', req.headers);
+
+  if (skipAuth || !refreshToken) {
+    respondWithPayload(res, initialResponse.status, initialResponse.json);
+    return;
+  }
 
   const refreshedTokens = await refreshTokens(baseUrl, refreshToken);
+
+  // console.log('refreshedTokens', refreshedTokens);
 
   if (!refreshedTokens) {
     respondWithPayload(res, initialResponse.status, initialResponse.json);
@@ -357,7 +376,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   setAuthCookies(res, refreshedTokens);
 
-  const retryResponse = await forwardRequest(targetUrl, req, refreshedTokens.accessToken.token);
+  const retryResponse = await forwardRequest(
+    targetUrl,
+    req,
+    refreshedTokens.accessToken.token,
+    skipAuth,
+  );
 
   if (retryResponse.status === HTTP_STATUS.NOT_FOUND) {
     logProxyNotFound('real', req, { targetUrl, attempt: 'retry' });
