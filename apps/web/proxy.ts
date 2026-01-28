@@ -8,6 +8,12 @@ const PROTECTED_PREFIX = '/app';
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // next 내부 요청은 건너뛰기
+  if (pathname.startsWith('/_next/')) {
+    return NextResponse.next();
+  }
+
   const refreshToken = request.cookies.get(AUTH_CONFIG.REFRESH_TOKEN_COOKIE)?.value;
   const hasRefreshToken = !!refreshToken;
 
