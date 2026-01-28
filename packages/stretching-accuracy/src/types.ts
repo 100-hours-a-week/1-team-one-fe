@@ -30,15 +30,40 @@ export type ReferencePose = {
 export type AccuracyEvaluateInput = {
   frame: PoseFrame;
   referencePose: ReferencePose;
-  progressRatio: number;
+
   type: ExerciseType;
-  phase: string;
+
+  /**
+   * 이전 프레임의 progressRatio (0~1)
+   * - 첫 호출: 0
+   * - 이후: 이전 AccuracyResult.progressRatio
+   */
+  progressRatio: number;
+  /**
+   * 이전 프레임의 phase
+   * - 첫 호출: 'undefined'
+   * - REPS: 'start' | 'quarter' | 'peak' | 'threeQuarter' | 'down'
+   * - DURATION: 'start' | 'hold' | 'end'
+   */
+  prevPhase: string;
 };
 
 export type AccuracyResult = {
   score: number;
-  phase: string;
   counted: CountedStatus;
+
+  /**
+   * 계산된 새 progressRatio (0~1)
+   * 다음 프레임 호출 시 input.progressRatio로 전달
+   */
+  progressRatio: number;
+  /**
+   * 이번프레임의 phase
+   * - REPS: 'start' | 'quarter' | 'peak' | 'threeQuarter' | 'down'
+   * - DURATION: 'start' | 'hold' | 'end'
+   */
+  phase: string;
+
   meta?: Readonly<Record<string, unknown>>;
 };
 
