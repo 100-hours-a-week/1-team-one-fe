@@ -1,8 +1,9 @@
+import { UserStatusCardSection } from '@/src/widgets/user-status-card';
+
 export function AppMainPage() {
   return (
-    <div>
-      <h1>App Main Page</h1>
-      <p>Route: /app</p>
+    <div className="flex flex-col p-6">
+      <UserStatusCardSection />
     </div>
   );
 }
