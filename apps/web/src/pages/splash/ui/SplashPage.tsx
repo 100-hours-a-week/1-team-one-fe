@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import { type OnboardingStatus, useOnboardingStatusQuery } from '@/src/features/onboarding-status';
 import { ROUTES } from '@/src/shared/routes';
 
-function resolveNextPath(onboardingStatus: OnboardingStatus): string {
+function resolveNextPath(onboardingStatus: OnboardingStatus): string | null {
+  console.log('onboardingStatus', onboardingStatus);
   if (onboardingStatus === 'unauthorized') {
     return ROUTES.LOGIN;
   }
@@ -30,7 +31,10 @@ export function SplashPage() {
     }
 
     const nextPath = resolveNextPath(onboardingStatus);
-    void router.replace(nextPath);
+    console.log('nextPath', nextPath);
+    if (nextPath) {
+      void router.replace(nextPath);
+    }
   }, [onboardingStatus, router]);
 
   return (
