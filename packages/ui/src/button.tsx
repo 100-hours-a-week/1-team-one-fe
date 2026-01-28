@@ -1,6 +1,7 @@
 import { Slot } from 'radix-ui';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from './lib/utils';
+import { ElementType } from 'react';
 
 const buttonVariants = cva(
   /* Base styles */
@@ -87,7 +88,7 @@ export function Button({
   asChild = false,
   ...props
 }: ButtonProps) {
-  const Comp = asChild ? Slot : 'button';
+  const Comp = (asChild ? Slot : 'button') as ElementType;
 
   return (
     <Comp className={cn(buttonVariants({ variant, size, fullWidth, className }))} {...props} />
