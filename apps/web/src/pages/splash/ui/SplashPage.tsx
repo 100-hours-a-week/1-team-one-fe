@@ -5,7 +5,7 @@ import { type OnboardingStatus, useOnboardingStatusQuery } from '@/src/features/
 import { ROUTES } from '@/src/shared/routes';
 
 function resolveNextPath(onboardingStatus: OnboardingStatus): string | null {
-  console.log('onboardingStatus', onboardingStatus);
+  // console.log('onboardingStatus', onboardingStatus);
   if (onboardingStatus === 'unauthorized') {
     return ROUTES.LOGIN;
   }
@@ -31,7 +31,7 @@ export function SplashPage() {
     }
 
     const nextPath = resolveNextPath(onboardingStatus);
-    console.log('nextPath', nextPath);
+    // console.log('nextPath', nextPath);
     if (nextPath) {
       void router.replace(nextPath);
     }
