@@ -25,6 +25,10 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
   const { data: onboardingStatus } = useOnboardingStatusQuery({ enabled: isAppRoute });
 
   useEffect(() => {
+    console.log('onboardingStatus in AuthenticatedShell:', onboardingStatus);
+    console.log('isAppRoute in AuthenticatedShell:', isAppRoute);
+    console.log('router.isReady in AuthenticatedShell:', router.isReady);
+
     if (!router.isReady || !onboardingStatus || !isAppRoute) {
       return;
     }
