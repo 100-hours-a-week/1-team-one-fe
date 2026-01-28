@@ -1,4 +1,4 @@
-import { Progress } from '@repo/ui/progress';
+import { ProgressBar } from '@repo/ui/progress-bar';
 
 import { useStretchingSession } from '../lib/use-stretching-session';
 import { StretchingSessionGuideCard } from './StretchingSessionGuideCard';
@@ -43,7 +43,7 @@ export function StretchingSessionView({ sessionId }: StretchingSessionViewProps)
     <div className="bg-surface relative h-full w-full">
       <div className="flex h-full flex-col">
         <div className="flex justify-center">
-          <Progress total={totalSteps} current={progressCurrent} className="w-full" />
+          <ProgressBar total={totalSteps} current={progressCurrent} className="w-full" />
         </div>
 
         {currentStep && (
