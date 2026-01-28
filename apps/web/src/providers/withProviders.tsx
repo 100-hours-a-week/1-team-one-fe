@@ -26,7 +26,7 @@ export function withProviders<TProps extends object>(AppComponent: ComponentType
     return (
       <QueryClientProvider client={queryClient}>
         <AppComponent {...props} />
-        {isDev && <ReactQueryDevtools initialIsOpen={false} />}
+        <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     );
   };
