@@ -3,6 +3,7 @@ export const PUBLIC_ROUTES = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   LEGAL_TERMS: '/legal/terms',
+  POST_LOGIN: '/post-login',
 
   GUIDE_INSTALL: '/guide/install',
   ONBOARDING_CHARACTER: '/onboarding/character',
