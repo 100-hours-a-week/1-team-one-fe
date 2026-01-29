@@ -11,7 +11,6 @@ import type {
   ReferenceKeyframe,
 } from '../types';
 
-
 /**
  * AI 정확도 평가 엔진 생성
  */
@@ -27,9 +26,7 @@ export function createAccuracyEngine(): AccuracyEngine {
   const evaluate = (input: AccuracyEvaluateInput): AccuracyResult => {
     // 1. deltaTime 계산 - 이전 프레임과의 시간 차이 계산 (첫 호출 시 0)
     const currentTime = input.frame.timestampMs;
-    const deltaTimeMs = lastTimestampMs !== null
-      ? currentTime - lastTimestampMs
-      : 0; // 첫 호출
+    const deltaTimeMs = lastTimestampMs !== null ? currentTime - lastTimestampMs : 0; // 첫 호출
     lastTimestampMs = currentTime;
 
     // 2. 새 progressRatio 계산
@@ -40,9 +37,7 @@ export function createAccuracyEngine(): AccuracyEngine {
 
     if (input.type === 'REPS') {
       // REPS: "end" → "start" 전환 감지
-      const willComplete =
-        input.prevPhase === 'end' ||
-        input.progressRatio >= 0.95; // 거의 끝에 도달
+      const willComplete = input.prevPhase === 'end' || input.progressRatio >= 0.95; // 거의 끝에 도달
 
       if (willComplete && input.prevPhase !== undefined) {
         // 새 회차 시작
@@ -63,23 +58,17 @@ export function createAccuracyEngine(): AccuracyEngine {
     // 3. 현재 phase 결정
     //    - progressRatio 기준으로
     //    - referencePose의 phase 중 어디인지 찾기
-    const currentPhase = getCurrentPhase(
-      newProgressRatio,
-      input.referencePose.keyframes
-    );
+    const currentPhase = getCurrentPhase(newProgressRatio, input.referencePose.keyframes);
 
     // 4. 기준 포즈 보간
     //    - progressRatio에 따라 인접 keyframe 사이를 선형 보간
     //    - referenceKeypoints: 현재 시점의 기준 포즈
-    const referenceKeypoints = interpolateKeyframe(
-      newProgressRatio,
-      input.referencePose
-    );
+    const referenceKeypoints = interpolateKeyframe(newProgressRatio, input.referencePose);
 
     // 5. 사용자 포즈 추출 - 전체 랜드마크 중 targetKeypoints 인덱스에 해당하는 것만 추출
     const userKeypoints = extractTargetKeypoints(
       input.frame.landmarks,
-      input.referencePose.targetKeypoints
+      input.referencePose.targetKeypoints,
     );
 
     // 6. visibility 필터링
@@ -100,8 +89,14 @@ export function createAccuracyEngine(): AccuracyEngine {
     }
 
     // 7. 정확도 계산 - visible한 keypoint만으로 유클리드 거리 기반 유사도 산출
-    const visibleRef = visibleIndices.map(i => referenceKeypoints[i]);
-    const visibleUser = visibleIndices.map(i => userKeypoints[i]);
+    const validPairs = visibleIndices
+      .map((i) => ({ ref: referenceKeypoints[i], user: userKeypoints[i] }))
+      .filter(
+        (pair): pair is { ref: Landmark2D; user: Landmark2D } =>
+          pair.ref !== undefined && pair.user !== undefined,
+      );
+    const visibleRef = validPairs.map((p) => p.ref);
+    const visibleUser = validPairs.map((p) => p.user);
     const accuracy = calculateAccuracy(visibleRef, visibleUser);
 
     // 8. counted 판단 - REPS 모드에서 "end" → "start" 전환이 감지되면 INCREMENTED
@@ -109,13 +104,9 @@ export function createAccuracyEngine(): AccuracyEngine {
     if (input.type === 'REPS') {
       // phase 변화 재확인 (progressRatio 리셋 + phase 전환 둘 다 체크)
       const actualPhaseChanged =
-        input.prevPhase !== undefined &&
-        input.prevPhase === 'end' &&
-        currentPhase === 'start';
+        input.prevPhase !== undefined && input.prevPhase === 'end' && currentPhase === 'start';
 
-      counted = (phaseChanged || actualPhaseChanged)
-        ? 'INCREMENTED'
-        : 'NOT_INCREMENTED';
+      counted = phaseChanged || actualPhaseChanged ? 'INCREMENTED' : 'NOT_INCREMENTED';
     }
 
     // 9. 결과 반환
@@ -123,7 +114,7 @@ export function createAccuracyEngine(): AccuracyEngine {
       score: Math.round(accuracy),
       counted,
       progressRatio: newProgressRatio, // 다음 프레임 단계 전달용
-      phase: currentPhase,             // 다음 프레임 단계 전달용
+      phase: currentPhase, // 다음 프레임 단계 전달용
       meta: {},
     };
   };
@@ -136,23 +127,26 @@ export function createAccuracyEngine(): AccuracyEngine {
  */
 function extractTargetKeypoints(
   landmarks: ReadonlyArray<Landmark2D>,
-  targetIndices: ReadonlyArray<number>
-): Landmark2D[] {
-  return targetIndices.map(idx => landmarks[idx]);
+  targetIndices: ReadonlyArray<number>,
+): (Landmark2D | undefined)[] {
+  return targetIndices.map((idx) => landmarks[idx]);
 }
 
 /**
  * visibility가 threshold 이상인 keypoint의 인덱스 목록 반환
  * - visibility가 undefined인 경우 visible로 간주
+ * - keypoint 자체가 undefined인 경우 제외
  * threshold: 0.4 (기본값)
  */
 function filterVisibleIndices(
-  keypoints: Landmark2D[],
-  threshold: number = 0.4
+  keypoints: (Landmark2D | undefined)[],
+  threshold: number = 0.4,
 ): number[] {
   const indices: number[] = [];
   for (let i = 0; i < keypoints.length; i++) {
-    const v = keypoints[i].visibility;
+    const kp = keypoints[i];
+    if (kp === undefined) continue;
+    const v = kp.visibility;
     if (v === undefined || v >= threshold) {
       indices.push(i);
     }
@@ -173,28 +167,32 @@ function filterVisibleIndices(
 function calculateAccuracy(
   reference: Landmark2D[],
   user: Landmark2D[],
-  tolerance: number = 0.15
+  tolerance: number = 0.15,
 ): number {
   if (reference.length === 0 || reference.length !== user.length) {
     return 0;
   }
 
   let totalDistance = 0;
+  let validPairCount = 0;
 
   for (let i = 0; i < reference.length; i++) {
     const ref = reference[i];
     const usr = user[i];
 
+    if (ref === undefined || usr === undefined) continue;
+
     const distance = Math.sqrt(
-      Math.pow(ref.x - usr.x, 2) +
-      Math.pow(ref.y - usr.y, 2) +
-      Math.pow(ref.z - usr.z, 2)
+      Math.pow(ref.x - usr.x, 2) + Math.pow(ref.y - usr.y, 2) + Math.pow(ref.z - usr.z, 2),
     );
 
     totalDistance += distance;
+    validPairCount++;
   }
 
-  const avgDistance = totalDistance / reference.length;
+  if (validPairCount === 0) return 0;
+
+  const avgDistance = totalDistance / validPairCount;
   const similarity = Math.exp(-avgDistance / tolerance);
 
   return similarity * 100;
@@ -215,30 +213,37 @@ function calculateAccuracy(
  */
 function getCurrentPhase(
   progressRatio: number,
-  keyframes: ReadonlyArray<ReferenceKeyframe>
+  keyframes: ReadonlyArray<ReferenceKeyframe>,
 ): string {
-  // Edge case: 첫 keyframe 이전
-  if (progressRatio <= keyframes[0].timestampRatio) {
-    return keyframes[0].phase;
+  // 빈 배열 체크
+  if (keyframes.length === 0) {
+    return 'start';
   }
-  // Edge case: 마지막 keyframe 이후
-  if (progressRatio >= keyframes[keyframes.length - 1].timestampRatio) {
-    return keyframes[keyframes.length - 1].phase;
+
+  const firstKeyframe = keyframes[0]!;
+  const lastKeyframe = keyframes[keyframes.length - 1]!;
+
+  // 첫 keyframe 이전
+  if (progressRatio <= firstKeyframe.timestampRatio) {
+    return firstKeyframe.phase;
+  }
+  // 마지막 keyframe 이후
+  if (progressRatio >= lastKeyframe.timestampRatio) {
+    return lastKeyframe.phase;
   }
 
   // 현재 위치한 구간 찾기
   for (let i = 0; i < keyframes.length - 1; i++) {
-    if (keyframes[i].timestampRatio <= progressRatio &&
-        keyframes[i + 1].timestampRatio >= progressRatio) {
+    const current = keyframes[i]!;
+    const next = keyframes[i + 1]!;
+    if (current.timestampRatio <= progressRatio && next.timestampRatio >= progressRatio) {
       // 구간의 중간점 기준으로 앞/뒤 phase 결정
-      const midpoint = (keyframes[i].timestampRatio + keyframes[i + 1].timestampRatio) / 2;
-      return progressRatio < midpoint
-        ? keyframes[i].phase
-        : keyframes[i + 1].phase;
+      const midpoint = (current.timestampRatio + next.timestampRatio) / 2;
+      return progressRatio < midpoint ? current.phase : next.phase;
     }
   }
 
-  return keyframes[0].phase;
+  return firstKeyframe.phase;
 }
 
 /**
@@ -247,42 +252,51 @@ function getCurrentPhase(
  * progressRatio에 따라 인접한 두 keyframe 사이를
  * 선형 보간(lerp)하여 중간 포즈를 생성한다.
  */
-function interpolateKeyframe(
-  progressRatio: number,
-  referencePose: ReferencePose
-): Landmark2D[] {
+function interpolateKeyframe(progressRatio: number, referencePose: ReferencePose): Landmark2D[] {
   const keyframes = referencePose.keyframes;
 
-  // 범위 밖: 첫 번째 또는 마지막 keyframe 그대로 반환
-  if (progressRatio <= keyframes[0].timestampRatio) {
-    return [...keyframes[0].keypoints];
+  // 빈 배열 체크
+  if (keyframes.length === 0) {
+    return [];
   }
-  if (progressRatio >= keyframes[keyframes.length - 1].timestampRatio) {
-    return [...keyframes[keyframes.length - 1].keypoints];
+
+  const firstKeyframe = keyframes[0]!;
+  const lastKeyframe = keyframes[keyframes.length - 1]!;
+
+  // 범위 밖: 첫 번째 또는 마지막 keyframe 그대로 반환
+  if (progressRatio <= firstKeyframe.timestampRatio) {
+    return [...firstKeyframe.keypoints];
+  }
+  if (progressRatio >= lastKeyframe.timestampRatio) {
+    return [...lastKeyframe.keypoints];
   }
 
   // 인접 keyframe 구간 찾기
-  let prevFrame = keyframes[0];
-  let nextFrame = keyframes[keyframes.length - 1];
+  let prevFrame = firstKeyframe;
+  let nextFrame = lastKeyframe;
 
   for (let i = 0; i < keyframes.length - 1; i++) {
-    if (keyframes[i].timestampRatio <= progressRatio &&
-        keyframes[i + 1].timestampRatio >= progressRatio) {
-      prevFrame = keyframes[i];
-      nextFrame = keyframes[i + 1];
+    const current = keyframes[i]!;
+    const next = keyframes[i + 1]!;
+    if (current.timestampRatio <= progressRatio && next.timestampRatio >= progressRatio) {
+      prevFrame = current;
+      nextFrame = next;
       break;
     }
   }
 
   // 보간 비율 t (0~1)
-  const t = (progressRatio - prevFrame.timestampRatio) /
-            (nextFrame.timestampRatio - prevFrame.timestampRatio);
+  const t =
+    (progressRatio - prevFrame.timestampRatio) /
+    (nextFrame.timestampRatio - prevFrame.timestampRatio);
 
   // 각 keypoint를 선형 보간
   const interpolated: Landmark2D[] = [];
   for (let i = 0; i < prevFrame.keypoints.length; i++) {
     const prev = prevFrame.keypoints[i];
     const next = nextFrame.keypoints[i];
+
+    if (prev === undefined || next === undefined) continue;
 
     interpolated.push({
       x: prev.x + (next.x - prev.x) * t,

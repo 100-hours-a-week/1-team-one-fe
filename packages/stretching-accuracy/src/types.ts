@@ -23,7 +23,7 @@ export type ReferenceKeyframe = {
 export type ReferencePose = {
   targetKeypoints: ReadonlyArray<number>;
   keyframes: ReadonlyArray<ReferenceKeyframe>;
-  totalDuration: number;
+  totalDuration: number; // REPS면 1회 start -> end, DURATION이면 holding 시간 (초)
   fpsHint?: number;
 };
 
