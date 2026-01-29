@@ -1,15 +1,21 @@
 import { ProgressBar } from '@repo/ui/progress-bar';
 
-import { useStretchingSession } from '../lib/use-stretching-session';
+import { StretchingSessionDebugOptions, useStretchingSession } from '../lib/use-stretching-session';
 import { StretchingSessionGuideCard } from './StretchingSessionGuideCard';
 import { StretchingSessionOverlay } from './StretchingSessionOverlay';
 import { StretchingSessionResultMessage } from './StretchingSessionResultMessage';
 
 type StretchingSessionViewProps = {
   sessionId: string;
+  debugOptions?: StretchingSessionDebugOptions;
+  targetFps?: number;
 };
 
-export function StretchingSessionView({ sessionId }: StretchingSessionViewProps) {
+export function StretchingSessionView({
+  sessionId,
+  debugOptions,
+  targetFps,
+}: StretchingSessionViewProps) {
   const {
     videoRef,
     canvasRef,
@@ -24,7 +30,7 @@ export function StretchingSessionView({ sessionId }: StretchingSessionViewProps)
     repsPopupValue,
     stepOutcome,
     isCanvasReady,
-  } = useStretchingSession(sessionId);
+  } = useStretchingSession(sessionId, { debug: debugOptions, targetFps });
 
   const accuracyColorBorderClassName =
     accuracyTone === 'danger'
@@ -40,7 +46,7 @@ export function StretchingSessionView({ sessionId }: StretchingSessionViewProps)
   const resultMessage = stepOutcome ? (stepOutcome === 'success' ? '성공' : '실패') : null;
 
   return (
-    <div className="bg-surface relative h-full w-full">
+    <div className="relative h-full w-full p-6">
       <div className="flex h-full flex-col">
         <div className="flex justify-center">
           <ProgressBar total={totalSteps} current={progressCurrent} className="w-full" />
