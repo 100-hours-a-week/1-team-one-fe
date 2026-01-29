@@ -1,7 +1,9 @@
+import { ActivityCalendar } from '@repo/ui/activity-calendar';
 import { Card } from '@repo/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { transformGrassData, useGrassStatsQuery } from '@/src/features/grass-stats';
 import { useUserProfileQuery } from '@/src/features/user-profile';
 import { UserStatusCardSection } from '@/src/widgets/user-status-card';
 
@@ -15,25 +17,34 @@ import { APP_MAIN_MESSAGES } from '../config/messages';
 
 export function AppMainPage() {
   const { data } = useUserProfileQuery();
+  const { data: grassData } = useGrassStatsQuery({ view: 'WEEKLY' });
 
   const characterStatus = data ? getCharacterStatusByStreak(data.character.streak) : null;
   const characterImage = data
     ? getCharacterImagePath(data.character, characterStatus ?? CHARACTER_STATUS.NORMAL)
     : null;
 
+  const calendarData = grassData ? transformGrassData(grassData.grass) : [];
+
   return (
     <div className="flex min-h-screen flex-col gap-6 pb-6">
       <UserStatusCardSection />
-      <section className="flex justify-center px-5">
+      <section className="flex flex-col items-center justify-center px-5">
         {characterImage && (
           <Image
             src={characterImage}
             alt={APP_MAIN_MESSAGES.CHARACTER_IMAGE_ALT}
-            width={200}
-            height={100}
+            width={400}
+            height={300}
           />
         )}
+        <p className="text-xl font-semibold">{data?.character.name}</p>
       </section>
+      {calendarData.length > 0 && (
+        <section className="bg-bg-muted rounded-2xl p-5">
+          <ActivityCalendar data={calendarData} />
+        </section>
+      )}
       <section className="flex gap-3 px-5">
         {APP_MAIN_ACTION_CARDS.map(({ key, href, title, Icon }) => (
           <Link
