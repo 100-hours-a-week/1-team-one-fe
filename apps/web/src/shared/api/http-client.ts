@@ -9,11 +9,12 @@ const DEFAULT_HEADERS = {
   'Content-Type': 'application/json',
 } as const;
 
+//TODO: 현재 타임아웃 무제한, 추후 수정
+
 function createClient(baseURL: string, useBasePrefix: boolean): AxiosInstance {
   const basePrefix = useBasePrefix ? (process.env.NEXT_PUBLIC_API_BASE_URL ?? '') : '';
   const client = axios.create({
     baseURL: basePrefix ? `${basePrefix}${baseURL}` : baseURL,
-    timeout: API_CONFIG.DEFAULT_TIMEOUT,
     headers: DEFAULT_HEADERS,
     withCredentials: true,
   });
