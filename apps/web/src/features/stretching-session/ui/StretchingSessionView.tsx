@@ -1,6 +1,9 @@
 import { ProgressBar } from '@repo/ui/progress-bar';
+import { useEffect } from 'react';
 
+import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
 import { StretchingSessionDebugOptions, useStretchingSession } from '../lib/use-stretching-session';
+import { StretchingSessionCompletionResult } from './StretchingSessionCompletionResult';
 import { StretchingSessionGuideCard } from './StretchingSessionGuideCard';
 import { StretchingSessionOverlay } from './StretchingSessionOverlay';
 import { StretchingSessionResultMessage } from './StretchingSessionResultMessage';
@@ -28,8 +31,12 @@ export function StretchingSessionView({
     timerTone,
     repsCount,
     repsPopupValue,
+    holdSeconds,
     stepOutcome,
     isCanvasReady,
+    isSessionComplete,
+    completionResult,
+    isCompleting,
   } = useStretchingSession(sessionId, { debug: debugOptions, targetFps });
 
   const accuracyColorBorderClassName =
@@ -43,7 +50,21 @@ export function StretchingSessionView({
   const isReps = currentStep?.exercise.type === 'REPS';
   const targetReps = currentStep?.targetReps ?? 0;
   const shouldShowReps = isReps && targetReps > 0;
-  const resultMessage = stepOutcome ? (stepOutcome === 'success' ? '성공' : '실패') : null;
+  const resultMessage = stepOutcome
+    ? stepOutcome === 'success'
+      ? STRETCHING_SESSION_MESSAGES.STATUS.RESULT_SUCCESS
+      : STRETCHING_SESSION_MESSAGES.STATUS.RESULT_FAIL
+    : null;
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    console.log('stepOutcome', stepOutcome);
+    console.log('currentStepIndex', currentStepIndex);
+  }, [currentStepIndex, stepOutcome]);
+
+  if (isSessionComplete) {
+    return <StretchingSessionCompletionResult result={completionResult} isLoading={isCompleting} />;
+  }
 
   return (
     <div className="relative h-full w-full p-6">
@@ -73,6 +94,7 @@ export function StretchingSessionView({
               targetReps={targetReps}
               showReps={shouldShowReps}
               repsPopupValue={repsPopupValue}
+              holdSeconds={holdSeconds}
             />
           )}
 
@@ -83,7 +105,9 @@ export function StretchingSessionView({
           />
           {!isCanvasReady && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-text-muted text-sm font-medium">{'로딩 중...'}</span>
+              <span className="text-text-muted text-sm font-medium">
+                {STRETCHING_SESSION_MESSAGES.STATUS.LOADING}
+              </span>
             </div>
           )}
           <StretchingSessionResultMessage message={resultMessage} />

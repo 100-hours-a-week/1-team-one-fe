@@ -10,7 +10,12 @@ import { createSession, type StretchingSession } from '@repo/stretching-session'
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ExerciseSessionStep } from '@/src/entities/exercise-session';
-import { useExerciseSessionQuery } from '@/src/features/exercise-session';
+import {
+  type CompleteExerciseSessionResponseData,
+  useCompleteExerciseSessionMutation,
+  useExerciseSessionQuery,
+} from '@/src/features/exercise-session';
+import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
 
 import { STRETCHING_SESSION_CONFIG } from '../config/constants';
 
@@ -40,6 +45,8 @@ export type UseStretchingSessionResult = {
   isCanvasReady: boolean;
   isSessionComplete: boolean;
   isRoutineSuccess: boolean;
+  completionResult: CompleteExerciseSessionResponseData | null;
+  isCompleting: boolean;
 };
 
 export type StretchingSessionDebugOptions = {
@@ -56,6 +63,9 @@ type StretchingStepResult = {
   routineStepId: number;
   stepOrder: number;
   status: 'success' | 'fail';
+  accuracy: number;
+  startAt: string;
+  endAt: string;
 };
 
 const clamp = (value: number, min: number, max: number): number => {
@@ -114,25 +124,41 @@ export function useStretchingSession(
   const repsPopupTimeoutRef = useRef<number | null>(null);
   const isCanvasReadyRef = useRef(false);
   const hasLoggedMissingDataRef = useRef(false);
+  const hasSubmittedResultRef = useRef(false);
 
   const currentStepRef = useRef<ExerciseSessionStep | null>(null);
   const referencePoseRef = useRef(currentStepRef.current?.exercise.pose.referencePose ?? null);
   const exerciseTypeRef = useRef<ExerciseType | null>(null);
+  const sessionStartedAtRef = useRef<Date | null>(null);
+  const sessionEndedAtRef = useRef<Date | null>(null);
+  const stepStartedAtRef = useRef<Date | null>(null);
 
   const totalStepsRef = useRef(0);
   const isSessionCompleteRef = useRef(false);
 
   //ui state
+  //현재 스텝
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  //남은 제한 시간
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(0);
+  //정확도 퍼센트(0~100)
   const [accuracyPercent, setAccuracyPercent] = useState(0);
+  //반복 횟수(REPS일때)
   const [repsCount, setRepsCount] = useState(0);
+  //REPS 팝업 표시용 값
   const [repsPopupValue, setRepsPopupValue] = useState<number | null>(null);
+  //유지 시간(초)
   const [holdSeconds, setHoldSeconds] = useState(0);
+  //각 스텝의 성공/실패 결과 배열
   const [stepResults, setStepResults] = useState<ReadonlyArray<StretchingStepResult>>([]);
+  // 세션 완료 여부
   const [isSessionComplete, setIsSessionComplete] = useState(false);
+  // 현재 스텝의 성공/실패 결과
   const [stepOutcome, setStepOutcome] = useState<StretchingStepResult['status'] | null>(null);
   const [isCanvasReady, setIsCanvasReady] = useState(false);
+  // 세션 완료 응답 데이터
+  const [completionResult, setCompletionResult] =
+    useState<CompleteExerciseSessionResponseData | null>(null);
 
   //마지막 ui 반영 값 refs
   const lastUiAccuracyPercentRef = useRef(0);
@@ -143,6 +169,12 @@ export function useStretchingSession(
 
   const { data, isLoading } = useExerciseSessionQuery(sessionId ?? '', {
     enabled: Boolean(sessionId),
+  });
+  const { mutate: completeSession, isPending: isCompleting } = useCompleteExerciseSessionMutation({
+    sessionId: sessionId ?? '',
+    onSuccess: (payload) => {
+      setCompletionResult(payload);
+    },
   });
 
   const steps = data?.routineSteps ?? [];
@@ -195,10 +227,27 @@ export function useStretchingSession(
 
     transitionLockRef.current = true;
     setStepOutcome(status);
-    setStepResults((prev) => [
-      ...prev,
-      { routineStepId: step.routineStepId, stepOrder: step.stepOrder, status },
-    ]);
+    const stepStartAt = stepStartedAtRef.current ?? new Date();
+    const stepEndAt = new Date();
+    const accuracy = normalizeAccuracyPercent(lastUiAccuracyPercentRef.current);
+
+    setStepResults((prev) => {
+      const nextItem: StretchingStepResult = {
+        routineStepId: step.routineStepId,
+        stepOrder: step.stepOrder,
+        status,
+        accuracy: Math.round(accuracy),
+        startAt: formatDateTime(stepStartAt),
+        endAt: formatDateTime(stepEndAt),
+      };
+      const existingIndex = prev.findIndex((result) => result.routineStepId === step.routineStepId);
+      if (existingIndex < 0) {
+        return [...prev, nextItem];
+      }
+      const next = [...prev];
+      next[existingIndex] = nextItem;
+      return next;
+    });
 
     if (transitionTimeoutRef.current) window.clearTimeout(transitionTimeoutRef.current);
 
@@ -210,6 +259,7 @@ export function useStretchingSession(
         const total = totalStepsRef.current;
 
         if (nextIndex >= total) {
+          sessionEndedAtRef.current = stepEndAt;
           setIsSessionComplete(true);
           return prev; // 마지막 step 유지
         }
@@ -311,6 +361,12 @@ export function useStretchingSession(
     isCanvasReadyRef.current = false;
     canStopRef.current = false;
 
+    hasSubmittedResultRef.current = false;
+    sessionStartedAtRef.current = null;
+    sessionEndedAtRef.current = null;
+    stepStartedAtRef.current = null;
+    setCompletionResult(null);
+
     //ui cache refs도 초기화
     lastUiAccuracyPercentRef.current = 0;
     lastUiHoldSecondsRef.current = 0;
@@ -330,6 +386,7 @@ export function useStretchingSession(
     if (!currentStep) return;
 
     stepStartAtRef.current = null;
+    stepStartedAtRef.current = null;
     lastAccuracyAtRef.current = null;
     holdMsRef.current = 0;
 
@@ -356,6 +413,10 @@ export function useStretchingSession(
 
     if (!stepStartAtRef.current) {
       stepStartAtRef.current = Date.now();
+      stepStartedAtRef.current = new Date();
+      if (!sessionStartedAtRef.current) {
+        sessionStartedAtRef.current = stepStartedAtRef.current;
+      }
     }
 
     const limitTime = currentStep.limitTime ?? 0;
@@ -419,10 +480,13 @@ export function useStretchingSession(
       getPhase,
       accuracyEngine: options?.debug?.accuracyEngine,
       onAccuracyDebug: options?.debug?.onAccuracyDebug,
-      onTick: ({ videoWidth, videoHeight }) => {
+      onTick: ({ videoWidth, videoHeight }: { videoWidth: number; videoHeight: number }) => {
         if (isCanvasReadyRef.current) return;
         if (videoWidth === 0 || videoHeight === 0) return;
         isCanvasReadyRef.current = true;
+        if (!sessionStartedAtRef.current) {
+          sessionStartedAtRef.current = new Date();
+        }
         canStopRef.current = true;
         setIsCanvasReady(true);
       },
@@ -479,6 +543,33 @@ export function useStretchingSession(
     void session.stop();
   }, [isCanvasReady, isSessionComplete, stepResults.length, totalSteps]);
 
+  //세션 종료 여부
+  useEffect(() => {
+    if (!isSessionComplete) return;
+    if (!sessionId) return;
+    if (hasSubmittedResultRef.current) return;
+    if (totalStepsRef.current === 0) return;
+    if (stepResults.length < totalStepsRef.current) return;
+
+    const startedAt = sessionStartedAtRef.current ?? new Date();
+    const endedAt = sessionEndedAtRef.current ?? new Date();
+
+    hasSubmittedResultRef.current = true;
+
+    completeSession({
+      startAt: formatDateTime(startedAt),
+      endAt: formatDateTime(endedAt),
+      exerciseResult: stepResults.map((result) => ({
+        routineStepId: result.routineStepId,
+        status: result.status === 'success' ? 'COMPLETED' : 'FAILED',
+        accuracy: result.accuracy,
+        startAt: result.startAt,
+        endAt: result.endAt,
+        pose_record: [],
+      })),
+    });
+  }, [completeSession, isSessionComplete, sessionId, stepResults]);
+
   //ref 최신화
   useEffect(() => {
     isSessionCompleteRef.current = isSessionComplete;
@@ -500,6 +591,46 @@ export function useStretchingSession(
     [stepResults],
   );
 
+  //디버깅용 콘솔
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    console.log('[stretching-session] state', {
+      sessionId,
+      currentStepIndex,
+      currentStep,
+      totalSteps,
+      timeRemainingSeconds,
+      accuracyPercent,
+      accuracyTone,
+      timerTone,
+      repsCount,
+      repsPopupValue,
+      holdSeconds,
+      stepResults,
+      stepOutcome,
+      isCanvasReady,
+      isSessionComplete,
+      isRoutineSuccess,
+    });
+  }, [
+    accuracyPercent,
+    accuracyTone,
+    currentStep,
+    currentStepIndex,
+    holdSeconds,
+    isCanvasReady,
+    isRoutineSuccess,
+    isSessionComplete,
+    repsCount,
+    repsPopupValue,
+    sessionId,
+    stepOutcome,
+    stepResults,
+    timeRemainingSeconds,
+    timerTone,
+    totalSteps,
+  ]);
+
   return {
     videoRef,
     canvasRef,
@@ -519,5 +650,7 @@ export function useStretchingSession(
     isCanvasReady,
     isSessionComplete,
     isRoutineSuccess,
+    completionResult,
+    isCompleting,
   };
 }
