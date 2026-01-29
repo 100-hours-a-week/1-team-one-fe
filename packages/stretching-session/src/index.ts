@@ -1,7 +1,8 @@
 export { createSession } from './create-session';
+export { createRenderer } from './renderers';
+
 export type { CreateSessionOptions, StretchingSession } from './create-session';
 
-export { createRenderer } from './renderers';
 export type {
   VisualizationMode,
   RendererConfig,
