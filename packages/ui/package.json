@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "lucide-react": "^0.469.0",
-    "radix-ui": "^1.4.2"
+    "radix-ui": "^1.4.2",
+    "sonner": "^1.7.4"
   }
 }
