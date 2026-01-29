@@ -1,4 +1,4 @@
-import * as Dialog from '@radix-ui/react-dialog';
+import { Dialog } from 'radix-ui';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
 import { cn } from './lib/utils';

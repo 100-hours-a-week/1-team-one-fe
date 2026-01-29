@@ -44,8 +44,9 @@ export function OnboardingCharacterPage() {
       }));
 
       //동기화도 진행
-      void queryClient.invalidateQueries({
+      void queryClient.refetchQueries({
         queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
+        type: 'all',
       });
     },
 
