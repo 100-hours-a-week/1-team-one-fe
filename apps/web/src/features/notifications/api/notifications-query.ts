@@ -17,15 +17,14 @@ import type {
 
 type NotificationsResponse = ApiResponse<{
   notifications: NotificationLogItem[];
-}> & {
   paging: NotificationsPaging;
-};
-
+}>;
 type UnreadCountResponse = ApiResponse<UnreadNotificationsCount>;
 
+//TODO: 타입 리팩토링
 const toNotificationsPage = (response: NotificationsResponse): NotificationsPage => ({
   notifications: response.data.notifications,
-  paging: response.paging,
+  paging: response.data.paging,
 });
 
 async function fetchNotificationsPage(
@@ -65,8 +64,9 @@ export function useNotificationsInfiniteQuery(
     queryFn: ({ pageParam }) => fetchNotificationsPage(limit, pageParam),
     initialPageParam: null,
     getNextPageParam: (lastPage) => {
+      //return 이 nullable 하지 않으면 hasNext true
       if (!lastPage?.paging?.hasNext) return undefined;
-      return lastPage.paging.nextCursor;
+      return lastPage.paging.nextCursor ?? undefined;
     },
     ...options,
   });
