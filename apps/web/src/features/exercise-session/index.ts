@@ -1,3 +1,11 @@
+export {
+  type CompleteExerciseSessionRequest,
+  type CompleteExerciseSessionResponseData,
+  type ExercisePoseRecordFrame,
+  type ExerciseResultItem,
+  type ExerciseResultStatus,
+  useCompleteExerciseSessionMutation,
+} from './api/complete-exercise-session-mutation';
 export type {
   ExerciseSessionQueryKey,
   ExerciseSessionQueryOptions,
