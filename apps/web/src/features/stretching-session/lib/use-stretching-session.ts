@@ -1,4 +1,6 @@
 import {
+  type AccuracyEngine,
+  type AccuracyEvaluateInput,
   type AccuracyResult,
   type CountedStatus,
   createSession,
@@ -39,6 +41,16 @@ export type UseStretchingSessionResult = {
   isCanvasReady: boolean;
   isSessionComplete: boolean;
   isRoutineSuccess: boolean;
+};
+
+export type StretchingSessionDebugOptions = {
+  accuracyEngine?: AccuracyEngine;
+  onAccuracyDebug?: (payload: { input: AccuracyEvaluateInput; result: AccuracyResult }) => void;
+};
+
+export type UseStretchingSessionOptions = {
+  debug?: StretchingSessionDebugOptions;
+  targetFps?: number;
 };
 
 type StretchingStepResult = {
@@ -85,7 +97,10 @@ function useEvent<T extends (...args: any[]) => any>(handler: T): T {
   return useCallback(((...args: any[]) => handlerRef.current(...args)) as T, []);
 }
 
-export function useStretchingSession(sessionId: string | null): UseStretchingSessionResult {
+export function useStretchingSession(
+  sessionId: string | null,
+  options?: UseStretchingSessionOptions,
+): UseStretchingSessionResult {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -150,7 +165,8 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
     return toExerciseType(steps[0].exercise.type);
   }, [steps]);
 
-  const isInitialDataReady = Boolean(initialReferencePose && initialExerciseType && totalSteps > 0);
+  // const isInitialDataReady = Boolean(initialReferencePose && initialExerciseType && totalSteps > 0);
+  const isInitialDataReady = true;
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') return;
@@ -383,10 +399,16 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
     isCanvasReadyRef.current = false;
     setIsCanvasReady(false);
 
+    const targetFps = options?.targetFps ?? STRETCHING_SESSION_CONFIG.TARGET_FPS;
+    const frameIntervalMs =
+      targetFps > 0 ? Math.round(STRETCHING_SESSION_CONFIG.MILLISECONDS_PER_SECOND / targetFps) : 0;
+
     const session: StretchingSession = createSession({
       video: videoRef.current,
+      canvas: canvasRef.current,
       modelAssetPath: STRETCHING_SESSION_CONFIG.MODEL_ASSET_PATH,
       wasmRoot: STRETCHING_SESSION_CONFIG.WASM_ROOT,
+      frameIntervalMs,
 
       referencePose: initialReferencePose!,
       getReferencePose: () => referencePoseRef.current ?? initialReferencePose!,
@@ -396,6 +418,8 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
       getExerciseType: () => exerciseTypeRef.current ?? initialExerciseType,
 
       getPhase,
+      accuracyEngine: options?.debug?.accuracyEngine,
+      onAccuracyDebug: options?.debug?.onAccuracyDebug,
       onTick: ({ videoWidth, videoHeight }) => {
         if (isCanvasReadyRef.current) return;
         if (videoWidth === 0 || videoHeight === 0) return;
@@ -411,14 +435,17 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
       },
       onAccuracy: handleAccuracy,
 
-      silhouette: {
-        canvas: canvasRef.current,
-        foregroundColor: STRETCHING_SESSION_CONFIG.SILHOUETTE_FOREGROUND_RGBA,
-        backgroundColor: STRETCHING_SESSION_CONFIG.SILHOUETTE_BACKGROUND_RGBA,
-        visibilityMin: STRETCHING_SESSION_CONFIG.SILHOUETTE_VISIBILITY_MIN,
-        smoothingAlpha: STRETCHING_SESSION_CONFIG.SILHOUETTE_SMOOTHING_ALPHA,
-        headRadiusRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_HEAD_RADIUS_RATIO,
-        strokeWidthRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_STROKE_WIDTH_RATIO,
+      visualization: {
+        mode: STRETCHING_SESSION_CONFIG.VISUALIZATION_MODE,
+        keypoints: {
+          lineColor: STRETCHING_SESSION_CONFIG.KEYPOINTS_LINE_COLOR,
+          lineWidth: STRETCHING_SESSION_CONFIG.KEYPOINTS_LINE_WIDTH,
+          pointColor: STRETCHING_SESSION_CONFIG.KEYPOINTS_POINT_COLOR,
+          pointRadius: STRETCHING_SESSION_CONFIG.KEYPOINTS_POINT_RADIUS,
+          backgroundColor: STRETCHING_SESSION_CONFIG.KEYPOINTS_BACKGROUND_COLOR,
+          visibilityThreshold: STRETCHING_SESSION_CONFIG.KEYPOINTS_VISIBILITY_THRESHOLD,
+          showPoints: STRETCHING_SESSION_CONFIG.KEYPOINTS_SHOW_POINTS,
+        },
       },
     });
 
@@ -432,7 +459,15 @@ export function useStretchingSession(sessionId: string | null): UseStretchingSes
       setIsCanvasReady(false);
       canStopRef.current = false;
     };
-  }, [getPhase, getProgressRatio, handleAccuracy, isInitialDataReady]);
+  }, [
+    getPhase,
+    getProgressRatio,
+    handleAccuracy,
+    isInitialDataReady,
+    options?.debug?.accuracyEngine,
+    options?.debug?.onAccuracyDebug,
+    options?.targetFps,
+  ]);
 
   //complete 시 stop
   useEffect(() => {

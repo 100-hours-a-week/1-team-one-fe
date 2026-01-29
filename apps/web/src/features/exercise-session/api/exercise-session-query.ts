@@ -12,20 +12,65 @@ import { EXERCISE_SESSION_QUERY_KEYS } from '../config/query-keys';
 const mockExerciseSessionResponse: ExerciseSessionResponse = {
   code: 'GET_SESSION_SUCCESS',
   data: {
-    routineId: 1,
+    routineId: 23,
     routineOrder: 1,
-    createdAt: '2026-01-10T10:00:00',
+    createdAt: '2026-01-29T13:09:00',
     routineSteps: [
       {
-        routineStepId: 1,
+        routineStepId: 77,
         stepOrder: 1,
         targetReps: null,
-        durationTime: 5,
+        durationTime: 10,
         limitTime: 60,
         exercise: {
           exerciseId: 1,
           type: 'DURATION',
           name: '어깨 스트레칭',
+          content: '어깨를 높게 당깁니다',
+          effect: '어깨가 풀린다',
+          pose: {
+            referencePose: {
+              targetKeypoints: [0, 7, 8, 11, 12],
+              keyframes: [
+                {
+                  phase: 'start',
+                  timestampRatio: 0,
+                  keypoints: [
+                    [0.4, 0.45, -0.05],
+                    [0.6, 0.45, -0.05],
+                    [0.62, 0.5, -0.02],
+                    [0.42, 0.62, -0.03],
+                    [0.58, 0.62, -0.03],
+                  ],
+                },
+                {
+                  phase: 'end',
+                  timestampRatio: 1,
+                  keypoints: [
+                    [0.4, 0.42, -0.04],
+                    [0.6, 0.42, -0.04],
+                    [0.62, 0.48, -0.02],
+                    [0.42, 0.6, -0.02],
+                    [0.58, 0.6, -0.02],
+                  ],
+                },
+              ],
+              totalDuration: 2,
+              fpsHint: 30,
+            },
+          },
+        },
+      },
+      {
+        routineStepId: 78,
+        stepOrder: 2,
+        targetReps: null,
+        durationTime: 10,
+        limitTime: 60,
+        exercise: {
+          exerciseId: 1,
+          type: 'DURATION',
+          name: '어깨 스트레칭2',
           content: '어깨를 높게 당깁니다',
           effect: '어깨가 풀린다',
           pose: {
