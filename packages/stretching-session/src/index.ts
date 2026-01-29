@@ -9,16 +9,3 @@ export type {
   SilhouetteConfig,
   Renderer,
 } from './renderers';
-
-export { createAccuracyEngine } from '@repo/stretching-accuracy';
-export type {
-  AccuracyEngine,
-  AccuracyEvaluateInput,
-  AccuracyResult,
-  CountedStatus,
-  ExerciseType,
-  Landmark2D,
-  PoseFrame,
-  ReferenceKeyframe,
-  ReferencePose,
-} from '@repo/stretching-accuracy';

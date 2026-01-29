@@ -3,11 +3,10 @@ import {
   type AccuracyEvaluateInput,
   type AccuracyResult,
   type CountedStatus,
-  createSession,
   type ExerciseType,
   type PoseFrame,
-  type StretchingSession,
-} from '@repo/stretching-session';
+} from '@repo/stretching-accuracy';
+import { createSession, type StretchingSession } from '@repo/stretching-session';
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ExerciseSessionStep } from '@/src/entities/exercise-session';

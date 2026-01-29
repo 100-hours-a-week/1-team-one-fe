@@ -6,4 +6,6 @@ export type {
   SilhouetteConfig,
 } from '../renderers';
 
+export type { StretchingSession } from '../create-session';
+
 export type { RgbaColor, SegmentationColor } from '../utils/color-cache';
