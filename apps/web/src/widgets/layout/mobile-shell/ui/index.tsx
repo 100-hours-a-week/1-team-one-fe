@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { FooterNav } from '@/src/widgets/layout/footer-nav';
+import { MainHeader } from '@/src/widgets/layout/main-header';
 
 import { HeaderConfig, PageHeader } from '../../page-header';
 
@@ -12,9 +13,17 @@ export interface MobileShellProps {
 }
 
 export function MobileShell({ children, showFooter = true, headerConfig }: MobileShellProps) {
-  const resolvedHeader = headerConfig && (
-    <PageHeader title={headerConfig.title} backAction={true} action={headerConfig.action} />
-  );
+  const resolvedHeader =
+    headerConfig &&
+    (headerConfig.variant === 'main' ? (
+      <MainHeader />
+    ) : (
+      <PageHeader
+        title={headerConfig.title}
+        backAction={headerConfig.back ?? true}
+        action={headerConfig.action}
+      />
+    ));
 
   return (
     <div className="bg-bg flex min-h-dvh justify-center">
