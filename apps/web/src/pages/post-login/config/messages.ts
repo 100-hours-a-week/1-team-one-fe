@@ -1,3 +1,3 @@
 export const POST_LOGIN_MESSAGES = {
-  LOADING: '온보딩 상태 확인 중...',
+  LOADING: '헬시한 코딩을 위하여!',
 } as const;
