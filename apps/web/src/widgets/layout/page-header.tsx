@@ -5,17 +5,19 @@ import { useRouter } from 'next/router';
 import type React from 'react';
 
 export type HeaderConfig = {
+  variant?: 'main' | 'sub';
   title?: React.ReactNode;
   back?: boolean;
   action?: React.ReactNode;
 };
 
 const pageHeaderVariants = cva([
+  'sticky top-0 z-10',
   'flex items-center justify-between',
-  'w-full',
+  'w-full h-16',
   'px-4 py-3',
   'sm:px-6',
-  'bg-surface',
+  'bg-bg',
 ]);
 
 export interface PageHeaderProps extends Omit<React.ComponentPropsWithoutRef<'header'>, 'title'> {

@@ -3,6 +3,9 @@ import { createAuthenticatedLayout } from '@/src/shared/lib/layout';
 import type { NextPageWithLayout } from '@/src/shared/types';
 
 const Page: NextPageWithLayout = AppMainPage;
-Page.getLayout = createAuthenticatedLayout();
+Page.getLayout = createAuthenticatedLayout({
+  showFooter: true,
+  headerConfig: { variant: 'main' },
+});
 
 export default Page;
