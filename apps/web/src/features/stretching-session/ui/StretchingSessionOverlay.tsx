@@ -1,5 +1,7 @@
 import { formatDuration } from '@/src/shared/lib/format/format-duration';
 
+import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
+
 type StretchingSessionOverlayProps = {
   timeRemainingSeconds: number;
   timerTone: 'danger' | 'default';
@@ -9,6 +11,7 @@ type StretchingSessionOverlayProps = {
   targetReps: number;
   showReps: boolean;
   repsPopupValue: number | null;
+  holdSeconds: number;
 };
 
 export function StretchingSessionOverlay({
@@ -20,6 +23,7 @@ export function StretchingSessionOverlay({
   targetReps,
   showReps,
   repsPopupValue,
+  holdSeconds,
 }: StretchingSessionOverlayProps) {
   const timerTextClassName = timerTone === 'danger' ? 'text-error-600' : 'text-text';
 
@@ -32,9 +36,11 @@ export function StretchingSessionOverlay({
 
   return (
     <div className="pointer-events-none absolute top-4 right-4 left-4 z-10">
-      <div className="grid grid-cols-3 items-start">
-        <div className="flex flex-col items-start gap-1">
-          <span className="text-text-muted text-xs">{'남은 시간'}</span>
+      <div className="bg-surface grid grid-cols-3 items-start rounded-lg py-2">
+        <div className="flex flex-col items-center gap-1 rounded-xl">
+          <span className="text-text-muted text-xs">
+            {STRETCHING_SESSION_MESSAGES.OVERLAY.TIME_REMAINING}
+          </span>
           <span className={`text-lg font-semibold ${timerTextClassName}`}>
             {formatDuration(timeRemainingSeconds)}
           </span>
@@ -43,10 +49,20 @@ export function StretchingSessionOverlay({
         <div className="relative flex flex-col items-center gap-1">
           {showReps && (
             <>
-              <span className="text-text-muted text-xs">{'카운트'}</span>
+              <span className="text-text-muted text-xs">
+                {STRETCHING_SESSION_MESSAGES.OVERLAY.REPS_COUNT}
+              </span>
               <span className="text-text text-lg font-semibold">
                 {repsCount}/{targetReps}
               </span>
+            </>
+          )}
+          {!showReps && holdSeconds > 0 && (
+            <>
+              <span className="text-text-muted text-xs">
+                {STRETCHING_SESSION_MESSAGES.OVERLAY.SUCCESS_COUNT}
+              </span>
+              <span className="text-text text-lg font-semibold">{holdSeconds}</span>
             </>
           )}
           {repsPopupValue !== null && showReps && (
@@ -56,8 +72,10 @@ export function StretchingSessionOverlay({
           )}
         </div>
 
-        <div className="flex flex-col items-end gap-1">
-          <span className="text-text-muted text-xs">{'정확도'}</span>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-text-muted text-xs">
+            {STRETCHING_SESSION_MESSAGES.OVERLAY.ACCURACY}
+          </span>
           <span className={`text-lg font-semibold ${accuracyTextClassName}`}>
             {Math.round(accuracyPercent)}%
           </span>

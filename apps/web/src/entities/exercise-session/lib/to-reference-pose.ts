@@ -1,4 +1,4 @@
-import type { Landmark2D, ReferenceKeyframe, ReferencePose } from '@repo/stretching-session';
+import type { Landmark2D, ReferenceKeyframe, ReferencePose } from '@repo/stretching-accuracy';
 
 import type { ReferenceKeyframeResponse, ReferencePoseResponse } from '../api/types';
 
