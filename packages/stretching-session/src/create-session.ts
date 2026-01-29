@@ -702,7 +702,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
           referencePose: resolvedReferencePose,
           progressRatio,
           type: resolvedExerciseType,
-          phase,
+          prevPhase: phase,
         });
         onAccuracy?.(accuracy, frame);
 
