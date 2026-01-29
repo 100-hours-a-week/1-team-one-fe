@@ -26,6 +26,7 @@ const cardVariants = cva(
           'focus-visible:ring-focus-ring',
           'focus-visible:ring-offset-2',
         ],
+        disabled: ['bg-bg-muted'],
       },
       padding: {
         none: 'p-0',

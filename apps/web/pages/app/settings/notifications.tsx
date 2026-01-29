@@ -7,7 +7,7 @@ Page.getLayout = createAuthenticatedLayout({
   showFooter: false,
   headerConfig: {
     variant: 'sub',
-    title: '알림 설정',
+    title: '알림 로그',
   },
 });
 
