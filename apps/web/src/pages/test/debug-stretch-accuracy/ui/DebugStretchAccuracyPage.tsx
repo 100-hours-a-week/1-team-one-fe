@@ -50,8 +50,8 @@ export function DebugStretchAccuracyPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sessionRef = useRef<StretchingSession | null>(null);
-  const progressRatioRef = useRef(STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO);
-  const phaseRef = useRef(STRETCHING_SESSION_CONFIG.DEFAULT_PHASE);
+  const progressRatioRef = useRef<number>(STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO);
+  const phaseRef = useRef<string>(STRETCHING_SESSION_CONFIG.DEFAULT_PHASE);
   const fpsMeterRef = useRef({ lastMeasureAt: 0, frameCount: 0 });
 
   const [referencePoseText, setReferencePoseText] = useState(DEFAULT_REFERENCE_POSE_JSON);
