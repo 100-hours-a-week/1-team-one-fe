@@ -1,3 +1,4 @@
+import { Spinner } from '@repo/ui/spinner';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
@@ -19,6 +20,10 @@ export function PostLoginPage() {
     staleTime: 0,
   });
 
+  if (!isLoading && onboardingStatus === 'error') {
+    throw new Error('post-login:onboarding-status');
+  }
+
   useEffect(() => {
     if (!router.isReady) return;
     if (isLoading) return;
@@ -30,7 +35,10 @@ export function PostLoginPage() {
 
   return (
     <div className="bg-bg text-text flex min-h-screen items-center justify-center px-6">
-      <span className="text-text-muted text-sm font-medium">{POST_LOGIN_MESSAGES.LOADING}</span>
+      <div className="flex items-center gap-3">
+        <Spinner size="md" />
+        <span className="text-text-muted text-sm font-medium">{POST_LOGIN_MESSAGES.LOADING}</span>
+      </div>
     </div>
   );
 }
