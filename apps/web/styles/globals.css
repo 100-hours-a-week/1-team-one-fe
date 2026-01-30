@@ -26,6 +26,7 @@
 
 body {
   font-family: var(--font-sans);
+  background-color: var(--neutral-50);
 }
 
 @keyframes logo-float {

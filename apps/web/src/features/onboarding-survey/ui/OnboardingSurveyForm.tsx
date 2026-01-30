@@ -4,12 +4,13 @@ import { SingleChoiceGroup } from '@repo/ui/single-choice-group';
 
 import { useSubmitSurveyMutation } from '../api/submit-survey-mutation';
 import { useSurveyQuery } from '../api/survey-query';
+import type { SurveySubmissionData } from '../api/types';
 import { SURVEY_MESSAGES } from '../config/messages';
 import { useSurveyForm } from '../lib/use-survey-form';
 
 export interface OnboardingSurveyFormProps {
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (data: SurveySubmissionData) => void;
 }
 
 export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFormProps) {
@@ -43,11 +44,11 @@ export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFor
     const hasAllResponses = responses.length === data.questions.length;
     if (!hasAllResponses) return;
 
-    await mutateAsync({
+    const result = await mutateAsync({
       surveyId: data.surveyId,
       responses,
     });
-    onComplete();
+    onComplete(result);
   };
 
   return (
