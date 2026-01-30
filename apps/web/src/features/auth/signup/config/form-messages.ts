@@ -1,4 +1,10 @@
 export const FORM_MESSAGES = {
+  FIELD: {
+    PROFILE_IMAGE_LABEL: '프로필 이미지',
+    PROFILE_IMAGE_HELPER: 'jpg, jpeg, png, gif, webp, heic, heif (최대 10MB)',
+    PROFILE_IMAGE_CLEAR: '이미지 삭제',
+    PROFILE_IMAGE_CLEAR_ARIA: '프로필 이미지 삭제',
+  },
   ERROR: {
     SIGNUP_FAILED: '회원가입에 실패했습니다. 다시 시도해주세요.',
     EMAIL_DUP_CHECK_REQUIRED: '이메일 중복 확인이 필요합니다.',
@@ -7,6 +13,10 @@ export const FORM_MESSAGES = {
     NICKNAME_DUP_CHECK_REQUIRED: '닉네임 중복 확인이 필요합니다.',
     NICKNAME_UNAVAILABLE: '이미 사용 중인 닉네임입니다.',
     NICKNAME_DUP_CHECK_FAILED: '중복 확인에 실패했습니다. 다시 시도해주세요.',
+    PROFILE_IMAGE_UPLOAD_FAILED: '프로필 이미지 업로드에 실패했습니다. 다시 시도해주세요.',
+    PROFILE_IMAGE_UPLOAD_FAILED_WITH_STATUS:
+      '프로필 이미지 업로드에 실패했습니다. (상태 코드: {status})',
+    PROFILE_IMAGE_UPLOAD_STATUS_UNKNOWN: '알 수 없음',
   },
 } as const;
 

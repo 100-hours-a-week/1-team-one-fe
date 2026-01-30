@@ -1,6 +1,7 @@
 import { Input } from './input';
 import type { ChangeEvent, FocusEvent, KeyboardEvent, ReactNode } from 'react';
 import { cn } from './lib/utils';
+import { Button } from './button';
 
 //TODO: 타입 분리
 export type DupStatus = 'idle' | 'checking' | 'available' | 'unavailable' | 'error';
@@ -27,6 +28,7 @@ export interface FormFieldProps {
   value?: string;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
+  accept?: string;
   placeholder?: string;
   autoComplete?: string;
 
@@ -64,6 +66,7 @@ export function FormField({
   value,
   onChange,
   onBlur,
+  accept,
   placeholder,
   autoComplete,
 
@@ -94,6 +97,7 @@ export function FormField({
   const showErrorMessage = error && errorMessage;
   const showHelperText = !error && !!helperText;
   const showDupMessage = !error && !!dup?.enabled && !!dup.message;
+  const isHelperEmpty = !showErrorMessage && !showDupMessage && !showHelperText;
 
   return (
     <Input.Root error={error} disabled={disabled} size={size}>
@@ -114,6 +118,7 @@ export function FormField({
           value={value}
           onChange={onChange}
           onBlur={(e) => onBlur?.(e)}
+          accept={accept}
           placeholder={placeholder}
           autoComplete={autoComplete}
           aria-describedby={ariaDescribedBy || helperId}
@@ -122,23 +127,19 @@ export function FormField({
 
         {duplicationCheck?.enabled ? (
           <Input.RightAddon>
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="outline"
               disabled={
                 disabled || duplicationCheck.disabled || duplicationCheck.status === 'checking'
               }
               onClick={duplicationCheck.onCheck}
-              className={cn(
-                'shrink-0 rounded-md px-2 py-1 text-sm font-medium',
-                'border-border bg-surface border',
-                'hover:bg-surface-muted',
-                'disabled:cursor-not-allowed disabled:opacity-(--disabled-opacity)',
-              )}
             >
               {duplicationCheck.status === 'checking'
                 ? '확인중…'
                 : (duplicationCheck.buttonText ?? '중복 확인')}
-            </button>
+            </Button>
           </Input.RightAddon>
         ) : rightAddon ? (
           <Input.RightAddon>{rightAddon}</Input.RightAddon>
@@ -163,34 +164,32 @@ export function FormField({
         ) : null}
       </Input.Control>
 
-      {showErrorMessage && (
-        <Input.HelperText id={helperId} type={'error'}>
-          {errorMessage}
-        </Input.HelperText>
-      )}
-
-      {!showErrorMessage && showDupMessage && (
-        <Input.HelperText
-          id={helperId}
-          type={
-            dup.status === 'available'
-              ? 'success'
-              : dup.status === 'unavailable'
-                ? 'error'
-                : dup.status === 'error'
-                  ? 'warning'
-                  : 'default'
-          }
-        >
-          {dup.message}
-        </Input.HelperText>
-      )}
-
-      {!showErrorMessage && !showDupMessage && showHelperText && (
-        <Input.HelperText id={helperId} type="default">
-          {helperText}
-        </Input.HelperText>
-      )}
+      <Input.HelperText
+        id={helperId}
+        type={
+          showErrorMessage
+            ? 'error'
+            : showDupMessage
+              ? dup.status === 'available'
+                ? 'success'
+                : dup.status === 'unavailable'
+                  ? 'error'
+                  : dup.status === 'error'
+                    ? 'warning'
+                    : 'default'
+              : 'default'
+        }
+        className="min-h-5"
+        aria-hidden={isHelperEmpty}
+      >
+        {showErrorMessage
+          ? errorMessage
+          : showDupMessage
+            ? dup?.message
+            : showHelperText
+              ? helperText
+              : '\u00A0'}
+      </Input.HelperText>
     </Input.Root>
   );
 }

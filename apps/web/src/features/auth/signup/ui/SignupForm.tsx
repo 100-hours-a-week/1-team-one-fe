@@ -1,10 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
+import { InputImage } from '@repo/ui/input-image';
+import { Controller, useForm, type UseFormSetError } from 'react-hook-form';
 
-import { isApiError } from '@/src/shared/api';
+import { type ApiError, isApiError } from '@/src/shared/api';
 
 import { EmailField, NicknameField, PasswordField } from '../../ui';
+import { PROFILE_IMAGE_UPLOAD_ERROR_CODE } from '../api';
 import { FORM_MESSAGES } from '../config/form-messages';
+import { VALIDATION_RULES } from '../config/validation';
 import { useEmailDuplication } from '../lib/use-email-duplication';
 import { useNicknameDuplication } from '../lib/use-nickname-duplication';
 import { type SignupFormValues, signupSchema } from '../model/signup-schema';
@@ -12,13 +15,15 @@ import { type SignupFormValues, signupSchema } from '../model/signup-schema';
 export interface SignupFormProps {
   onSubmit: (values: SignupFormValues) => Promise<void>;
   isPending?: boolean;
+  isProfileImageUploading?: boolean;
 }
 
-export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
+export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: SignupFormProps) {
   const { control, handleSubmit, formState, setError, clearErrors } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     mode: 'onBlur',
     defaultValues: {
+      profileImage: null,
       email: '',
       nickname: '',
       password: '',
@@ -49,19 +54,28 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
     try {
       await onSubmit(values);
     } catch (error: unknown) {
-      if (isApiError(error) && error.errors) {
-        error.errors.forEach((err) => {
-          setError(err.field as keyof SignupFormValues, {
-            type: 'server',
-            message: err.reason,
-          });
-        });
-      } else {
-        setError('root.serverError', {
+      const setRootError = (message: string) => {
+        setError('root.serverError', { type: 'server', message });
+      };
+
+      const uploadErrorMessage = getProfileImageUploadErrorMessage(error);
+      if (uploadErrorMessage) {
+        setError('profileImage', {
           type: 'server',
-          message: FORM_MESSAGES.ERROR.SIGNUP_FAILED,
+          message: uploadErrorMessage,
         });
+        return;
       }
+
+      if (!isApiError(error)) {
+        setRootError(FORM_MESSAGES.ERROR.SIGNUP_FAILED);
+        return;
+      }
+
+      const mapped = applyApiErrors(error, setError);
+      if (mapped) return;
+
+      setRootError(error.message || FORM_MESSAGES.ERROR.SIGNUP_FAILED);
     }
   };
 
@@ -71,6 +85,28 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
       className="flex w-full flex-col justify-center gap-6"
     >
       {/* TODO: 설정 모아서 map 으로 변경 */}
+      <Controller
+        name="profileImage"
+        control={control}
+        render={({ field, fieldState }) => (
+          <InputImage
+            name={field.name}
+            value={field.value}
+            accept={VALIDATION_RULES.PROFILE_IMAGE_ACCEPT}
+            label={FORM_MESSAGES.FIELD.PROFILE_IMAGE_LABEL}
+            helperText={FORM_MESSAGES.FIELD.PROFILE_IMAGE_HELPER}
+            clearLabel={FORM_MESSAGES.FIELD.PROFILE_IMAGE_CLEAR}
+            clearAriaLabel={FORM_MESSAGES.FIELD.PROFILE_IMAGE_CLEAR_ARIA}
+            onChange={(file) => field.onChange(file)}
+            onBlur={field.onBlur}
+            onClear={() => field.onChange(null)}
+            isLoading={isProfileImageUploading}
+            error={fieldState.invalid}
+            errorMessage={fieldState.error?.message}
+          />
+        )}
+      />
+
       <Controller
         name="email"
         control={control}
@@ -171,4 +207,70 @@ export function SignupForm({ onSubmit, isPending }: SignupFormProps) {
       </button>
     </form>
   );
+}
+
+const PROFILE_IMAGE_ERROR_FIELDS = new Set(['fileName', 'contentType']);
+const PROFILE_IMAGE_ERROR_CODES = new Set([
+  'INVALID_FILE_EXTENSION',
+  'PRESIGNED_URL_GENERATION_FAILED',
+]);
+const SIGNUP_FIELDS = new Set<keyof SignupFormValues>([
+  'profileImage',
+  'email',
+  'nickname',
+  'password',
+  'passwordConfirm',
+]);
+
+function isSignupField(field: string | undefined): field is keyof SignupFormValues {
+  if (!field) return false;
+  return SIGNUP_FIELDS.has(field as keyof SignupFormValues);
+}
+
+function applyApiErrors(error: ApiError, setError: UseFormSetError<SignupFormValues>) {
+  if (Array.isArray(error.errors) && error.errors.length > 0) {
+    let handled = false;
+
+    for (const err of error.errors) {
+      if (isSignupField(err.field)) {
+        setError(err.field, { type: 'server', message: err.reason });
+        handled = true;
+        continue;
+      }
+
+      if (err.field && PROFILE_IMAGE_ERROR_FIELDS.has(err.field)) {
+        setError('profileImage', { type: 'server', message: err.reason });
+        handled = true;
+        continue;
+      }
+    }
+
+    if (handled) return true;
+  }
+
+  if (error.code && PROFILE_IMAGE_ERROR_CODES.has(error.code)) {
+    setError('profileImage', { type: 'server', message: error.message });
+    return true;
+  }
+
+  return false;
+}
+
+function getProfileImageUploadErrorMessage(error: unknown) {
+  if (!(error instanceof Error)) return null;
+  if (!error.message.startsWith(PROFILE_IMAGE_UPLOAD_ERROR_CODE)) return null;
+
+  const payload = error.message.replace(`${PROFILE_IMAGE_UPLOAD_ERROR_CODE}:`, '');
+  if (!payload) return FORM_MESSAGES.ERROR.PROFILE_IMAGE_UPLOAD_FAILED;
+
+  const [status = FORM_MESSAGES.ERROR.PROFILE_IMAGE_UPLOAD_STATUS_UNKNOWN, ...rest] =
+    payload.split(':');
+  const detail = rest.join(':').trim();
+  const baseMessage = FORM_MESSAGES.ERROR.PROFILE_IMAGE_UPLOAD_FAILED_WITH_STATUS.replace(
+    '{status}',
+    status,
+  );
+
+  if (!detail) return baseMessage;
+  return `${baseMessage} ${detail}`;
 }
