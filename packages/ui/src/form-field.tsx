@@ -1,6 +1,7 @@
 import { Input } from './input';
 import type { ChangeEvent, FocusEvent, KeyboardEvent, ReactNode } from 'react';
 import { cn } from './lib/utils';
+import { Button } from './button';
 
 //TODO: 타입 분리
 export type DupStatus = 'idle' | 'checking' | 'available' | 'unavailable' | 'error';
@@ -27,6 +28,7 @@ export interface FormFieldProps {
   value?: string;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
+  accept?: string;
   placeholder?: string;
   autoComplete?: string;
 
@@ -64,6 +66,7 @@ export function FormField({
   value,
   onChange,
   onBlur,
+  accept,
   placeholder,
   autoComplete,
 
@@ -114,6 +117,7 @@ export function FormField({
           value={value}
           onChange={onChange}
           onBlur={(e) => onBlur?.(e)}
+          accept={accept}
           placeholder={placeholder}
           autoComplete={autoComplete}
           aria-describedby={ariaDescribedBy || helperId}
@@ -122,23 +126,19 @@ export function FormField({
 
         {duplicationCheck?.enabled ? (
           <Input.RightAddon>
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="outline"
               disabled={
                 disabled || duplicationCheck.disabled || duplicationCheck.status === 'checking'
               }
               onClick={duplicationCheck.onCheck}
-              className={cn(
-                'shrink-0 rounded-md px-2 py-1 text-sm font-medium',
-                'border-border bg-surface border',
-                'hover:bg-surface-muted',
-                'disabled:cursor-not-allowed disabled:opacity-(--disabled-opacity)',
-              )}
             >
               {duplicationCheck.status === 'checking'
                 ? '확인중…'
                 : (duplicationCheck.buttonText ?? '중복 확인')}
-            </button>
+            </Button>
           </Input.RightAddon>
         ) : rightAddon ? (
           <Input.RightAddon>{rightAddon}</Input.RightAddon>
@@ -164,7 +164,11 @@ export function FormField({
       </Input.Control>
 
       {showErrorMessage && (
-        <Input.HelperText id={helperId} type={'error'}>
+        <Input.HelperText
+          id={helperId}
+          type={'error'}
+          className={cn(showErrorMessage && 'visibility-none')}
+        >
           {errorMessage}
         </Input.HelperText>
       )}
