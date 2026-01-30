@@ -313,6 +313,8 @@ function logProxyNotFound(
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('[BFF HIT]', req.url, req.query);
+
   const pathSegments = getPathSegments(req.query.path);
 
   if (pathSegments.length === 0) {
@@ -351,14 +353,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (initialResponse.status === HTTP_STATUS.NOT_FOUND) {
     logProxyNotFound('real', req, { targetUrl, attempt: 'initial' });
   }
+  console.log('initialResponse', initialResponse);
+  console.log('targetUrl', targetUrl);
+  console.log('req', req.headers);
 
   if (initialResponse.status !== HTTP_STATUS.UNAUTHORIZED || !refreshToken) {
     respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
   }
-  // console.log('initialResponse', initialResponse);
-  // console.log('targetUrl', targetUrl);
-  // console.log('req', req.headers);
 
   if (skipAuth || !refreshToken) {
     respondWithPayload(res, initialResponse.status, initialResponse.json);

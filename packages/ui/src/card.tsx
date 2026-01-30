@@ -9,7 +9,7 @@ const cardVariants = cva(
       variant: {
         default: ['bg-surface', 'border border-border'],
         outline: ['bg-transparent', 'border border-border-strong'],
-        elevated: ['bg-surface', 'shadow-[var(--shadow-md)]'],
+        elevated: ['bg-surface', 'shadow-[var(--shadow-sm)]'],
         selectable: [
           'bg-surface',
           'border-2',
@@ -26,6 +26,7 @@ const cardVariants = cva(
           'focus-visible:ring-focus-ring',
           'focus-visible:ring-offset-2',
         ],
+        disabled: ['bg-bg-muted'],
       },
       padding: {
         none: 'p-0',

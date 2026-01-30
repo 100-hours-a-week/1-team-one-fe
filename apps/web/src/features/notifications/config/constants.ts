@@ -1,0 +1,4 @@
+export const NOTIFICATIONS_CONFIG = {
+  PAGE_LIMIT: 5,
+  INFINITE_SCROLL_ROOT_MARGIN: '200px',
+} as const;

@@ -12,7 +12,7 @@ export function FooterNav() {
 
   return (
     <nav
-      className="border-border bg-surface fixed bottom-0 left-1/2 flex h-16 w-full max-w-md -translate-x-1/2 items-center justify-around border-t p-2 backdrop-blur-lg"
+      className="fixed bottom-0 left-1/2 flex h-16 w-full max-w-md -translate-x-1/2 items-center justify-around p-2 backdrop-blur-lg"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {navigationItems.map((item) => (

@@ -1,15 +1,24 @@
 import { ProgressBar } from '@repo/ui/progress-bar';
+import { useEffect } from 'react';
 
-import { useStretchingSession } from '../lib/use-stretching-session';
+import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
+import { StretchingSessionDebugOptions, useStretchingSession } from '../lib/use-stretching-session';
+import { StretchingSessionCompletionResult } from './StretchingSessionCompletionResult';
 import { StretchingSessionGuideCard } from './StretchingSessionGuideCard';
 import { StretchingSessionOverlay } from './StretchingSessionOverlay';
 import { StretchingSessionResultMessage } from './StretchingSessionResultMessage';
 
 type StretchingSessionViewProps = {
   sessionId: string;
+  debugOptions?: StretchingSessionDebugOptions;
+  targetFps?: number;
 };
 
-export function StretchingSessionView({ sessionId }: StretchingSessionViewProps) {
+export function StretchingSessionView({
+  sessionId,
+  debugOptions,
+  targetFps,
+}: StretchingSessionViewProps) {
   const {
     videoRef,
     canvasRef,
@@ -22,9 +31,13 @@ export function StretchingSessionView({ sessionId }: StretchingSessionViewProps)
     timerTone,
     repsCount,
     repsPopupValue,
+    holdSeconds,
     stepOutcome,
     isCanvasReady,
-  } = useStretchingSession(sessionId);
+    isSessionComplete,
+    completionResult,
+    isCompleting,
+  } = useStretchingSession(sessionId, { debug: debugOptions, targetFps });
 
   const accuracyColorBorderClassName =
     accuracyTone === 'danger'
@@ -37,10 +50,24 @@ export function StretchingSessionView({ sessionId }: StretchingSessionViewProps)
   const isReps = currentStep?.exercise.type === 'REPS';
   const targetReps = currentStep?.targetReps ?? 0;
   const shouldShowReps = isReps && targetReps > 0;
-  const resultMessage = stepOutcome ? (stepOutcome === 'success' ? '성공' : '실패') : null;
+  const resultMessage = stepOutcome
+    ? stepOutcome === 'success'
+      ? STRETCHING_SESSION_MESSAGES.STATUS.RESULT_SUCCESS
+      : STRETCHING_SESSION_MESSAGES.STATUS.RESULT_FAIL
+    : null;
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    console.log('stepOutcome', stepOutcome);
+    console.log('currentStepIndex', currentStepIndex);
+  }, [currentStepIndex, stepOutcome]);
+
+  if (isSessionComplete) {
+    return <StretchingSessionCompletionResult result={completionResult} isLoading={isCompleting} />;
+  }
 
   return (
-    <div className="bg-surface relative h-full w-full">
+    <div className="relative h-full w-full p-6">
       <div className="flex h-full flex-col">
         <div className="flex justify-center">
           <ProgressBar total={totalSteps} current={progressCurrent} className="w-full" />
@@ -67,6 +94,7 @@ export function StretchingSessionView({ sessionId }: StretchingSessionViewProps)
               targetReps={targetReps}
               showReps={shouldShowReps}
               repsPopupValue={repsPopupValue}
+              holdSeconds={holdSeconds}
             />
           )}
 
@@ -77,7 +105,9 @@ export function StretchingSessionView({ sessionId }: StretchingSessionViewProps)
           />
           {!isCanvasReady && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-text-muted text-sm font-medium">{'로딩 중...'}</span>
+              <span className="text-text-muted text-sm font-medium">
+                {STRETCHING_SESSION_MESSAGES.STATUS.LOADING}
+              </span>
             </div>
           )}
           <StretchingSessionResultMessage message={resultMessage} />

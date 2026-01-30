@@ -20,7 +20,7 @@ export function LoginPage() {
           queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
           type: 'all',
         });
-        router.push(ROUTES.MAIN);
+        router.push(ROUTES.POST_LOGIN);
       },
     });
   };

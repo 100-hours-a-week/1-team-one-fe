@@ -1,0 +1,38 @@
+export const DEBUG_STRETCH_ACCURACY_MESSAGES = {
+  TITLE: '정확도 디버그 패널',
+  DESCRIPTION: '미디어파이프 기반 정확도 계산을 실시간으로 확인합니다.',
+  STATUS: {
+    RUNNING: '실행 중',
+    IDLE: '대기 중',
+  },
+  FORM: {
+    SECTION_TITLE: '설정',
+    REFERENCE_POSE_LABEL: 'ReferencePose(JSON)',
+    EXERCISE_TYPE_LABEL: '운동 타입',
+    FPS_LABEL: '목표 FPS',
+    FPS_HELPER: '낮출수록 성능 부담이 줄어듭니다.',
+    START: '시작',
+    STOP: '중지',
+    RESET: '리셋',
+    ERROR_INVALID_JSON: 'JSON 형식이 올바르지 않습니다.',
+    ERROR_INVALID_REFERENCE_POSE: 'ReferencePose 형식이 올바르지 않습니다.',
+    ERROR_INVALID_FPS: 'FPS 값이 올바르지 않습니다.',
+  },
+  METRICS: {
+    SECTION_TITLE: '실시간 지표',
+    ACCURACY: '정확도',
+    COUNTED: '카운트 상태',
+    PHASE: 'Phase',
+    PROGRESS_RATIO: 'Progress Ratio',
+    LAST_UPDATE: '마지막 업데이트',
+    LAST_UPDATE_EMPTY: '대기 중',
+    FPS: '실측 FPS',
+    HAS_POSE: '포즈 감지',
+    HAS_POSE_ON: 'ON',
+    HAS_POSE_OFF: 'OFF',
+  },
+  PREVIEW: {
+    SECTION_TITLE: '미리보기',
+    VIDEO_LOADING: '비디오 준비 중...',
+  },
+} as const;

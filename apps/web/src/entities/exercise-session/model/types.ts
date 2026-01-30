@@ -1,4 +1,4 @@
-import type { ReferencePose } from '@repo/stretching-session';
+import type { ReferencePose } from '@repo/stretching-accuracy';
 
 export interface ExerciseSessionExercisePose {
   referencePose: ReferencePose;
