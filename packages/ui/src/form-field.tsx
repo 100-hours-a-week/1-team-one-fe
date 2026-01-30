@@ -97,6 +97,7 @@ export function FormField({
   const showErrorMessage = error && errorMessage;
   const showHelperText = !error && !!helperText;
   const showDupMessage = !error && !!dup?.enabled && !!dup.message;
+  const isHelperEmpty = !showErrorMessage && !showDupMessage && !showHelperText;
 
   return (
     <Input.Root error={error} disabled={disabled} size={size}>
@@ -163,38 +164,32 @@ export function FormField({
         ) : null}
       </Input.Control>
 
-      {showErrorMessage && (
-        <Input.HelperText
-          id={helperId}
-          type={'error'}
-          className={cn(showErrorMessage && 'visibility-none')}
-        >
-          {errorMessage}
-        </Input.HelperText>
-      )}
-
-      {!showErrorMessage && showDupMessage && (
-        <Input.HelperText
-          id={helperId}
-          type={
-            dup.status === 'available'
-              ? 'success'
-              : dup.status === 'unavailable'
-                ? 'error'
-                : dup.status === 'error'
-                  ? 'warning'
-                  : 'default'
-          }
-        >
-          {dup.message}
-        </Input.HelperText>
-      )}
-
-      {!showErrorMessage && !showDupMessage && showHelperText && (
-        <Input.HelperText id={helperId} type="default">
-          {helperText}
-        </Input.HelperText>
-      )}
+      <Input.HelperText
+        id={helperId}
+        type={
+          showErrorMessage
+            ? 'error'
+            : showDupMessage
+              ? dup.status === 'available'
+                ? 'success'
+                : dup.status === 'unavailable'
+                  ? 'error'
+                  : dup.status === 'error'
+                    ? 'warning'
+                    : 'default'
+              : 'default'
+        }
+        className="min-h-5"
+        aria-hidden={isHelperEmpty}
+      >
+        {showErrorMessage
+          ? errorMessage
+          : showDupMessage
+            ? dup?.message
+            : showHelperText
+              ? helperText
+              : '\u00A0'}
+      </Input.HelperText>
     </Input.Root>
   );
 }
