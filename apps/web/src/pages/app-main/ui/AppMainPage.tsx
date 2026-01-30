@@ -17,7 +17,9 @@ import { APP_MAIN_MESSAGES } from '../config/messages';
 
 export function AppMainPage() {
   const { data } = useUserProfileQuery();
-  const { data: grassData } = useGrassStatsQuery({ view: 'WEEKLY' });
+  const { data: grassData } = useGrassStatsQuery({
+    view: 'WEEKLY',
+  });
 
   const characterStatus = data ? getCharacterStatusByStreak(data.character.streak) : null;
   const characterImage = data
@@ -40,11 +42,9 @@ export function AppMainPage() {
         )}
         <p className="text-xl font-semibold">{data?.character.name}</p>
       </section>
-      {calendarData.length > 0 && (
-        <section className="bg-bg-muted rounded-2xl p-5">
-          <ActivityCalendar data={calendarData} />
-        </section>
-      )}
+      <section className="bg-bg-muted rounded-lg p-3">
+        {calendarData.length > 0 && <ActivityCalendar data={calendarData} />}
+      </section>
       <section className="flex gap-3 px-5">
         {APP_MAIN_ACTION_CARDS.map(({ key, href, title, Icon }) => (
           <Link
