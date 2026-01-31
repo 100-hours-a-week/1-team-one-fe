@@ -431,7 +431,7 @@ export function useStretchingSession(
 
       if (lastUiTimerSecondsRef.current !== remainingInt) {
         lastUiTimerSecondsRef.current = remainingInt;
-        setTimeRemainingSeconds(remainingInt);
+        // setTimeRemainingSeconds(remainingInt);
       }
     };
 
@@ -500,14 +500,13 @@ export function useStretchingSession(
 
       visualization: {
         mode: STRETCHING_SESSION_CONFIG.VISUALIZATION_MODE,
-        keypoints: {
-          lineColor: STRETCHING_SESSION_CONFIG.KEYPOINTS_LINE_COLOR,
-          lineWidth: STRETCHING_SESSION_CONFIG.KEYPOINTS_LINE_WIDTH,
-          pointColor: STRETCHING_SESSION_CONFIG.KEYPOINTS_POINT_COLOR,
-          pointRadius: STRETCHING_SESSION_CONFIG.KEYPOINTS_POINT_RADIUS,
-          backgroundColor: STRETCHING_SESSION_CONFIG.KEYPOINTS_BACKGROUND_COLOR,
-          visibilityThreshold: STRETCHING_SESSION_CONFIG.KEYPOINTS_VISIBILITY_THRESHOLD,
-          showPoints: STRETCHING_SESSION_CONFIG.KEYPOINTS_SHOW_POINTS,
+        silhouette: {
+          foregroundColor: STRETCHING_SESSION_CONFIG.SILHOUETTE_FOREGROUND_RGBA,
+          backgroundColor: STRETCHING_SESSION_CONFIG.SILHOUETTE_BACKGROUND_RGBA,
+          visibilityMin: STRETCHING_SESSION_CONFIG.SILHOUETTE_VISIBILITY_MIN,
+          smoothingAlpha: STRETCHING_SESSION_CONFIG.SILHOUETTE_SMOOTHING_ALPHA,
+          headRadiusRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_HEAD_RADIUS_RATIO,
+          strokeWidthRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_STROKE_WIDTH_RATIO,
         },
       },
     });

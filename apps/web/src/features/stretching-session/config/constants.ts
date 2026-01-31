@@ -4,7 +4,7 @@ export const STRETCHING_SESSION_CONFIG = {
   WASM_ROOT: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm',
 
   // 캔버스 어떻게 보여주는지 mode (video | keypoints | video-keypoints | silhouette)
-  VISUALIZATION_MODE: 'video-keypoints' as const,
+  VISUALIZATION_MODE: 'silhouette' as const,
 
   // 키포인트 렌더러 옵션들 (video-keypoints, keypoints 모드에만 사용)
   KEYPOINTS_LINE_COLOR: '#00FF00',
