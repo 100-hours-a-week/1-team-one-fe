@@ -19,9 +19,26 @@ function bindForegroundNotifications(messaging: ReturnType<typeof getMessaging>)
   if (isForegroundListenerBound) return;
   isForegroundListenerBound = true;
   onMessage(messaging, (payload) => {
+    console.debug('[push-notifications] raw_payload', payload);
+
     const notification = payload?.notification ?? {};
     const data = normalizePushData(payload?.data);
     const route = resolvePushRoute(data.type, data);
+
+    console.debug('[push-notifications] foreground_message', {
+      userId: data.userId,
+      type: data.type,
+      data,
+    });
+
+    if (payload?.notification) {
+      console.debug('[push-notifications] foreground_skip_manual_notification', {
+        userId: data.userId,
+        type: data.type,
+      });
+
+      return;
+    }
     const title = notification.title ?? '알림';
     const options: NotificationOptions = {
       body: notification.body ?? '',
@@ -37,25 +54,66 @@ function bindForegroundNotifications(messaging: ReturnType<typeof getMessaging>)
   });
 }
 
+//최초등록 시 푸시알람 활성화
 export async function enablePushNotifications(
   putFcm: (payload: PutFcmTokenRequest) => Promise<void>,
 ) {
   if (!('serviceWorker' in navigator)) return;
+  if (typeof Notification === 'undefined') return;
 
-  let swReg: ServiceWorkerRegistration;
-  try {
-    swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    await navigator.serviceWorker.ready;
-  } catch (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[push-notifications] service_worker_register_failed', { error });
-    }
-    return;
-  }
+  const swReg = await registerServiceWorker();
+  if (!swReg) return;
 
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return;
 
+  await registerFcmToken(swReg, putFcm);
+}
+
+function normalizePushData(raw: Record<string, string> | undefined): PushNotificationData {
+  if (!raw) return {};
+  return {
+    type: raw.type,
+    userId: raw.userId,
+    sessionId: raw.sessionId,
+    routineId: raw.routineId,
+    jobId: raw.jobId,
+    submissionId: raw.submissionId,
+    reason: raw.reason,
+  };
+}
+
+export async function refreshPushTokenOnLogin(
+  putFcm: (payload: PutFcmTokenRequest) => Promise<void>,
+) {
+  if (!('serviceWorker' in navigator)) return;
+  if (typeof Notification === 'undefined') return;
+  // TODO: 알림 설정 화면에서 사용자 액션으로 permission 재요청 처리로 이동
+  if (Notification.permission !== 'granted') return;
+  const swReg = await registerServiceWorker();
+  if (!swReg) return;
+
+  await registerFcmToken(swReg, putFcm);
+}
+
+//fcm 토큰 발급에 필요한 Service Worker 등록
+async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  try {
+    const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    await navigator.serviceWorker.ready;
+    return swReg;
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[push-notifications] service_worker_register_failed', { error });
+    }
+    return null;
+  }
+}
+
+async function registerFcmToken(
+  swReg: ServiceWorkerRegistration,
+  putFcm: (payload: PutFcmTokenRequest) => Promise<void>,
+) {
   const messaging = getMessaging(app);
   bindForegroundNotifications(messaging);
   const fcmToken = await getToken(messaging, {
@@ -66,16 +124,4 @@ export async function enablePushNotifications(
   if (!fcmToken) return;
 
   await putFcm({ fcmToken });
-}
-
-function normalizePushData(raw: Record<string, string> | undefined): PushNotificationData {
-  if (!raw) return {};
-  return {
-    type: raw.type,
-    sessionId: raw.sessionId,
-    routineId: raw.routineId,
-    jobId: raw.jobId,
-    submissionId: raw.submissionId,
-    reason: raw.reason,
-  };
 }
