@@ -1,24 +1,16 @@
 import { z } from 'zod';
 
-import { FORM_MESSAGES, INTERVAL_CONFIG } from '../config';
+import type { AlarmSettingsFormValues } from '@/src/entities/alarm-settings';
+import { WEEKDAY_VALUES } from '@/src/entities/alarm-settings';
 
-export const WEEKDAY_VALUES = [
-  'MONDAY',
-  'TUESDAY',
-  'WEDNESDAY',
-  'THURSDAY',
-  'FRIDAY',
-  'SATURDAY',
-  'SUNDAY',
-] as const;
-export type Weekday = (typeof WEEKDAY_VALUES)[number];
+import { FORM_MESSAGES, INTERVAL_CONFIG } from '../config';
 
 function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(':').map(Number);
   return (hours ?? 0) * 60 + (minutes ?? 0);
 }
 
-export const alarmSettingsSchema = z
+export const alarmSettingsSchema: z.ZodType<AlarmSettingsFormValues> = z
   .object({
     intervalMinutes: z
       .number()
@@ -67,4 +59,4 @@ export const alarmSettingsSchema = z
     }
   });
 
-export type AlarmSettingsValues = z.infer<typeof alarmSettingsSchema>;
+export type AlarmSettingsValues = AlarmSettingsFormValues;

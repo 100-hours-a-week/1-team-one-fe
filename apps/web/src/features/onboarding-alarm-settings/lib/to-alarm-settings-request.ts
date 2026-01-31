@@ -1,15 +1,10 @@
+import { normalizeTimeString } from '@/src/shared/lib/date/normalize-time';
+
 import type { AlarmSettingsRequest } from '../api/types';
 import type { AlarmSettingsValues } from './alarm-settings-schema';
 
-function normalizeTimeWithSeconds(value: string): string {
-  if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
-    return value;
-  }
-  if (/^\d{2}:\d{2}$/.test(value)) {
-    return `${value}:00`;
-  }
-  return value;
-}
+const normalizeTimeWithSeconds = (value: string): string =>
+  normalizeTimeString(value, value, 'HH:mm:ss');
 
 export function toAlarmSettingsRequest(values: AlarmSettingsValues): AlarmSettingsRequest {
   return {
