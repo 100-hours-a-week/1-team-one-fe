@@ -20,7 +20,7 @@ export function FooterNavItem({
   const iconSize = isMain ? 28 : 24;
 
   const baseClasses = cn(
-    'flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1 rounded-lg px-3 py-2',
+    'flex min-h-[44px] flex-col items-center min-w-18 justify-center gap-1 rounded-lg py-2',
     'transition-colors duration-base',
     'focus-visible:outline-none',
     'focus-visible:ring-2 focus-visible:ring-focus-ring',

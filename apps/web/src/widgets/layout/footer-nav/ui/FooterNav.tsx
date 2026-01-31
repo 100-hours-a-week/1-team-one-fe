@@ -5,9 +5,10 @@ import { FooterNavItem } from './FooterNavItem';
 
 export function FooterNav() {
   const router = useRouter();
+  const currentPath = router.asPath.split('#')[0];
 
   const isActive = (href: string) => {
-    return router.pathname === href;
+    return currentPath === href;
   };
 
   return (
@@ -22,7 +23,6 @@ export function FooterNav() {
           href={item.href}
           icon={item.icon}
           isActive={isActive(item.href)}
-          isMain={item.isMain}
         />
       ))}
     </nav>
