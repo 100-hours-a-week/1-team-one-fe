@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import type { AlarmSettingsFormValues } from '@/src/entities/alarm-settings';
 import { WEEKDAY_VALUES } from '@/src/entities/alarm-settings';
 
 import { FORM_MESSAGES, INTERVAL_CONFIG } from '../config';
@@ -10,7 +9,7 @@ function timeToMinutes(time: string): number {
   return (hours ?? 0) * 60 + (minutes ?? 0);
 }
 
-export const alarmSettingsSchema: z.ZodType<AlarmSettingsFormValues> = z
+export const alarmSettingsSchema = z
   .object({
     intervalMinutes: z
       .number()
@@ -18,11 +17,9 @@ export const alarmSettingsSchema: z.ZodType<AlarmSettingsFormValues> = z
       .max(INTERVAL_CONFIG.MAX_MINUTES, FORM_MESSAGES.ERROR.INTERVAL_MAX),
 
     activeStart: z.string().regex(/^\d{2}:\d{2}$/, FORM_MESSAGES.ERROR.TIME_FORMAT),
-
     activeEnd: z.string().regex(/^\d{2}:\d{2}$/, FORM_MESSAGES.ERROR.TIME_FORMAT),
 
     focusStart: z.string().regex(/^\d{2}:\d{2}$/, FORM_MESSAGES.ERROR.TIME_FORMAT),
-
     focusEnd: z.string().regex(/^\d{2}:\d{2}$/, FORM_MESSAGES.ERROR.TIME_FORMAT),
 
     weekdays: z.array(z.enum(WEEKDAY_VALUES)).min(1, FORM_MESSAGES.ERROR.WEEKDAYS_REQUIRED),
@@ -59,4 +56,5 @@ export const alarmSettingsSchema: z.ZodType<AlarmSettingsFormValues> = z
     }
   });
 
+export type AlarmSettingsFormValues = z.infer<typeof alarmSettingsSchema>;
 export type AlarmSettingsValues = AlarmSettingsFormValues;
