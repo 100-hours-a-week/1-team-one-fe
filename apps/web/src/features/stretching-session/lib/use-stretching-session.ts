@@ -94,6 +94,12 @@ const getTimerTone = (remainingSeconds: number): 'danger' | 'default' => {
 
 const shouldIncrementReps = (status: CountedStatus): boolean => status === 'INCREMENTED';
 
+const logStepIndexDebug = (stepIndex: number, event: string, detail: Record<string, unknown>) => {
+  if (process.env.NODE_ENV === 'production') return;
+  if (stepIndex !== 1) return;
+  console.debug(`[stretching-session][step-index-1] ${event}`, detail);
+};
+
 /**
  * createSession effect 의존성에서 handler 때문에 재생성되는 문제를 방지
  */
@@ -135,6 +141,7 @@ export function useStretchingSession(
 
   const totalStepsRef = useRef(0);
   const isSessionCompleteRef = useRef(false);
+  const currentStepIndexRef = useRef(0);
 
   //ui state
   //현재 스텝
@@ -182,6 +189,10 @@ export function useStretchingSession(
   const currentStep = steps[currentStepIndex];
 
   useEffect(() => {
+    currentStepIndexRef.current = currentStepIndex;
+  }, [currentStepIndex]);
+
+  useEffect(() => {
     totalStepsRef.current = totalSteps;
   }, [totalSteps]);
 
@@ -225,6 +236,27 @@ export function useStretchingSession(
     if (transitionLockRef.current) return;
     if (isSessionCompleteRef.current) return;
 
+    const stepIndex = currentStepIndexRef.current;
+    const limitTime = step.limitTime ?? 0;
+    const startedAt = stepStartAtRef.current;
+    const elapsedSeconds = startedAt ? (Date.now() - startedAt) / 1000 : null;
+    const remainingSeconds = startedAt ? Math.max(0, limitTime - (elapsedSeconds ?? 0)) : null;
+
+    logStepIndexDebug(stepIndex, 'complete_step_called', {
+      status,
+      routineStepId: step.routineStepId,
+      stepOrder: step.stepOrder,
+      exerciseType: exerciseTypeRef.current,
+      limitTime,
+      remainingSeconds,
+      remainingUiSeconds: lastUiTimerSecondsRef.current,
+      holdMs: holdMsRef.current,
+      holdSecondsUi: lastUiHoldSecondsRef.current,
+      accuracyPercentUi: lastUiAccuracyPercentRef.current,
+      transitionLocked: transitionLockRef.current,
+      isSessionComplete: isSessionCompleteRef.current,
+    });
+
     transitionLockRef.current = true;
     setStepOutcome(status);
     const stepStartAt = stepStartedAtRef.current ?? new Date();
@@ -257,6 +289,14 @@ export function useStretchingSession(
       setCurrentStepIndex((prev) => {
         const nextIndex = prev + 1;
         const total = totalStepsRef.current;
+
+        logStepIndexDebug(prev, 'transition_to_next_step', {
+          nextIndex,
+          totalSteps: total,
+          routineStepId: step.routineStepId,
+          stepOrder: step.stepOrder,
+          remainingUiSeconds: lastUiTimerSecondsRef.current,
+        });
 
         if (nextIndex >= total) {
           sessionEndedAtRef.current = stepEndAt;
@@ -309,6 +349,13 @@ export function useStretchingSession(
 
           const target = step.targetReps ?? 0;
           if (target > 0 && next >= target) {
+            logStepIndexDebug(currentStepIndexRef.current, 'complete_step_by_reps', {
+              routineStepId: step.routineStepId,
+              stepOrder: step.stepOrder,
+              repsCount: next,
+              targetReps: target,
+              remainingUiSeconds: lastUiTimerSecondsRef.current,
+            });
             completeStep('success');
           }
           return next;
@@ -344,6 +391,13 @@ export function useStretchingSession(
 
       const requiredHoldMs = (step.durationTime ?? 0) * 1000;
       if (requiredHoldMs > 0 && holdMsRef.current >= requiredHoldMs) {
+        logStepIndexDebug(currentStepIndexRef.current, 'complete_step_by_duration', {
+          routineStepId: step.routineStepId,
+          stepOrder: step.stepOrder,
+          requiredHoldMs,
+          holdMs: holdMsRef.current,
+          remainingUiSeconds: lastUiTimerSecondsRef.current,
+        });
         completeStep('success');
       }
     },
@@ -384,6 +438,15 @@ export function useStretchingSession(
   //step 진입 시 초기 상태 세팅
   useEffect(() => {
     if (!currentStep) return;
+
+    logStepIndexDebug(currentStepIndex, 'step_enter', {
+      routineStepId: currentStep.routineStepId,
+      stepOrder: currentStep.stepOrder,
+      limitTime: currentStep.limitTime ?? 0,
+      durationTime: currentStep.durationTime ?? 0,
+      exerciseType: exerciseTypeRef.current,
+      prevTimeRemainingSeconds: timeRemainingSeconds,
+    });
 
     stepStartAtRef.current = null;
     stepStartedAtRef.current = null;
@@ -432,6 +495,14 @@ export function useStretchingSession(
       if (lastUiTimerSecondsRef.current !== remainingInt) {
         lastUiTimerSecondsRef.current = remainingInt;
         setTimeRemainingSeconds(remainingInt);
+        logStepIndexDebug(currentStepIndexRef.current, 'timer_tick', {
+          routineStepId: currentStep.routineStepId,
+          stepOrder: currentStep.stepOrder,
+          limitTime,
+          elapsedSeconds,
+          remainingSeconds: remaining,
+          remainingUiSeconds: remainingInt,
+        });
       }
     };
 
@@ -445,8 +516,24 @@ export function useStretchingSession(
     if (!currentStep) return;
     if (stepOutcome) return;
     if (isSessionComplete) return;
-    if (timeRemainingSeconds > 0) return;
+    if (!stepStartAtRef.current) return;
+    if (lastUiTimerSecondsRef.current === null) return;
+    const limitTime = currentStep.limitTime ?? 0;
+    const startedAt = stepStartAtRef.current;
+    const elapsedSeconds = startedAt ? (Date.now() - startedAt) / 1000 : 0;
+    const remainingSeconds = Math.max(0, limitTime - elapsedSeconds);
 
+    if (remainingSeconds > 0) return;
+
+    logStepIndexDebug(currentStepIndexRef.current, 'complete_step_by_timeout', {
+      routineStepId: currentStep.routineStepId,
+      stepOrder: currentStep.stepOrder,
+      limitTime,
+      timeRemainingSeconds,
+      remainingUiSeconds: lastUiTimerSecondsRef.current,
+      remainingSeconds,
+      elapsedSeconds,
+    });
     completeStep('fail');
   }, [completeStep, currentStep, isSessionComplete, stepOutcome, timeRemainingSeconds]);
 
