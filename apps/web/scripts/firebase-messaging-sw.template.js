@@ -6,6 +6,13 @@ firebase.initializeApp(__FIREBASE_CONFIG__);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
+  try {
+     
+    console.log('[push-sw] raw_payload', payload);
+  } catch (error) {
+     
+    console.log('[push-sw] raw_payload_log_failed', error);
+  }
   const notification = payload?.notification ?? {};
   const title = notification.title ?? '알림';
   const options = {
