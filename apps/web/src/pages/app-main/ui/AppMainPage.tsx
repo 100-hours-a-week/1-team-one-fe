@@ -45,7 +45,7 @@ export function AppMainPage() {
       <section className="bg-bg-muted rounded-lg p-3">
         {calendarData.length > 0 && <ActivityCalendar data={calendarData} />}
       </section>
-      <section className="flex gap-3 px-5">
+      <section className="flex gap-3">
         {APP_MAIN_ACTION_CARDS.map(({ key, href, title, Icon }) => (
           <Link
             key={key}
