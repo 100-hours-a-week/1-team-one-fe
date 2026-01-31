@@ -203,6 +203,23 @@ function setAuthCookies(res: NextApiResponse, tokens: Tokens): void {
   res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
 }
 
+// http-only 쿠키는 클라이언트에서 삭제할 수 없기 때문에 proxy에서 만료
+function clearAuthCookies(res: NextApiResponse): void {
+  const secure = process.env.NODE_ENV === 'production';
+  const baseOptions = {
+    httpOnly: true,
+    secure,
+    sameSite: AUTH_CONFIG.COOKIE_SAME_SITE,
+    path: AUTH_CONFIG.COOKIE_PATH,
+    maxAge: 0,
+  } as const;
+
+  const accessTokenCookie = serializeCookie(AUTH_CONFIG.ACCESS_TOKEN_COOKIE, '', baseOptions);
+  const refreshTokenCookie = serializeCookie(AUTH_CONFIG.REFRESH_TOKEN_COOKIE, '', baseOptions);
+
+  res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
+}
+
 async function requestJson<TResponse>(
   url: string,
   init: RequestInit,
@@ -237,7 +254,7 @@ async function refreshTokens(baseUrl: string, refreshToken: string): Promise<Tok
 
   const { status, json } = await requestJson<RefreshResponse>(refreshUrl, init);
 
-  if (status !== 200 || !json?.data?.tokens) {
+  if (status !== HTTP_STATUS.OK || !json?.data?.tokens) {
     return null;
   }
 
@@ -341,6 +358,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const targetPath = [REAL_API_PREFIX, ...pathSegments.slice(1)].join('/');
+  const isLogoutPath = targetPath.replace(/^\/api/, '') === AUTH_CONFIG.LOGOUT_ENDPOINT;
   const queryString = buildQueryString(req.query);
   const targetUrl = joinUrl(baseUrl, `${targetPath}${queryString}`);
 
@@ -358,6 +376,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   console.log('req', req.headers);
 
   if (initialResponse.status !== HTTP_STATUS.UNAUTHORIZED || !refreshToken) {
+    if (isLogoutPath && initialResponse.status === HTTP_STATUS.OK) {
+      clearAuthCookies(res);
+    }
     respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
   }
@@ -387,6 +408,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (retryResponse.status === HTTP_STATUS.NOT_FOUND) {
     logProxyNotFound('real', req, { targetUrl, attempt: 'retry' });
+  }
+
+  if (isLogoutPath && retryResponse.status === HTTP_STATUS.OK) {
+    clearAuthCookies(res);
   }
 
   respondWithPayload(res, retryResponse.status, retryResponse.json);

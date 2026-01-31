@@ -8,4 +8,5 @@ export const AUTH_CONFIG = {
   COOKIE_PATH: '/',
   COOKIE_SAME_SITE: 'lax',
   LOGIN_ENDPOINT: '/auth/login',
+  LOGOUT_ENDPOINT: '/auth/logout',
 } as const;
