@@ -70,7 +70,7 @@ export function StretchingSessionView({
     <div className="relative h-full w-full p-6">
       <div className="flex h-full flex-col">
         <div className="flex justify-center">
-          <ProgressBar total={totalSteps} current={progressCurrent} className="w-full" />
+          <ProgressBar total={totalSteps} current={progressCurrent} className="w-full" showValue />
         </div>
 
         {currentStep && (
