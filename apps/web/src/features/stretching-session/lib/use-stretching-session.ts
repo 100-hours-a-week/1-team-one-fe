@@ -140,7 +140,7 @@ export function useStretchingSession(
   //현재 스텝
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   //남은 제한 시간
-  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(0);
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(60);
   //정확도 퍼센트(0~100)
   const [accuracyPercent, setAccuracyPercent] = useState(0);
   //반복 횟수(REPS일때)
@@ -431,7 +431,7 @@ export function useStretchingSession(
 
       if (lastUiTimerSecondsRef.current !== remainingInt) {
         lastUiTimerSecondsRef.current = remainingInt;
-        // setTimeRemainingSeconds(remainingInt);
+        setTimeRemainingSeconds(remainingInt);
       }
     };
 
