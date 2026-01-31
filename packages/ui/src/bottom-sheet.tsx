@@ -11,18 +11,33 @@ interface BottomSheetContentProps extends ComponentPropsWithoutRef<typeof Dialog
   children: ReactNode;
 }
 
-export function BottomSheetContent({ className, children, ...props }: BottomSheetContentProps) {
+export function BottomSheetContent({
+  className,
+  children,
+  style,
+  ...props
+}: BottomSheetContentProps) {
+  const mergedStyle = { paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)', ...style };
+
   return (
     <Dialog.Portal>
-      <Dialog.Overlay className="fixed inset-0 z-50 bg-neutral-900/40" />
+      <Dialog.Overlay
+        className={cn(
+          'fixed inset-0 z-50 bg-neutral-900/40',
+          'data-[state=open]:animate-bottom-sheet-overlay-in',
+          'data-[state=closed]:animate-bottom-sheet-overlay-out',
+        )}
+      />
       <Dialog.Content
         className={cn(
           'fixed inset-x-0 bottom-0 z-50',
           'border-border bg-bg rounded-t-2xl border',
           'px-6 pt-5 shadow-lg',
+          'data-[state=open]:animate-bottom-sheet-in',
+          'data-[state=closed]:animate-bottom-sheet-out',
           className,
         )}
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}
+        style={mergedStyle}
         {...props}
       >
         <div className="bg-border mx-auto mb-4 h-1.5 w-12 rounded-full" aria-hidden="true" />
