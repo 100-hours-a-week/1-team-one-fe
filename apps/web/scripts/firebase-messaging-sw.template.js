@@ -5,6 +5,22 @@ firebase.initializeApp(__FIREBASE_CONFIG__);
 
 const messaging = firebase.messaging();
 
+// {
+//     "from": "49911282112",
+//     "messageId": "6aa0e948-fd17-46a7-8fca-481ca6f671be",
+//     "notification": {
+//         "title": "운동할 시간이에요",
+//         "body": "오늘 루틴을 시작해볼까요?"
+//     },
+//     "data": {
+//         "sessionId": "877",
+//         "type": "SESSION_READY",
+//         "userId": "12",
+//         "ts": "2026-01-31T21:14:00.053557414",
+//         "routineId": "23"
+//     }
+// }
+
 messaging.onBackgroundMessage((payload) => {
   try {
     console.log('[push-sw] raw_payload', payload);
@@ -34,19 +50,26 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     (async () => {
-      const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+      try {
+        //includeUncontrolled 제거, 컨트롤되는 window client만 반환
+        const clientList = await clients.matchAll({ type: 'window' });
 
-      for (const client of clientList) {
-        if ('focus' in client) {
-          await client.focus();
-          if ('navigate' in client) {
+        for (const client of clientList) {
+          //같은 오리진 탭이면 우선 그 탭으로 이동 시도
+          if (client.url.startsWith(self.location.origin)) {
+            await client.focus();
             await client.navigate(url);
+            return;
           }
-          return;
         }
-      }
 
-      await clients.openWindow(url);
+        //컨트롤되는 탭이 없으면 새 창
+        await clients.openWindow(url);
+      } catch (err) {
+        //navigate가 뭐든 실패하면 그냥 새 창으로 열게함
+        console.log('[push-sw] notificationclick failed -> openWindow', err);
+        await clients.openWindow(url);
+      }
     })(),
   );
 });
