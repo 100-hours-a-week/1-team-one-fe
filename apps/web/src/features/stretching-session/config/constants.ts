@@ -4,7 +4,7 @@ export const STRETCHING_SESSION_CONFIG = {
   WASM_ROOT: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm',
 
   // 캔버스 어떻게 보여주는지 mode (video | keypoints | video-keypoints | silhouette)
-  VISUALIZATION_MODE: 'video-keypoints' as const,
+  VISUALIZATION_MODE: 'silhouette' as const,
 
   // 키포인트 렌더러 옵션들 (video-keypoints, keypoints 모드에만 사용)
   KEYPOINTS_LINE_COLOR: '#00FF00',
@@ -38,4 +38,7 @@ export const STRETCHING_SESSION_CONFIG = {
   SUCCESS_ACCURACY_THRESHOLD: 60,
   DEFAULT_PROGRESS_RATIO: 0.1,
   DEFAULT_PHASE: 'unknown',
+
+  // 캐릭터 레벨 업 임계치
+  CHARACTER_LEVEL_EXP_THRESHOLD: 1000,
 } as const;

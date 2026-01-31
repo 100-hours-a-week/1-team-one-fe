@@ -24,12 +24,12 @@ const progressVariants = cva('w-full', {
 const progressRootVariants = cva('w-full overflow-hidden rounded-full', {
   variants: {
     variant: {
-      steps: '',
+      steps: 'bg-border h-3',
       bar: 'bg-border h-3',
     },
     size: {
-      sm: '',
-      md: '',
+      sm: 'h-2',
+      md: 'h-5',
     },
   },
   defaultVariants: {
@@ -61,7 +61,7 @@ const clamp = (value: number, min: number, max: number): number => {
 export function ProgressBar({
   total,
   current,
-  size,
+  size = 'md',
   variant,
   className,
   ariaLabel,
@@ -76,7 +76,7 @@ export function ProgressBar({
   return (
     <div className={cn(progressVariants({ variant, size }), className)}>
       {showValue && (
-        <div className="text-text-muted flex items-center justify-between">
+        <div className="text-text-muted flex items-center justify-between font-semibold">
           <span className="tabular-nums">
             {safeCurrent}/{safeTotal}
             {unitLabel ? ` ${unitLabel}` : ''}

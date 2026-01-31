@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { ChartPie, CircleEllipsis, Dumbbell, Settings, Users } from 'lucide-react';
+import { ChartPie, CircleEllipsis, Home, Settings, Users } from 'lucide-react';
 
 import { APP_ROUTES } from '@/src/shared/routes';
 
@@ -15,32 +15,32 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'more',
     label: '더보기',
-    href: '/404', //TODO: 준비중으로 변경하기
+    href: '/app/ready?page=more',
     icon: CircleEllipsis,
-  },
-  {
-    id: 'plan',
-    label: '플랜',
-    href: APP_ROUTES.PLAN,
-    icon: Dumbbell,
   },
   {
     id: 'statistic',
     label: '통계',
-    href: 'app/statistics',
+    href: '/app/ready?page=statistic',
     icon: ChartPie,
     isMain: true,
   },
   {
+    id: 'main',
+    label: '메인',
+    href: APP_ROUTES.MAIN,
+    icon: Home,
+  },
+  {
     id: 'community',
     label: '운동모먼트',
-    href: '/app/community',
+    href: '/app/ready?page=community',
     icon: Users,
   },
   {
     id: 'userpage',
     label: '내페이지',
-    href: '/404',
+    href: '/app/ready?page=userpage',
     icon: Settings,
   },
 ];

@@ -16,6 +16,34 @@ export const STRETCHING_SESSION_MESSAGES = {
     QUESTS: '퀘스트',
     COMPLETED_YES: '완료',
     COMPLETED_NO: '미완료',
+    DELTA_PREFIX: '+',
+    DELTA_NEGATIVE_PREFIX: '-',
+    LEVEL_PREFIX: 'Lv.',
+    BEFORE_LABEL: '이전',
+    AFTER_LABEL: '현재',
+    VALUE_ARROW: '→',
+    STATUS: {
+      SUCCESS: {
+        TITLE: '스트레칭 성공',
+        LABEL: '좋아요! 목표를 달성했어요',
+        IMAGE_ALT: '스트레칭 성공 결과 이미지',
+      },
+      FAILURE: {
+        TITLE: '스트레칭 실패',
+        LABEL: '바쁘신가요? 알람 수정을 통해 알람을 조정할 수 있어요.',
+        IMAGE_ALT: '스트레칭 실패 결과 이미지',
+      },
+    },
+    REWARDS: {
+      TITLE: '획득 보상',
+      BADGE: '보상 획득',
+      EXP: '경험치',
+      STATUS_SCORE: '상태 점수',
+    },
+    LEVEL_UP: {
+      BADGE: '레벨 업',
+      KEEP: '레벨 유지',
+    },
     CHARACTER_FIELDS: {
       LEVEL: '레벨',
       EXP: '경험치',
@@ -28,5 +56,9 @@ export const STRETCHING_SESSION_MESSAGES = {
     RESULT_PENDING: '판정 중',
     RESULT_SUCCESS: '성공',
     RESULT_FAIL: '실패',
+  },
+  NAV: {
+    HOME_LABEL: '홈으로',
+    HOME_ICON_ARIA: '홈으로 이동',
   },
 } as const;

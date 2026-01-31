@@ -20,7 +20,7 @@ export function UserStatusCardSection({ isVisible = true }: UserStatusCardSectio
   }
 
   const nickname = data.profile.nickname;
-  const avatarSrc = data.profile.imagePath;
+  const avatarSrc = `${process.env.NEXT_PUBLIC_GCS_BASE_URL}/${data.profile.imagePath}`;
   const { level, streak, exp } = data.character;
 
   return (

@@ -25,6 +25,10 @@ export const ROUTES = {
   ...APP_ROUTES,
 } as const;
 
+export function buildStretchSessionPath(sessionId: number | string): string {
+  return `/stretch/${sessionId}`;
+}
+
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 
 export const ROUTE_GROUPS = {
