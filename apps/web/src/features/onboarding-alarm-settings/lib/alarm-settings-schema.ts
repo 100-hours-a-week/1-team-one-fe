@@ -2,7 +2,15 @@ import { z } from 'zod';
 
 import { FORM_MESSAGES, INTERVAL_CONFIG } from '../config';
 
-export const WEEKDAY_VALUES = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const;
+export const WEEKDAY_VALUES = [
+  'MONDAY',
+  'TUESDAY',
+  'WEDNESDAY',
+  'THURSDAY',
+  'FRIDAY',
+  'SATURDAY',
+  'SUNDAY',
+] as const;
 export type Weekday = (typeof WEEKDAY_VALUES)[number];
 
 function timeToMinutes(time: string): number {

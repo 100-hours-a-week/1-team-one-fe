@@ -26,6 +26,16 @@ export const WEEKDAY_OPTIONS = [
   { value: 'WEDNESDAY', label: '수' },
   { value: 'THURSDAY', label: '목' },
   { value: 'FRIDAY', label: '금' },
+  { value: 'SATURDAY', label: '토' },
+  { value: 'SUNDAY', label: '일' },
 ] as const;
 
-export const DEFAULT_WEEKDAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const;
+export const DEFAULT_WEEKDAYS = [
+  'MONDAY',
+  'TUESDAY',
+  'WEDNESDAY',
+  'THURSDAY',
+  'FRIDAY',
+  'SATURDAY',
+  'SUNDAY',
+] as const;
