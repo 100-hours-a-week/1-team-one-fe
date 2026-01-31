@@ -11,3 +11,9 @@ export type {
   ExerciseSessionQueryOptions,
 } from './api/exercise-session-query';
 export { useExerciseSessionQuery } from './api/exercise-session-query';
+export type {
+  ValidExerciseSessionItem,
+  ValidExerciseSessionsQueryKey,
+  ValidExerciseSessionsQueryOptions,
+} from './api/valid-exercise-sessions-query';
+export { useValidExerciseSessionsQuery } from './api/valid-exercise-sessions-query';
