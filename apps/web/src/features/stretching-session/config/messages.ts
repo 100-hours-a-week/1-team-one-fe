@@ -57,4 +57,8 @@ export const STRETCHING_SESSION_MESSAGES = {
     RESULT_SUCCESS: '성공',
     RESULT_FAIL: '실패',
   },
+  NAV: {
+    HOME_LABEL: '홈으로',
+    HOME_ICON_ARIA: '홈으로 이동',
+  },
 } as const;

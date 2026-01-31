@@ -4,6 +4,7 @@ import type { CompleteExerciseSessionResponseData } from '@/src/features/exercis
 
 import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
 import { resolveCharacterBeforeState } from '../lib/resolve-character-before-state';
+import { StretchingSessionHomeButton } from './StretchingSessionHomeButton';
 import { StretchingSessionResultCharacterCard } from './StretchingSessionResultCharacterCard';
 import { StretchingSessionResultQuestList } from './StretchingSessionResultQuestList';
 import { StretchingSessionResultRewardCard } from './StretchingSessionResultRewardCard';
@@ -87,7 +88,7 @@ export function StretchingSessionCompletionResult({
   const levelBadgeLabel = isLevelUp ? resultMessages.LEVEL_UP.BADGE : resultMessages.LEVEL_UP.KEEP;
 
   return (
-    <div className="h-full w-full p-6">
+    <div className="flex h-full w-full flex-col items-stretch gap-6 p-6">
       <Card
         padding="md"
         variant="elevated"
@@ -137,6 +138,9 @@ export function StretchingSessionCompletionResult({
 
         <StretchingSessionResultQuestList title={resultMessages.QUESTS} quests={result.quests} />
       </Card>
+      <div className="flex justify-center">
+        <StretchingSessionHomeButton />
+      </div>
     </div>
   );
 }

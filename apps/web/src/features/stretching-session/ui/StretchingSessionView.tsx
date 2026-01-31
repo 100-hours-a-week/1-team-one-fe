@@ -5,6 +5,7 @@ import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
 import { StretchingSessionDebugOptions, useStretchingSession } from '../lib/use-stretching-session';
 import { StretchingSessionCompletionResult } from './StretchingSessionCompletionResult';
 import { StretchingSessionGuideCard } from './StretchingSessionGuideCard';
+import { StretchingSessionHomeButton } from './StretchingSessionHomeButton';
 import { StretchingSessionOverlay } from './StretchingSessionOverlay';
 import { StretchingSessionResultMessage } from './StretchingSessionResultMessage';
 
@@ -69,8 +70,9 @@ export function StretchingSessionView({
   return (
     <div className="relative h-full w-full p-6">
       <div className="flex h-full flex-col">
-        <div className="flex justify-center">
+        <div className="flex items-center justify-center gap-1">
           <ProgressBar total={totalSteps} current={progressCurrent} className="w-full" showValue />
+          <StretchingSessionHomeButton variant="icon" />
         </div>
 
         {currentStep && (
