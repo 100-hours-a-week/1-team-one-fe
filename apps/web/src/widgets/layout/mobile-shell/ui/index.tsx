@@ -1,9 +1,14 @@
+import dynamic from 'next/dynamic';
 import type { ReactNode } from 'react';
 
-import { FooterNav } from '@/src/widgets/layout/footer-nav';
 import { MainHeader } from '@/src/widgets/layout/main-header';
 
 import { HeaderConfig, PageHeader } from '../../page-header';
+
+const FooterNav = dynamic(
+  () => import('@/src/widgets/layout/footer-nav').then((mod) => mod.FooterNav),
+  { ssr: false },
+);
 
 export interface MobileShellProps {
   children: ReactNode;
