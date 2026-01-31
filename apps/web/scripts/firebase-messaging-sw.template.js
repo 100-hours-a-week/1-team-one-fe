@@ -7,18 +7,20 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   try {
-     
     console.log('[push-sw] raw_payload', payload);
   } catch (error) {
-     
     console.log('[push-sw] raw_payload_log_failed', error);
   }
+  const rawData = payload?.data ?? {};
+  const data = normalizePushData(rawData);
+  const route = resolvePushRoute(data);
+
   const notification = payload?.notification ?? {};
   const title = notification.title ?? '알림';
   const options = {
     body: notification.body ?? '',
     icon: notification.icon ?? '/icons/icon-192.png',
-    data: payload?.data ?? {},
+    data: { ...rawData, ...data, route },
   };
 
   self.registration.showNotification(title, options);
