@@ -16,7 +16,8 @@ export const PUBLIC_ROUTES = {
 export const APP_ROUTES = {
   MAIN: '/app',
   PLAN: '/app/plan',
-  SETTINGS_NOTIFICATIONS: '/app/settings/notifications',
+  SETTINGS_NOTIFICATIONS: '/app/notifications',
+  ALARM: '/app/alarm',
   SURVEY_EDIT: '/app/survey/edit',
 } as const;
 
@@ -43,5 +44,5 @@ export const ROUTE_GROUPS = {
   ],
   LEGAL: [PUBLIC_ROUTES.LEGAL_TERMS],
   GUIDE: [PUBLIC_ROUTES.GUIDE_INSTALL],
-  SETTINGS: [APP_ROUTES.SETTINGS_NOTIFICATIONS],
+  SETTINGS: [APP_ROUTES.SETTINGS_NOTIFICATIONS, APP_ROUTES.ALARM],
 } as const;

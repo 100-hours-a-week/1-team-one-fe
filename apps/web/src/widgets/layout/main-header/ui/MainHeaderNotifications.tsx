@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type React from 'react';
 
 import { useUnreadNotificationsCountQuery } from '@/src/features/notifications';
+import { ROUTES } from '@/src/shared/routes';
 
 import { MAIN_HEADER_MESSAGES } from '../config/messages';
 
@@ -12,7 +13,7 @@ export function MainHeaderNotifications() {
 
   return (
     <Link
-      href="/app/settings/notifications"
+      href={ROUTES.SETTINGS_NOTIFICATIONS}
       className="hover:bg-bg-subtle/60 inline-flex h-9 w-9 items-center justify-center rounded-full transition active:scale-[0.98]"
       aria-label={MAIN_HEADER_MESSAGES.NOTIFICATIONS_LABEL}
     >

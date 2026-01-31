@@ -1,17 +1,8 @@
 import { z } from 'zod';
 
-import { FORM_MESSAGES, INTERVAL_CONFIG } from '../config';
+import { WEEKDAY_VALUES } from '@/src/entities/alarm-settings';
 
-export const WEEKDAY_VALUES = [
-  'MONDAY',
-  'TUESDAY',
-  'WEDNESDAY',
-  'THURSDAY',
-  'FRIDAY',
-  'SATURDAY',
-  'SUNDAY',
-] as const;
-export type Weekday = (typeof WEEKDAY_VALUES)[number];
+import { FORM_MESSAGES, INTERVAL_CONFIG } from '../config';
 
 function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(':').map(Number);
@@ -26,11 +17,9 @@ export const alarmSettingsSchema = z
       .max(INTERVAL_CONFIG.MAX_MINUTES, FORM_MESSAGES.ERROR.INTERVAL_MAX),
 
     activeStart: z.string().regex(/^\d{2}:\d{2}$/, FORM_MESSAGES.ERROR.TIME_FORMAT),
-
     activeEnd: z.string().regex(/^\d{2}:\d{2}$/, FORM_MESSAGES.ERROR.TIME_FORMAT),
 
     focusStart: z.string().regex(/^\d{2}:\d{2}$/, FORM_MESSAGES.ERROR.TIME_FORMAT),
-
     focusEnd: z.string().regex(/^\d{2}:\d{2}$/, FORM_MESSAGES.ERROR.TIME_FORMAT),
 
     weekdays: z.array(z.enum(WEEKDAY_VALUES)).min(1, FORM_MESSAGES.ERROR.WEEKDAYS_REQUIRED),
@@ -67,4 +56,5 @@ export const alarmSettingsSchema = z
     }
   });
 
-export type AlarmSettingsValues = z.infer<typeof alarmSettingsSchema>;
+export type AlarmSettingsFormValues = z.infer<typeof alarmSettingsSchema>;
+export type AlarmSettingsValues = AlarmSettingsFormValues;
