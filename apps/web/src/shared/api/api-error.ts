@@ -19,6 +19,7 @@ export interface ApiResponse<T> {
 }
 
 export type ApiErrorCode =
+  | 'ALARM_SETTING_NOT_FOUND'
   | 'AUTH_INVALID_CREDENTIALS'
   | 'AUTH_UNAUTHORIZED'
   | 'CHARACTER_ALREADY_SET'
