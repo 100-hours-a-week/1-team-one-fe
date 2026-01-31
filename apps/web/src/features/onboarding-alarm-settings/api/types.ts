@@ -1,8 +1,7 @@
-import type { AlarmSettingsRequest } from '@/src/entities/alarm-settings';
-import type { ApiResponse } from '@/src/shared/api';
+import type {
+  AlarmSettingsData,
+  AlarmSettingsRequest,
+  AlarmSettingsResponse,
+} from '@/src/entities/alarm-settings';
 
-export type AlarmSettingsData = Record<string, never>;
-
-export type AlarmSettingsResponse = ApiResponse<AlarmSettingsData>;
-
-export type { AlarmSettingsRequest };
+export type { AlarmSettingsData, AlarmSettingsRequest, AlarmSettingsResponse };

@@ -1,11 +1,11 @@
-import type { AlarmSettings } from '@/src/entities/alarm-settings';
-import type { ApiResponse } from '@/src/shared/api';
+import type {
+  AlarmSettings,
+  AlarmSettingsData,
+  AlarmSettingsResponse,
+} from '@/src/entities/alarm-settings';
+import { ApiResponse } from '@/src/shared/api';
 
-export interface AlarmSettingsData {
-  alarmSettings: AlarmSettings;
-}
-
-export type AlarmSettingsResponse = ApiResponse<AlarmSettingsData>;
+export type { AlarmSettings, AlarmSettingsData, AlarmSettingsResponse };
 
 export interface DndUpdateRequest {
   dndFinishedAt: string;
