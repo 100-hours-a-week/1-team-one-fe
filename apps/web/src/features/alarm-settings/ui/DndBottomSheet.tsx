@@ -5,7 +5,7 @@ import {
   BottomSheetDescription,
   BottomSheetTitle,
 } from '@repo/ui/bottom-sheet';
-import { Chip } from '@repo/ui/chip';
+import { cn } from '@repo/ui/lib/utils';
 import { Switch } from '@repo/ui/switch';
 import { format } from 'date-fns';
 import type { PointerEventHandler } from 'react';
@@ -117,33 +117,39 @@ export function DndBottomSheet({ open, onOpenChange }: DndBottomSheetProps) {
         </div>
 
         <div className="mt-5 flex items-center justify-start gap-2 rounded-lg">
-          <span id={switchLabelId} className="text-text text-sm font-medium">
+          <p id={switchLabelId} className="text-text text-sm font-medium">
             {DND_MESSAGES.TOGGLE_LABEL}
-          </span>
+          </p>
           <Switch
             aria-labelledby={switchLabelId}
             checked={isDndOn}
             disabled={isPending}
             onCheckedChange={handleToggleChange}
           />
+          {dndStatusLabel && <p className="text-text-muted text-sm">{dndStatusLabel}</p>}
         </div>
 
-        {dndStatusLabel && (
-          <p className="text-text-muted mt-3 text-sm">
-            {DND_MESSAGES.STATUS.replace('{label}', dndStatusLabel)}
-          </p>
-        )}
+        <div className="mt-6 max-h-64 w-full overflow-y-auto pr-1">
+          <div className="flex w-full flex-col gap-2">
+            {DND_OPTIONS.map((option, index) => {
+              const isLast = index === DND_OPTIONS.length - 1;
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          {DND_OPTIONS.map((option) => (
-            <Chip
-              key={option.id}
-              label={option.label}
-              variant="selectable"
-              disabled={isPending}
-              onClick={() => handleOptionClick(option.id)}
-            />
-          ))}
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={cn(
+                    'text-text hover:bg-bg-subtle focus-visible:ring-focus-ring focus-visible:ring-offset-bg flex w-full items-center justify-between px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-(--disabled-opacity)',
+                    !isLast && 'border-border border-b',
+                  )}
+                  disabled={isPending}
+                  onClick={() => handleOptionClick(option.id)}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </BottomSheetContent>
     </BottomSheet>
