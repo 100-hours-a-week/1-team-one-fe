@@ -94,6 +94,12 @@ const getTimerTone = (remainingSeconds: number): 'danger' | 'default' => {
 
 const shouldIncrementReps = (status: CountedStatus): boolean => status === 'INCREMENTED';
 
+const logStepIndexDebug = (stepIndex: number, event: string, detail: Record<string, unknown>) => {
+  if (process.env.NODE_ENV === 'production') return;
+  if (stepIndex !== 1) return;
+  console.debug(`[stretching-session][step-index-1] ${event}`, detail);
+};
+
 /**
  * createSession effect 의존성에서 handler 때문에 재생성되는 문제를 방지
  */
@@ -135,12 +141,13 @@ export function useStretchingSession(
 
   const totalStepsRef = useRef(0);
   const isSessionCompleteRef = useRef(false);
+  const currentStepIndexRef = useRef(0);
 
   //ui state
   //현재 스텝
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   //남은 제한 시간
-  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(0);
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(60);
   //정확도 퍼센트(0~100)
   const [accuracyPercent, setAccuracyPercent] = useState(0);
   //반복 횟수(REPS일때)
@@ -180,6 +187,10 @@ export function useStretchingSession(
   const steps = data?.routineSteps ?? [];
   const totalSteps = steps.length;
   const currentStep = steps[currentStepIndex];
+
+  useEffect(() => {
+    currentStepIndexRef.current = currentStepIndex;
+  }, [currentStepIndex]);
 
   useEffect(() => {
     totalStepsRef.current = totalSteps;
@@ -224,6 +235,23 @@ export function useStretchingSession(
     if (!step) return;
     if (transitionLockRef.current) return;
     if (isSessionCompleteRef.current) return;
+
+    const stepIndex = currentStepIndexRef.current;
+    const limitTime = step.limitTime ?? 0;
+    const startedAt = stepStartAtRef.current;
+    const elapsedSeconds = startedAt ? (Date.now() - startedAt) / 1000 : null;
+    const remainingSeconds = startedAt ? Math.max(0, limitTime - (elapsedSeconds ?? 0)) : null;
+
+    logStepIndexDebug(stepIndex, 'complete_step_called', {
+      status,
+      routineStepId: step.routineStepId,
+      stepOrder: step.stepOrder,
+      exerciseType: exerciseTypeRef.current,
+      limitTime,
+      remainingSeconds,
+      remainingUiSeconds: lastUiTimerSecondsRef.current,
+      transitionLocked: transitionLockRef.current,
+    });
 
     transitionLockRef.current = true;
     setStepOutcome(status);
@@ -445,8 +473,24 @@ export function useStretchingSession(
     if (!currentStep) return;
     if (stepOutcome) return;
     if (isSessionComplete) return;
-    if (timeRemainingSeconds > 0) return;
+    if (!stepStartAtRef.current) return;
+    if (lastUiTimerSecondsRef.current === null) return;
+    const limitTime = currentStep.limitTime ?? 0;
+    const startedAt = stepStartAtRef.current;
+    const elapsedSeconds = startedAt ? (Date.now() - startedAt) / 1000 : 0;
+    const remainingSeconds = Math.max(0, limitTime - elapsedSeconds);
 
+    if (remainingSeconds > 0) return;
+
+    logStepIndexDebug(currentStepIndexRef.current, 'complete_step_by_timeout', {
+      routineStepId: currentStep.routineStepId,
+      stepOrder: currentStep.stepOrder,
+      limitTime,
+      timeRemainingSeconds,
+      remainingUiSeconds: lastUiTimerSecondsRef.current,
+      remainingSeconds,
+      elapsedSeconds,
+    });
     completeStep('fail');
   }, [completeStep, currentStep, isSessionComplete, stepOutcome, timeRemainingSeconds]);
 
@@ -500,14 +544,13 @@ export function useStretchingSession(
 
       visualization: {
         mode: STRETCHING_SESSION_CONFIG.VISUALIZATION_MODE,
-        keypoints: {
-          lineColor: STRETCHING_SESSION_CONFIG.KEYPOINTS_LINE_COLOR,
-          lineWidth: STRETCHING_SESSION_CONFIG.KEYPOINTS_LINE_WIDTH,
-          pointColor: STRETCHING_SESSION_CONFIG.KEYPOINTS_POINT_COLOR,
-          pointRadius: STRETCHING_SESSION_CONFIG.KEYPOINTS_POINT_RADIUS,
-          backgroundColor: STRETCHING_SESSION_CONFIG.KEYPOINTS_BACKGROUND_COLOR,
-          visibilityThreshold: STRETCHING_SESSION_CONFIG.KEYPOINTS_VISIBILITY_THRESHOLD,
-          showPoints: STRETCHING_SESSION_CONFIG.KEYPOINTS_SHOW_POINTS,
+        silhouette: {
+          foregroundColor: STRETCHING_SESSION_CONFIG.SILHOUETTE_FOREGROUND_RGBA,
+          backgroundColor: STRETCHING_SESSION_CONFIG.SILHOUETTE_BACKGROUND_RGBA,
+          visibilityMin: STRETCHING_SESSION_CONFIG.SILHOUETTE_VISIBILITY_MIN,
+          smoothingAlpha: STRETCHING_SESSION_CONFIG.SILHOUETTE_SMOOTHING_ALPHA,
+          headRadiusRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_HEAD_RADIUS_RATIO,
+          strokeWidthRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_STROKE_WIDTH_RATIO,
         },
       },
     });

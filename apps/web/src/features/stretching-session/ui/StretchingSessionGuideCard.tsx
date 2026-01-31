@@ -12,7 +12,7 @@ export function StretchingSessionGuideCard({
   effect,
 }: StretchingSessionGuideCardProps) {
   return (
-    <Card>
+    <Card variant="elevated" padding="md">
       <CardHeader>
         <CardTitle>{name}</CardTitle>
       </CardHeader>
