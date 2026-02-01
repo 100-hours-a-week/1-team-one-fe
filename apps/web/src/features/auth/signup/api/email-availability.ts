@@ -36,5 +36,6 @@ export function useEmailAvailabilityQuery(email: string, options?: EmailAvailabi
     queryFn: () => fetchEmailAvailability(email),
     enabled,
     ...options,
+    meta: { ...options?.meta, disableToast: true },
   });
 }

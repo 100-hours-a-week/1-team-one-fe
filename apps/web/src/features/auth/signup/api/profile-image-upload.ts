@@ -57,5 +57,6 @@ export function useProfileImageUploadMutation(options?: ProfileImageUploadMutati
   return useMutation({
     mutationFn: requestProfileImageUploadUrl,
     ...options,
+    meta: { ...options?.meta, disableToast: true },
   });
 }

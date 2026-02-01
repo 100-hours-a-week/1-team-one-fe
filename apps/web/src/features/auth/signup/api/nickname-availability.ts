@@ -38,5 +38,6 @@ export function useNicknameAvailabilityQuery(
     queryFn: () => fetchNicknameAvailability(nickname),
     enabled,
     ...options,
+    meta: { ...options?.meta, disableToast: true },
   });
 }
