@@ -47,7 +47,7 @@ export function SignupPage() {
         email: values.email,
         nickname: values.nickname,
         password: values.password,
-        imagePath: imagePath ?? PROFILE_DEFAULT_IMAGE_URL,
+        imagePath: imagePath || PROFILE_DEFAULT_IMAGE_URL, //빈 문자열도 default
       },
       { onSuccess: () => router.push(ROUTES.LOGIN) },
     );
