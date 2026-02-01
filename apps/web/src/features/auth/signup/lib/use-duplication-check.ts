@@ -1,4 +1,4 @@
-import { DUP_STATEUSES } from '@repo/ui/form-field';
+import { DUP_STATUSES } from '@repo/ui/form-field';
 import { useEffect, useRef, useState } from 'react';
 import {
   type Control,
@@ -45,7 +45,7 @@ export function useDuplicationCheck({
   messages,
   useAvailabilityQuery,
 }: UseDuplicationCheckArgs) {
-  const [state, setState] = useState<DupState>({ status: DUP_STATEUSES.idle });
+  const [state, setState] = useState<DupState>({ status: DUP_STATUSES.idle });
   const lastCheckedRef = useRef<string | undefined>(undefined);
   const currentValue = useWatch({ control, name: field });
   const latestValueRef = useRef<string | undefined>(currentValue);
@@ -55,9 +55,9 @@ export function useDuplicationCheck({
   useEffect(() => {
     latestValueRef.current = currentValue;
     const prevValue = prevValueRef.current;
-    if (prevValue !== currentValue && state.status !== DUP_STATEUSES.idle) {
+    if (prevValue !== currentValue && state.status !== DUP_STATUSES.idle) {
       setState({
-        status: DUP_STATEUSES.idle,
+        status: DUP_STATUSES.idle,
         message: currentValue ? messages.required : undefined,
       });
     }
@@ -73,12 +73,12 @@ export function useDuplicationCheck({
     const valueAtCheck = currentValue;
 
     if (!valueAtCheck) return;
-    if (state.status === DUP_STATEUSES.checking) return;
-    if (lastCheckedRef.current === valueAtCheck && state.status === DUP_STATEUSES.available) {
+    if (state.status === DUP_STATUSES.checking) return;
+    if (lastCheckedRef.current === valueAtCheck && state.status === DUP_STATUSES.available) {
       return;
     }
 
-    setState({ status: DUP_STATEUSES.checking, message: messages.checking });
+    setState({ status: DUP_STATUSES.checking, message: messages.checking });
 
     try {
       const result = await refetch();
@@ -92,7 +92,7 @@ export function useDuplicationCheck({
 
       if (available === true) {
         setState({
-          status: DUP_STATEUSES.available,
+          status: DUP_STATUSES.available,
           message: messages.available,
         });
         lastCheckedRef.current = valueAtCheck;
@@ -102,7 +102,7 @@ export function useDuplicationCheck({
 
       if (available === false) {
         setState({
-          status: DUP_STATEUSES.unavailable,
+          status: DUP_STATUSES.unavailable,
           message: messages.unavailable,
         });
         setError(field, {
@@ -113,12 +113,12 @@ export function useDuplicationCheck({
       }
 
       setState({
-        status: DUP_STATEUSES.error,
+        status: DUP_STATUSES.error,
         message: messages.failed,
       });
     } catch (error) {
       setState({
-        status: DUP_STATEUSES.error,
+        status: DUP_STATUSES.error,
         message: messages.failed,
       });
       console.error('Duplication check failed:', error);
