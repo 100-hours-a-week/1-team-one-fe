@@ -3,12 +3,12 @@ import { InputImage } from '@repo/ui/input-image';
 import { Controller, useForm, type UseFormSetError } from 'react-hook-form';
 
 import { type ApiError, isApiError } from '@/src/shared/api';
+import { useClearFieldErrorsOnChange } from '@/src/shared/lib/form/use-clear-field-errors-on-change';
 
 import { EmailField, NicknameField, PasswordField } from '../../ui';
 import { PROFILE_IMAGE_UPLOAD_ERROR_CODE } from '../api';
 import { FORM_MESSAGES } from '../config/form-messages';
 import { VALIDATION_RULES } from '../config/validation';
-import { useClearServerErrorsOnChange } from '../lib/use-clear-server-errors-on-change';
 import { useEmailDuplication } from '../lib/use-email-duplication';
 import { useNicknameDuplication } from '../lib/use-nickname-duplication';
 import { type SignupFormValues, signupSchema } from '../model/signup-schema';
@@ -32,7 +32,7 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
     },
   });
 
-  useClearServerErrorsOnChange({
+  useClearFieldErrorsOnChange({
     control,
     errors: formState.errors,
     clearErrors,
