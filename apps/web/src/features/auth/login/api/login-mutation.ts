@@ -22,5 +22,6 @@ export function useLoginMutation(options?: LoginMutationOptions) {
     mutationKey: LOGIN_QUERY_KEYS.login(),
     mutationFn: loginRequest,
     ...options,
+    meta: { ...options?.meta, disableToast: true },
   });
 }
