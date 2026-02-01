@@ -8,6 +8,7 @@ import { EmailField, NicknameField, PasswordField } from '../../ui';
 import { PROFILE_IMAGE_UPLOAD_ERROR_CODE } from '../api';
 import { FORM_MESSAGES } from '../config/form-messages';
 import { VALIDATION_RULES } from '../config/validation';
+import { useClearServerErrorsOnChange } from '../lib/use-clear-server-errors-on-change';
 import { useEmailDuplication } from '../lib/use-email-duplication';
 import { useNicknameDuplication } from '../lib/use-nickname-duplication';
 import { type SignupFormValues, signupSchema } from '../model/signup-schema';
@@ -31,26 +32,35 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
     },
   });
 
+  useClearServerErrorsOnChange({
+    control,
+    errors: formState.errors,
+    clearErrors,
+    fields: SIGNUP_FIELDS,
+  });
+
   const emailDup = useEmailDuplication(control, setError, clearErrors);
   const nicknameDup = useNicknameDuplication(control, setError, clearErrors);
 
   const handleFormSubmit = async (values: SignupFormValues) => {
-    //TODO: early return
-    if (emailDup.state.status !== 'available') {
+    const isEmailAvailable = emailDup.state.status === 'available';
+    const isNicknameAvailable = nicknameDup.state.status === 'available';
+
+    if (!isEmailAvailable) {
       setError('email', {
-        type: 'manual',
+        type: 'dup-check-required',
         message: FORM_MESSAGES.ERROR.EMAIL_DUP_CHECK_REQUIRED,
       });
-      return;
     }
 
-    if (nicknameDup.state.status !== 'available') {
+    if (!isNicknameAvailable) {
       setError('nickname', {
-        type: 'manual',
+        type: 'dup-check-required',
         message: FORM_MESSAGES.ERROR.NICKNAME_DUP_CHECK_REQUIRED,
       });
-      return;
     }
+
+    if (!isEmailAvailable || !isNicknameAvailable) return;
     try {
       await onSubmit(values);
     } catch (error: unknown) {
@@ -125,7 +135,7 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
               disabled:
                 !field.value ||
                 (fieldState.invalid &&
-                  !['server', 'duplicate', 'server-validation'].includes(
+                  !['server', 'duplicate', 'server-validation', 'dup-check-required'].includes(
                     fieldState.error?.type ?? '',
                   )),
               onCheck: emailDup.handleCheck,
@@ -152,7 +162,7 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
               disabled:
                 !field.value ||
                 (fieldState.invalid &&
-                  !['server', 'duplicate', 'server-validation'].includes(
+                  !['server', 'duplicate', 'server-validation', 'dup-check-required'].includes(
                     fieldState.error?.type ?? '',
                   )),
               onCheck: nicknameDup.handleCheck,
@@ -214,17 +224,18 @@ const PROFILE_IMAGE_ERROR_CODES = new Set([
   'INVALID_FILE_EXTENSION',
   'PRESIGNED_URL_GENERATION_FAILED',
 ]);
-const SIGNUP_FIELDS = new Set<keyof SignupFormValues>([
+const SIGNUP_FIELDS = [
   'profileImage',
   'email',
   'nickname',
   'password',
   'passwordConfirm',
-]);
+] as const satisfies ReadonlyArray<keyof SignupFormValues>;
+const SIGNUP_FIELD_SET = new Set<keyof SignupFormValues>(SIGNUP_FIELDS);
 
 function isSignupField(field: string | undefined): field is keyof SignupFormValues {
   if (!field) return false;
-  return SIGNUP_FIELDS.has(field as keyof SignupFormValues);
+  return SIGNUP_FIELD_SET.has(field as keyof SignupFormValues);
 }
 
 function applyApiErrors(error: ApiError, setError: UseFormSetError<SignupFormValues>) {

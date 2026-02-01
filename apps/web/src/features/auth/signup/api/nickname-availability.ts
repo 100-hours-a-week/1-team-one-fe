@@ -3,15 +3,41 @@ import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { type ApiError, getHttpClient } from '@/src/shared/api';
 
 import { AUTH_QUERY_KEYS } from '../config/query-keys';
+import {
+  normalizeAvailabilityResponse,
+  normalizeAvailabilityResponseFromError,
+} from '../lib/normalize-availability-response';
 import type { NicknameAvailabilityData, NicknameAvailabilityResponse } from './types';
 
 async function fetchNicknameAvailability(nickname: string): Promise<NicknameAvailabilityData> {
   const client = getHttpClient({ requiresAuth: false });
-  const response = await client.get<NicknameAvailabilityResponse>('/auth/nickname-availability', {
-    params: { nickname },
-  });
+  try {
+    const response = await client.get<NicknameAvailabilityResponse>('/auth/nickname-availability', {
+      params: { nickname },
+    });
 
-  return response.data.data;
+    const normalized = normalizeAvailabilityResponse({
+      payload: response.data,
+      field: 'nickname',
+    });
+
+    if (!normalized) {
+      throw new Error('nickname-availability:invalid-response');
+    }
+
+    return normalized;
+  } catch (error) {
+    const normalized = normalizeAvailabilityResponseFromError({
+      error,
+      field: 'nickname',
+    });
+
+    if (normalized) {
+      return normalized;
+    }
+
+    throw error as ApiError;
+  }
 }
 
 export type NicknameAvailabilityQueryKey = ReturnType<typeof AUTH_QUERY_KEYS.nicknameAvailability>;
@@ -38,5 +64,6 @@ export function useNicknameAvailabilityQuery(
     queryFn: () => fetchNicknameAvailability(nickname),
     enabled,
     ...options,
+    meta: { ...options?.meta, disableToast: true },
   });
 }

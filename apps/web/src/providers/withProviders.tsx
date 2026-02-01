@@ -2,6 +2,7 @@ import { toast, ToastProvider } from '@repo/ui/toast';
 import {
   type Mutation,
   MutationCache,
+  type Query,
   QueryCache,
   QueryClient,
   QueryClientProvider,
@@ -15,15 +16,19 @@ import { TOAST_MESSAGES } from '@/src/shared/config/toast-messages';
 import { shouldThrowQueryError } from '@/src/shared/lib/query/should-throw-query-error';
 
 //401은 제외, 404/5xx는 errorBoundary로 위임, 그 외는 토스트로 처리
-const shouldShowQueryToast = (error: unknown): boolean => {
+const shouldShowQueryToast = (error: unknown, query?: Query<unknown, unknown>): boolean => {
+  //query meta 를 보고 toast 노출 여부 결정
+  const meta = query?.meta as { disableToast?: boolean } | undefined;
+  if (meta?.disableToast) return false;
+
   if (!isApiError(error)) return false;
   if (error.status === HTTP_STATUS.UNAUTHORIZED) return false;
   return !shouldThrowQueryError(error);
 };
 
 //토스트 노출 대상만 표시
-const handleQueryError = (error: unknown): void => {
-  if (!shouldShowQueryToast(error)) return;
+const handleQueryError = (error: unknown, query?: Query<unknown, unknown>): void => {
+  if (!shouldShowQueryToast(error, query)) return;
   const message = isApiError(error) ? error.message : TOAST_MESSAGES.ERROR_FALLBACK;
   toast({ title: message, variant: 'error' });
 };
@@ -59,7 +64,7 @@ const handleMutationError = (
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
-    onError: handleQueryError,
+    onError: (error, query) => handleQueryError(error, query),
   }),
   mutationCache: new MutationCache({
     onError: handleMutationError,
