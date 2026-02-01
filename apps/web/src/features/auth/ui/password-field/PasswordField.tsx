@@ -25,7 +25,7 @@ export function PasswordField({
       type={showPassword ? 'text' : 'password'}
       autoComplete={autoComplete}
       leftIcon={<Lock />}
-      rightIcon={showPassword ? <EyeOff /> : <Eye />}
+      rightIcon={showPassword ? <Eye /> : <EyeOff />}
       onRightIconClick={() => setShowPassword((prev) => !prev)}
       {...props}
     />
