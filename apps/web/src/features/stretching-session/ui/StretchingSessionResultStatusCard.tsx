@@ -27,7 +27,9 @@ export function StretchingSessionResultStatusCard({
       className={`animate-result-pop flex flex-col items-center gap-3 rounded-lg px-4 py-5 ${color.bgClass}`}
     >
       <Chip label={title} size="sm" className={`text-xs font-semibold ${color.badgeClass}`} />
-      <p className={`text-base font-semibold ${color.textClass}`}>{label}</p>
+      <p className={`text-base font-semibold ${color.textClass} text-center whitespace-pre`}>
+        {label}
+      </p>
       <Image src={imageSrc} alt={imageAlt} width={220} height={160} priority />
     </div>
   );
