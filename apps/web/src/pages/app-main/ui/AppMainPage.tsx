@@ -15,7 +15,7 @@ import { APP_MAIN_ACTION_CARDS } from '../config/action-cards';
 import {
   CHARACTER_STATUS,
   getCharacterImagePath,
-  getCharacterStatusByStreak,
+  getCharacterStatusByScore,
 } from '../config/character-status';
 import { APP_MAIN_MESSAGES } from '../config/messages';
 import { AppMainPageSkeleton } from './AppMainPage.skeleton';
@@ -52,7 +52,7 @@ export function AppMainPage() {
       renderError={() => <ErrorScreen variant="unexpected" />}
     >
       {({ user, grass, validSessions }) => {
-        const characterStatus = getCharacterStatusByStreak(user.character.streak);
+        const characterStatus = getCharacterStatusByScore(user.character.statusScore);
         const characterImage = getCharacterImagePath(
           user.character,
           characterStatus ?? CHARACTER_STATUS.NORMAL,

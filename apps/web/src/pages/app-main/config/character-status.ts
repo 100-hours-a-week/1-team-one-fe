@@ -5,15 +5,17 @@ export const CHARACTER_STATUS = {
   HUNGRY_WEAK: 'hungry_weak',
   NORMAL: 'normal',
   HEALTHY: 'healthy',
+  SUPER_HEALTHY: 'super_healthy',
 } as const;
 
 export type CharacterStatus = (typeof CHARACTER_STATUS)[keyof typeof CHARACTER_STATUS];
 
-export const STREAK_THRESHOLDS = {
-  DYING_MAX: 0,
-  HUNGRY_WEAK_MAX: 5,
-  NORMAL_MAX: 9,
-  HEALTHY_MIN: 10,
+export const STATUS_SCORE_THRESHOLDS = {
+  DYING_MAX: 19,
+  HUNGRY_WEAK_MAX: 39,
+  NORMAL_MAX: 59,
+  HEALTHY_MAX: 79,
+  SUPER_HEALTHY_MIN: 80,
 } as const;
 
 const CHARACTER_TYPE_DIR = {
@@ -26,14 +28,15 @@ type CharacterType = keyof typeof CHARACTER_TYPE_DIR;
 
 const isCharacterType = (value: string): value is CharacterType => value in CHARACTER_TYPE_DIR;
 
-export const getCharacterStatusByStreak = (streak: number): CharacterStatus => {
-  const safeStreak = Number.isNaN(streak) ? 0 : Math.max(0, Math.floor(streak));
+export const getCharacterStatusByScore = (statusScore: number): CharacterStatus => {
+  const safeScore = Number.isNaN(statusScore) ? 0 : Math.max(0, Math.floor(statusScore));
 
-  if (safeStreak <= STREAK_THRESHOLDS.DYING_MAX) return CHARACTER_STATUS.DYING;
-  if (safeStreak <= STREAK_THRESHOLDS.HUNGRY_WEAK_MAX) return CHARACTER_STATUS.HUNGRY_WEAK;
-  if (safeStreak < STREAK_THRESHOLDS.HEALTHY_MIN) return CHARACTER_STATUS.NORMAL;
+  if (safeScore <= STATUS_SCORE_THRESHOLDS.DYING_MAX) return CHARACTER_STATUS.DYING;
+  if (safeScore <= STATUS_SCORE_THRESHOLDS.HUNGRY_WEAK_MAX) return CHARACTER_STATUS.HUNGRY_WEAK;
+  if (safeScore <= STATUS_SCORE_THRESHOLDS.NORMAL_MAX) return CHARACTER_STATUS.NORMAL;
+  if (safeScore <= STATUS_SCORE_THRESHOLDS.HEALTHY_MAX) return CHARACTER_STATUS.HEALTHY;
 
-  return CHARACTER_STATUS.HEALTHY;
+  return CHARACTER_STATUS.SUPER_HEALTHY;
 };
 
 export const getCharacterImagePath = (
