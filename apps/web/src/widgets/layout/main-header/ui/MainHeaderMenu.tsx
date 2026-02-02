@@ -83,7 +83,7 @@ export function MainHeaderMenu() {
                 {MAIN_HEADER_MESSAGES.LOGOUT_CANCEL}
               </Button>
             </ConfirmDialogClose>
-            <Button size="sm" onClick={handleLogoutConfirm} disabled={isLogoutPending}>
+            <Button size="sm" onClick={handleLogoutConfirm} isLoading={isLogoutPending}>
               {MAIN_HEADER_MESSAGES.LOGOUT_CONFIRM}
             </Button>
           </ConfirmDialogFooter>

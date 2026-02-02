@@ -108,6 +108,24 @@ body {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 .animate-result-fade {
   animation: result-fade-up 650ms ease-out both;
 }
@@ -118,6 +136,14 @@ body {
 
 .animate-result-pulse {
   animation: result-pulse 1.2s ease-in-out 2;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-progress-indeterminate {
+  animation: progress-indeterminate 1.5s ease-in-out infinite;
 }
 
 @keyframes fade-in {
