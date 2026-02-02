@@ -1,5 +1,6 @@
 import { Button } from '@repo/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/card';
+import { ProgressBar } from '@repo/ui/progress-bar';
 import { SingleChoiceGroup } from '@repo/ui/single-choice-group';
 import { Spinner } from '@repo/ui/spinner';
 import { toast } from '@repo/ui/toast';
@@ -46,6 +47,8 @@ export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFor
     options,
     responses,
     hasSelection,
+    currentIndex,
+    totalQuestions,
     handleChoiceChange,
     handleBackClick,
     handleNext,
@@ -95,7 +98,17 @@ export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFor
       renderEmpty={() => <p className="text-text-muted text-sm">{SURVEY_MESSAGES.EMPTY}</p>}
     >
       {() => (
-        <div className="relative flex h-full flex-col justify-evenly gap-20 p-6">
+        <div className="relative flex h-full flex-col justify-start gap-10 p-6">
+          <div className="flex flex-col gap-2">
+            <ProgressBar
+              variant="bar"
+              size="md"
+              total={totalQuestions}
+              current={totalQuestions === 0 ? 0 : currentIndex + 1}
+              ariaLabel={SURVEY_MESSAGES.PROGRESS_ARIA_LABEL}
+              showValue
+            />
+          </div>
           <header className="flex flex-col gap-2 text-center">
             <h1 className="text-2xl font-semibold text-neutral-900">{SURVEY_MESSAGES.TITLE}</h1>
             <p className="text-sm text-neutral-600">{SURVEY_MESSAGES.DESCRIPTION}</p>

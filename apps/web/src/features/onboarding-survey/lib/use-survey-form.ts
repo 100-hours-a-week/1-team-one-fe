@@ -111,6 +111,8 @@ export function useSurveyForm({ data, onBack }: UseSurveyFormOptions) {
     responses,
     hasSelection,
     isLast,
+    currentIndex,
+    totalQuestions: questions.length,
     handleChoiceChange,
     handleBackClick,
     handleNext,

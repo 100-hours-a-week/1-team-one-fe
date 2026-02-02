@@ -70,7 +70,7 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
   }, [shouldShowPwaSheet]);
 
   return (
-    <main className="h-screen">
+    <main className="h-dvh">
       {children}
       {isAppRoute && isMobile && (
         <PwaInstallBottomSheet
