@@ -5,19 +5,14 @@ import Image from 'next/image';
 import { useValidExerciseSessionsQuery } from '@/src/features/exercise-session';
 import { transformGrassData, useGrassStatsQuery } from '@/src/features/grass-stats';
 import { useUserProfileQuery } from '@/src/features/user-profile';
-import { buildStretchSessionPath } from '@/src/shared/routes';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen';
 import { LinkCard } from '@/src/shared/ui/LinkCard';
 import { UserStatusCardSection } from '@/src/widgets/user-status-card';
 
 import { APP_MAIN_ACTION_CARDS } from '../config/action-cards';
-import {
-  CHARACTER_STATUS,
-  getCharacterImagePath,
-  getCharacterStatusByScore,
-} from '../config/character-status';
-import { APP_MAIN_MESSAGES } from '../config/messages';
+import { AppMainActiveSessionCard } from './AppMainActiveSessionCard';
+import { AppMainCharacterSection } from './AppMainCharacterSection';
 import { AppMainPageSkeleton } from './AppMainPage.skeleton';
 
 export function AppMainPage() {
@@ -52,50 +47,21 @@ export function AppMainPage() {
       renderError={() => <ErrorScreen variant="unexpected" />}
     >
       {({ user, grass, validSessions }) => {
-        const characterStatus = getCharacterStatusByScore(user.character.statusScore);
-        const characterImage = getCharacterImagePath(
-          user.character,
-          characterStatus ?? CHARACTER_STATUS.NORMAL,
-        );
         const calendarData = transformGrassData(grass.grass);
         const activeSession = validSessions?.[0] ?? null;
 
         return (
           <div className="flex flex-col gap-6 p-6 pb-20">
             <UserStatusCardSection />
-            <section className="flex flex-col items-center justify-center px-5">
-              <Image
-                src={characterImage}
-                alt={APP_MAIN_MESSAGES.CHARACTER_IMAGE_ALT}
-                width={400}
-                height={300}
-              />
-              <p className="text-xl font-semibold">{user.character.name}</p>
-            </section>
+            <AppMainCharacterSection
+              characterName={user.character.name}
+              characterType={user.character.type}
+              statusScore={user.character.statusScore}
+            />
             <section className="bg-bg-muted rounded-lg p-3">
               {calendarData.length > 0 && <ActivityCalendar data={calendarData} />}
             </section>
-            {activeSession && (
-              <LinkCard
-                href={buildStretchSessionPath(activeSession.sessionId)}
-                headerHeight="sm"
-                className="hover:border-border-strong hover:bg-bg-subtle transition-colors"
-                footer={
-                  <span className="text-brand-700 text-sm font-semibold">
-                    {APP_MAIN_MESSAGES.ACTIVE_SESSION.CTA}
-                  </span>
-                }
-              >
-                <div className="flex flex-col gap-1">
-                  <span className="text-text text-lg font-semibold">
-                    {APP_MAIN_MESSAGES.ACTIVE_SESSION.TITLE}
-                  </span>
-                  <span className="text-text-muted text-sm">
-                    {APP_MAIN_MESSAGES.ACTIVE_SESSION.DESCRIPTION}
-                  </span>
-                </div>
-              </LinkCard>
-            )}
+            <AppMainActiveSessionCard sessionId={activeSession?.sessionId ?? null} />
             <section className="flex gap-3">
               {APP_MAIN_ACTION_CARDS.map(({ key, href, title, image, description }) => (
                 <div key={key} className="flex-1">
