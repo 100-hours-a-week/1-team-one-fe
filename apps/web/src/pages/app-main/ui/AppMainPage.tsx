@@ -58,7 +58,10 @@ export function AppMainPage() {
               characterType={user.character.type}
               statusScore={user.character.statusScore}
             />
-            <section className="bg-bg-muted rounded-lg p-3">
+            <section className="bg-surface rounded-lg p-3">
+              <div className="text-text flex items-center justify-between pb-3 text-center text-lg font-semibold">
+                스트레칭 기록
+              </div>
               {calendarData.length > 0 && <ActivityCalendar data={calendarData} />}
             </section>
             <AppMainActiveSessionCard sessionId={activeSession?.sessionId ?? null} />
