@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@repo/ui/button';
 import { InputImage } from '@repo/ui/input-image';
 import { Controller, useForm, type UseFormSetError } from 'react-hook-form';
 
 import { type ApiError, isApiError } from '@/src/shared/api';
+import { useClearFieldErrorsOnChange } from '@/src/shared/lib/form/use-clear-field-errors-on-change';
 
 import { EmailField, NicknameField, PasswordField } from '../../ui';
 import { PROFILE_IMAGE_UPLOAD_ERROR_CODE } from '../api';
@@ -31,26 +33,36 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
     },
   });
 
+  useClearFieldErrorsOnChange({
+    control,
+    errors: formState.errors,
+    clearErrors,
+    fields: SIGNUP_FIELDS,
+  });
+
   const emailDup = useEmailDuplication(control, setError, clearErrors);
   const nicknameDup = useNicknameDuplication(control, setError, clearErrors);
+  const isSubmitLoading = Boolean(isPending || formState.isSubmitting);
 
   const handleFormSubmit = async (values: SignupFormValues) => {
-    //TODO: early return
-    if (emailDup.state.status !== 'available') {
+    const isEmailAvailable = emailDup.state.status === 'available';
+    const isNicknameAvailable = nicknameDup.state.status === 'available';
+
+    if (!isEmailAvailable) {
       setError('email', {
-        type: 'manual',
+        type: 'dup-check-required',
         message: FORM_MESSAGES.ERROR.EMAIL_DUP_CHECK_REQUIRED,
       });
-      return;
     }
 
-    if (nicknameDup.state.status !== 'available') {
+    if (!isNicknameAvailable) {
       setError('nickname', {
-        type: 'manual',
+        type: 'dup-check-required',
         message: FORM_MESSAGES.ERROR.NICKNAME_DUP_CHECK_REQUIRED,
       });
-      return;
     }
+
+    if (!isEmailAvailable || !isNicknameAvailable) return;
     try {
       await onSubmit(values);
     } catch (error: unknown) {
@@ -84,7 +96,7 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
       onSubmit={handleSubmit(handleFormSubmit)}
       className="flex w-full flex-col justify-center gap-6"
     >
-      {/* TODO: 설정 모아서 map 으로 변경 */}
+      {/* TODO: 설정 모아서 맵으로 변경 */}
       <Controller
         name="profileImage"
         control={control}
@@ -125,7 +137,7 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
               disabled:
                 !field.value ||
                 (fieldState.invalid &&
-                  !['server', 'duplicate', 'server-validation'].includes(
+                  !['server', 'duplicate', 'server-validation', 'dup-check-required'].includes(
                     fieldState.error?.type ?? '',
                   )),
               onCheck: emailDup.handleCheck,
@@ -152,7 +164,7 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
               disabled:
                 !field.value ||
                 (fieldState.invalid &&
-                  !['server', 'duplicate', 'server-validation'].includes(
+                  !['server', 'duplicate', 'server-validation', 'dup-check-required'].includes(
                     fieldState.error?.type ?? '',
                   )),
               onCheck: nicknameDup.handleCheck,
@@ -198,13 +210,9 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
         <p className="text-error-600 text-sm">{formState.errors.root.serverError.message}</p>
       )}
 
-      <button
-        type="submit"
-        disabled={isPending || formState.isSubmitting}
-        className="bg-brand-600 hover:bg-brand-700 w-full rounded-md px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isPending || formState.isSubmitting ? '처리 중...' : '회원가입'}
-      </button>
+      <Button type="submit" fullWidth isLoading={isSubmitLoading}>
+        {isSubmitLoading ? '처리 중' : '회원가입'}
+      </Button>
     </form>
   );
 }
@@ -214,17 +222,18 @@ const PROFILE_IMAGE_ERROR_CODES = new Set([
   'INVALID_FILE_EXTENSION',
   'PRESIGNED_URL_GENERATION_FAILED',
 ]);
-const SIGNUP_FIELDS = new Set<keyof SignupFormValues>([
+const SIGNUP_FIELDS = [
   'profileImage',
   'email',
   'nickname',
   'password',
   'passwordConfirm',
-]);
+] as const satisfies ReadonlyArray<keyof SignupFormValues>;
+const SIGNUP_FIELD_SET = new Set<keyof SignupFormValues>(SIGNUP_FIELDS);
 
 function isSignupField(field: string | undefined): field is keyof SignupFormValues {
   if (!field) return false;
-  return SIGNUP_FIELDS.has(field as keyof SignupFormValues);
+  return SIGNUP_FIELD_SET.has(field as keyof SignupFormValues);
 }
 
 function applyApiErrors(error: ApiError, setError: UseFormSetError<SignupFormValues>) {

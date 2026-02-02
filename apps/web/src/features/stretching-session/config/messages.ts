@@ -30,7 +30,7 @@ export const STRETCHING_SESSION_MESSAGES = {
       },
       FAILURE: {
         TITLE: '스트레칭 실패',
-        LABEL: '바쁘신가요? 알람 수정을 통해 알람을 조정할 수 있어요.',
+        LABEL: `바쁘신가요?\n알람 수정을 통해 알람을 조정할 수 있어요.`,
         IMAGE_ALT: '스트레칭 실패 결과 이미지',
       },
     },

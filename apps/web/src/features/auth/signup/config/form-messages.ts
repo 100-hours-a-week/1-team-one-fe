@@ -7,16 +7,24 @@ export const FORM_MESSAGES = {
   },
   ERROR: {
     SIGNUP_FAILED: '회원가입에 실패했습니다. 다시 시도해주세요.',
+
     EMAIL_DUP_CHECK_REQUIRED: '이메일 중복 확인이 필요합니다.',
     EMAIL_UNAVAILABLE: '이미 사용 중인 이메일입니다.',
     EMAIL_DUP_CHECK_FAILED: '중복 확인에 실패했습니다. 다시 시도해주세요.',
+
     NICKNAME_DUP_CHECK_REQUIRED: '닉네임 중복 확인이 필요합니다.',
     NICKNAME_UNAVAILABLE: '이미 사용 중인 닉네임입니다.',
     NICKNAME_DUP_CHECK_FAILED: '중복 확인에 실패했습니다. 다시 시도해주세요.',
+
     PROFILE_IMAGE_UPLOAD_FAILED: '프로필 이미지 업로드에 실패했습니다. 다시 시도해주세요.',
     PROFILE_IMAGE_UPLOAD_FAILED_WITH_STATUS:
       '프로필 이미지 업로드에 실패했습니다. (상태 코드: {status})',
     PROFILE_IMAGE_UPLOAD_STATUS_UNKNOWN: '알 수 없음',
+  },
+  STATUS: {
+    DUP_CHECKING: '확인 중...',
+    EMAIL_AVAILABLE: '사용 가능한 이메일입니다.',
+    NICKNAME_AVAILABLE: '사용 가능한 닉네임입니다.',
   },
 } as const;
 

@@ -4,6 +4,22 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   transpilePackages: ['@repo/ui'],
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+        pathname: '/raise-developer-prod-bucket/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+        pathname: '/raise-developer-dev-bucket/**',
+      },
+    ],
+  },
+
   async headers() {
     return [
       {

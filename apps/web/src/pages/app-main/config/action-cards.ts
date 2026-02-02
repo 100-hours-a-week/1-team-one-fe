@@ -20,7 +20,7 @@ export const APP_MAIN_ACTION_CARDS: AppMainActionCard[] = [
   },
   {
     key: 'notifications',
-    href: ROUTES.SETTINGS_NOTIFICATIONS,
+    href: ROUTES.ALARM,
     title: APP_MAIN_MESSAGES.ACTIONS.NOTIFICATIONS.TITLE,
     image: '/images/main/clock.png',
     description: APP_MAIN_MESSAGES.ACTIONS.NOTIFICATIONS.DESCRIPTION,

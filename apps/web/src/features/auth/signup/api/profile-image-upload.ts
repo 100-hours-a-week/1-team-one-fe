@@ -20,7 +20,7 @@ export const PROFILE_IMAGE_UPLOAD_ERROR_CODE = 'PROFILE_IMAGE_UPLOAD_FAILED';
 async function requestProfileImageUploadUrl(
   payload: ProfileImageUploadUrlRequest,
 ): Promise<ProfileImageUploadUrlData> {
-  const client = getHttpClient({ requiresAuth: true });
+  const client = getHttpClient();
   const response = await client.post<ProfileImageUploadUrlResponse>(
     '/images/upload-url/profile',
     payload,
@@ -57,5 +57,6 @@ export function useProfileImageUploadMutation(options?: ProfileImageUploadMutati
   return useMutation({
     mutationFn: requestProfileImageUploadUrl,
     ...options,
+    meta: { ...options?.meta, disableToast: true },
   });
 }

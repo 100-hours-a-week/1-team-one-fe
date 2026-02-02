@@ -28,5 +28,6 @@ export function useSignupMutation(options?: SignupMutationOptions) {
     mutationKey: AUTH_QUERY_KEYS.signup(),
     mutationFn: signupRequest,
     ...options,
+    meta: { ...options?.meta, disableToast: true },
   });
 }

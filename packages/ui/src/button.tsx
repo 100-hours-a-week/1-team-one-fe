@@ -1,10 +1,12 @@
-import { Slot } from 'radix-ui';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from './lib/utils';
 import { ElementType } from 'react';
+import { Slot } from 'radix-ui';
+
+import { Spinner } from './spinner';
+import { cn } from './lib/utils';
 
 const buttonVariants = cva(
-  /* Base styles */
+  /* 기본 스타일 */
   [
     'inline-flex items-center justify-center gap-2',
     'rounded-lg',
@@ -78,6 +80,7 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  isLoading?: boolean;
 }
 
 export function Button({
@@ -86,12 +89,27 @@ export function Button({
   size,
   fullWidth,
   asChild = false,
+  isLoading = false,
+  disabled,
+  children,
   ...props
 }: ButtonProps) {
   const Comp = (asChild ? Slot : 'button') as ElementType;
+  const resolvedSize = size ?? 'md';
+  const spinnerSize = resolvedSize === 'lg' ? 'md' : 'sm';
+  const isDisabled = Boolean(disabled || isLoading);
 
   return (
-    <Comp className={cn(buttonVariants({ variant, size, fullWidth, className }))} {...props} />
+    <Comp
+      className={cn(buttonVariants({ variant, size: resolvedSize, fullWidth, className }))}
+      aria-busy={isLoading || undefined}
+      aria-disabled={isDisabled || undefined}
+      disabled={isDisabled}
+      {...props}
+    >
+      {isLoading && <Spinner size={spinnerSize} className="shrink-0" />}
+      {children}
+    </Comp>
   );
 }
 
