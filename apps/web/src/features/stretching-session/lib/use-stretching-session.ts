@@ -120,7 +120,7 @@ export function useStretchingSession(
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const progressRatioRef = useRef<number>(STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO);
-  const phaseRef = useRef<string | undefined>(STRETCHING_SESSION_CONFIG.DEFAULT_PHASE);
+  const phaseRef = useRef<string>(STRETCHING_SESSION_CONFIG.DEFAULT_PHASE);
 
   const sessionRef = useRef<StretchingSession | null>(null);
 
@@ -318,7 +318,7 @@ export function useStretchingSession(
       if (!step || !type) return;
 
       progressRatioRef.current = result.progressRatio;
-      phaseRef.current = result.phase!;
+      phaseRef.current = result.phase;
 
       const percent = normalizeAccuracyPercent(result.score);
 
