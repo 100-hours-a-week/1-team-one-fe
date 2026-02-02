@@ -120,7 +120,7 @@ export function OnboardingCharacterPage() {
   });
 
   return (
-    <div className="bg-bg text-text flex min-h-dvh flex-col items-center justify-between gap-6 px-6 py-8">
+    <div className="bg-bg text-text flex min-h-dvh flex-col items-center justify-evenly gap-4 px-6 py-8">
       <header className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-xl font-semibold">{TITLE}</h1>
         <p className="text-text-muted text-sm">{SUBTITLE}</p>
@@ -147,11 +147,9 @@ export function OnboardingCharacterPage() {
         <div className="pt-56" />
       </section>
 
-      {/* {isSuccess && ( */}
-      <Button variant="primary" size="lg" fullWidth onClick={handleGoToApp}>
-        {CTA_NEXT}
+      <Button variant="primary" size="lg" fullWidth onClick={handleGoToApp} disabled={!isSuccess}>
+        {isSuccess ? CTA_NEXT : '폴더 눌러 캐릭터 선택해주세요'}
       </Button>
-      {/* )} */}
     </div>
   );
 }
