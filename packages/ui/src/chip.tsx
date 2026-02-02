@@ -18,7 +18,14 @@ const chipVariants = cva(
     variants: {
       variant: {
         default: ['bg-bg-subtle', 'text-text', 'border', 'border-border'],
-        selectable: ['border', 'cursor-pointer', 'hover:bg-bg-subtle', 'active:scale-95'],
+        selectable: [
+          'border',
+          'cursor-pointer',
+          'hover:bg-brand-300',
+          'hover:border-brand-300',
+          'hover:text-brand-contrast',
+          'active:scale-95',
+        ],
         text: [''],
         date: ['border', 'border-brand-400'],
       },
