@@ -1,3 +1,5 @@
+import { WEEKDAY_VALUES } from '@/src/entities/alarm-settings';
+
 export const INTERVAL_CONFIG = {
   MIN_MINUTES: 10,
   MAX_MINUTES: 600,
@@ -21,21 +23,13 @@ export const DND_OPTION_VALUES = {
 } as const;
 
 export const WEEKDAY_OPTIONS = [
-  { value: 'MONDAY', label: '월' },
-  { value: 'TUESDAY', label: '화' },
-  { value: 'WEDNESDAY', label: '수' },
-  { value: 'THURSDAY', label: '목' },
-  { value: 'FRIDAY', label: '금' },
-  { value: 'SATURDAY', label: '토' },
-  { value: 'SUNDAY', label: '일' },
+  { value: WEEKDAY_VALUES[0], label: '월' },
+  { value: WEEKDAY_VALUES[1], label: '화' },
+  { value: WEEKDAY_VALUES[2], label: '수' },
+  { value: WEEKDAY_VALUES[3], label: '목' },
+  { value: WEEKDAY_VALUES[4], label: '금' },
+  { value: WEEKDAY_VALUES[5], label: '토' },
+  { value: WEEKDAY_VALUES[6], label: '일' },
 ] as const;
 
-export const DEFAULT_WEEKDAYS = [
-  'MONDAY',
-  'TUESDAY',
-  'WEDNESDAY',
-  'THURSDAY',
-  'FRIDAY',
-  'SATURDAY',
-  'SUNDAY',
-] as const;
+export const DEFAULT_WEEKDAYS = [...WEEKDAY_VALUES] as const;

@@ -12,6 +12,8 @@ import { ROUTES } from '@/src/shared/routes';
 
 type SignupValues = z.infer<typeof signupSchema>;
 
+const PROFILE_DEFAULT_IMAGE_URL = '/users/profile/default.png';
+
 export function SignupPage() {
   const router = useRouter();
   const signupMutation = useSignupMutation();
@@ -21,6 +23,7 @@ export function SignupPage() {
     let imagePath: string | undefined;
     const profileImage = values.profileImage;
 
+    //presigned url upload
     if (profileImage) {
       const contentType = profileImage.type || 'application/octet-stream';
       let uploadInfo = await profileImageUploadMutation.mutateAsync({
@@ -44,7 +47,7 @@ export function SignupPage() {
         email: values.email,
         nickname: values.nickname,
         password: values.password,
-        imagePath,
+        imagePath: imagePath || PROFILE_DEFAULT_IMAGE_URL, //빈 문자열도 default
       },
       { onSuccess: () => router.push(ROUTES.LOGIN) },
     );

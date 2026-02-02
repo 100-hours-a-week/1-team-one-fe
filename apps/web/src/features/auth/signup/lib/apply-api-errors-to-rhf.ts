@@ -5,13 +5,17 @@ import type {
   UseFormSetError,
 } from 'react-hook-form';
 
+import { SIGNUP_DUPLICATION_CODES } from '../config/duplication';
 import { ApiErrorResponse } from '../model/api-error';
 
 //TODO: 리팩토링
 
 type SetError<T extends FieldValues> = UseFormSetError<T>;
 
-const DUPLICATE_CODES = new Set(['USER_EMAIL_DUPLICATED', 'USER_NICKNAME_DUPLICATED']);
+const DUPLICATE_CODES = new Set([
+  SIGNUP_DUPLICATION_CODES.EMAIL,
+  SIGNUP_DUPLICATION_CODES.NICKNAME,
+]) as Set<string>;
 
 const VALIDATION_FAILED_CODE = 'VALIDATION_FAILED';
 
@@ -66,7 +70,7 @@ export function clearServerishFieldError<T extends Record<string, any>>(args: {
   const { field, errors, clearErrors } = args;
   const err = errors[field];
 
-  // RHF Error 타입은 보통 { type, message } 형태
+  // RHF Error 타입 { type, message } 형태
   const type = (err as any)?.type as string | undefined;
 
   // 서버/중복 타입만 지움

@@ -1,13 +1,13 @@
-import { AppSettingsNotificationsPage } from '@/src/pages/app-settings';
+import { AppAlarmPage } from '@/src/pages/app-alarm';
 import { createAuthenticatedLayout } from '@/src/shared/lib/layout';
 import type { NextPageWithLayout } from '@/src/shared/types';
 
-const Page: NextPageWithLayout = AppSettingsNotificationsPage;
+const Page: NextPageWithLayout = AppAlarmPage;
 Page.getLayout = createAuthenticatedLayout({
   showFooter: false,
   headerConfig: {
     variant: 'sub',
-    title: '알림 로그',
+    title: '알림 설정',
   },
 });
 

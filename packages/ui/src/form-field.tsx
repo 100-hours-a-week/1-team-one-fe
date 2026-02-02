@@ -1,10 +1,16 @@
 import { Input } from './input';
 import type { ChangeEvent, FocusEvent, KeyboardEvent, ReactNode } from 'react';
-import { cn } from './lib/utils';
 import { Button } from './button';
 
 //TODO: 타입 분리
-export type DupStatus = 'idle' | 'checking' | 'available' | 'unavailable' | 'error';
+export const DUP_STATUSES = {
+  idle: 'idle',
+  checking: 'checking',
+  available: 'available',
+  unavailable: 'unavailable',
+  error: 'error',
+};
+export type DupStatus = (typeof DUP_STATUSES)[keyof typeof DUP_STATUSES];
 
 interface DuplicationCheckOption {
   enabled: boolean;
@@ -104,7 +110,12 @@ export function FormField({
       {label && (
         <Input.Label htmlFor={id}>
           {label}
-          {required && <span aria-label="required"> *</span>}
+          {required && (
+            <span aria-label="required" className="text-brand-500">
+              {' '}
+              *
+            </span>
+          )}
         </Input.Label>
       )}
 
@@ -131,6 +142,7 @@ export function FormField({
               type="button"
               size="sm"
               variant="outline"
+              className="text-xs"
               disabled={
                 disabled || duplicationCheck.disabled || duplicationCheck.status === 'checking'
               }

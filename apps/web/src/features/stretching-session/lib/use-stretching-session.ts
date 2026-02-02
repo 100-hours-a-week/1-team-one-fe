@@ -119,6 +119,9 @@ export function useStretchingSession(
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const progressRatioRef = useRef<number>(STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO);
+  const phaseRef = useRef<string>(STRETCHING_SESSION_CONFIG.DEFAULT_PHASE);
+
   const sessionRef = useRef<StretchingSession | null>(null);
 
   const stepStartAtRef = useRef<number | null>(null);
@@ -196,6 +199,11 @@ export function useStretchingSession(
     totalStepsRef.current = totalSteps;
   }, [totalSteps]);
 
+  useEffect(() => {
+    progressRatioRef.current = STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO;
+    phaseRef.current = STRETCHING_SESSION_CONFIG.DEFAULT_PHASE;
+  }, [currentStep?.routineStepId]);
+
   const exerciseType = useMemo(() => {
     if (!currentStep) return null;
     return toExerciseType(currentStep.exercise.type);
@@ -227,8 +235,8 @@ export function useStretchingSession(
   }, [initialReferencePose, initialExerciseType, isInitialDataReady, totalSteps]);
 
   // TODO 정책 확정 전: identity 고정 함수로 둠
-  const getProgressRatio = useCallback(() => STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO, []);
-  const getPhase = useCallback(() => STRETCHING_SESSION_CONFIG.DEFAULT_PHASE, []);
+  const getProgressRatio = useCallback(() => progressRatioRef.current, []);
+  const getPhase = useCallback(() => phaseRef.current, []);
 
   const completeStepImpl = useCallback((status: StretchingStepResult['status']) => {
     const step = currentStepRef.current;
@@ -308,6 +316,9 @@ export function useStretchingSession(
       const step = currentStepRef.current;
       const type = exerciseTypeRef.current;
       if (!step || !type) return;
+
+      progressRatioRef.current = result.progressRatio;
+      phaseRef.current = result.phase;
 
       const percent = normalizeAccuracyPercent(result.score);
 
@@ -552,6 +563,28 @@ export function useStretchingSession(
           headRadiusRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_HEAD_RADIUS_RATIO,
           strokeWidthRatio: STRETCHING_SESSION_CONFIG.SILHOUETTE_STROKE_WIDTH_RATIO,
         },
+        guide: {
+          enabled:
+            STRETCHING_SESSION_CONFIG.GUIDE_ENABLED &&
+            STRETCHING_SESSION_CONFIG.VISUALIZATION_MODE === 'silhouette',
+          showLabels: STRETCHING_SESSION_CONFIG.GUIDE_SHOW_LABELS,
+          alignToUser: STRETCHING_SESSION_CONFIG.GUIDE_ALIGN_TO_USER,
+          mirrorMode: STRETCHING_SESSION_CONFIG.GUIDE_MIRROR_MODE,
+          color: STRETCHING_SESSION_CONFIG.GUIDE_REFERENCE_COLOR,
+          outlineColor: STRETCHING_SESSION_CONFIG.GUIDE_POINT_OUTLINE_COLOR,
+          labelColor: STRETCHING_SESSION_CONFIG.GUIDE_LABEL_COLOR,
+          lineWidth: STRETCHING_SESSION_CONFIG.GUIDE_LINE_WIDTH,
+          pointRadius: STRETCHING_SESSION_CONFIG.GUIDE_POINT_RADIUS,
+          pointOutlineRadius: STRETCHING_SESSION_CONFIG.GUIDE_POINT_OUTLINE_RADIUS,
+          pointOutlineWidth: STRETCHING_SESSION_CONFIG.GUIDE_POINT_OUTLINE_WIDTH,
+          labelFontSizePx: STRETCHING_SESSION_CONFIG.GUIDE_LABEL_FONT_SIZE_PX,
+          labelOffset: {
+            x: STRETCHING_SESSION_CONFIG.GUIDE_LABEL_OFFSET_X,
+            y: STRETCHING_SESSION_CONFIG.GUIDE_LABEL_OFFSET_Y,
+          },
+          alphaActive: STRETCHING_SESSION_CONFIG.GUIDE_ALPHA_ACTIVE,
+          alphaIdle: STRETCHING_SESSION_CONFIG.GUIDE_ALPHA_IDLE,
+        },
       },
     });
 
@@ -637,6 +670,8 @@ export function useStretchingSession(
   //디버깅용 콘솔
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') return;
+    //TODO: 로그 설정 방식 개선
+    if (!STRETCHING_SESSION_CONFIG.DEBUG_ACCURACY_LOG_VERBOSE) return;
     console.log('[stretching-session] state', {
       sessionId,
       currentStepIndex,

@@ -11,11 +11,11 @@ import { NOTIFICATIONS_CONFIG } from '@/src/features/notifications/config/consta
 import { NOTIFICATIONS_MESSAGES } from '@/src/features/notifications/config/messages';
 import { NOTIFICATIONS_QUERY_KEYS } from '@/src/features/notifications/config/query-keys';
 
-export function AppSettingsNotificationsPage() {
+export function AppNotificationsPage() {
   const queryClient = useQueryClient();
   const hasMarkedReadRef = useRef(false);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useNotificationsInfiniteQuery(NOTIFICATIONS_CONFIG.PAGE_LIMIT);
 
   const notifications = useMemo(
@@ -56,6 +56,7 @@ export function AppSettingsNotificationsPage() {
         <NotificationList
           items={notifications}
           isLoading={isLoading}
+          error={error}
           isFetchingNextPage={isFetchingNextPage}
           hasNextPage={Boolean(hasNextPage)}
           onFetchNext={() => void fetchNextPage()}

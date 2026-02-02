@@ -44,9 +44,9 @@ export const STRETCHING_RESULT_UI: Record<StretchingResultStatus, StretchingResu
     label: STRETCHING_SESSION_MESSAGES.RESULT.STATUS.FAILURE.LABEL,
     imageSrc: '/images/stretch/result_fail.png',
     color: {
-      bgClass: 'bg-danger-50',
-      textClass: 'text-danger-700',
-      badgeClass: 'bg-danger-100 text-danger-800',
+      bgClass: 'bg-error-50',
+      textClass: 'text-error-700',
+      badgeClass: 'bg-error-100 text-error-800',
     },
   },
 };
@@ -66,7 +66,7 @@ export function StretchingSessionCompletionResult({
     );
   }
 
-  const isSuccess = result.isCompleted;
+  const isSuccess = result.earnedExp > 0; //isCompleted 는 완료 시에 모두 true, 성공 실패 여부와는 다르다.
   const statusKey: StretchingResultStatus = isSuccess ? 'success' : 'failure';
   const uiConfig = STRETCHING_RESULT_UI[statusKey];
   const safeEarnedExp = Math.max(0, result.earnedExp);
