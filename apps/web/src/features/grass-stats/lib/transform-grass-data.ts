@@ -84,5 +84,7 @@ export function transformGrassData(grassItems: GrassStatsItem[]): Activity[] {
     date: item.date,
     count: item.successCount,
     level: calculateLevel(item.successCount, item.targetCount),
+    successCount: item.successCount,
+    targetCount: item.targetCount,
   }));
 }

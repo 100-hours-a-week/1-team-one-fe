@@ -8,6 +8,8 @@ export type Activity = {
   date: string;
   count: number;
   level: 0 | 1 | 2 | 3 | 4;
+  successCount: number;
+  targetCount: number;
 };
 
 const calendarBlockVariants = cva('aspect-square rounded transition-colors', {
@@ -34,7 +36,9 @@ export interface ActivityCalendarProps extends VariantProps<typeof calendarBlock
 const defaultTooltipContent = (activity: Activity) => (
   <div className="flex flex-col gap-1">
     <span className="text-xs font-medium">{activity.date}</span>
-    <span className="text-xs tabular-nums">{activity.count}</span>
+    <span className="text-xs tabular-nums">
+      {activity.successCount}/{activity.targetCount}
+    </span>
   </div>
 );
 
