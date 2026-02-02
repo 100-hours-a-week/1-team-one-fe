@@ -1,6 +1,8 @@
 import { ProgressBar } from '@repo/ui/progress-bar';
-import { useEffect } from 'react';
+import { toast } from '@repo/ui/toast';
+import { useEffect, useRef } from 'react';
 
+import { STRETCHING_SESSION_CONFIG } from '../config/constants';
 import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
 import { StretchingSessionDebugOptions, useStretchingSession } from '../lib/use-stretching-session';
 import { StretchingSessionCompletionResult } from './StretchingSessionCompletionResult';
@@ -39,6 +41,7 @@ export function StretchingSessionView({
     completionResult,
     isCompleting,
   } = useStretchingSession(sessionId, { debug: debugOptions, targetFps });
+  const hasShownGuideToastRef = useRef(false);
 
   const accuracyColorBorderClassName =
     accuracyTone === 'danger'
@@ -51,6 +54,7 @@ export function StretchingSessionView({
   const isReps = currentStep?.exercise.type === 'REPS';
   const targetReps = currentStep?.targetReps ?? 0;
   const shouldShowReps = isReps && targetReps > 0;
+  const shouldShowAccuracy = !isReps;
   const resultMessage = stepOutcome
     ? stepOutcome === 'success'
       ? STRETCHING_SESSION_MESSAGES.STATUS.RESULT_SUCCESS
@@ -62,6 +66,21 @@ export function StretchingSessionView({
     console.log('stepOutcome', stepOutcome);
     console.log('currentStepIndex', currentStepIndex);
   }, [currentStepIndex, stepOutcome]);
+
+  useEffect(() => {
+    if (!isCanvasReady) return;
+    if (!currentStep) return;
+    if (hasShownGuideToastRef.current) return;
+
+    toast({
+      title: STRETCHING_SESSION_MESSAGES.TOAST.GUIDE_TITLE,
+      description: STRETCHING_SESSION_MESSAGES.TOAST.GUIDE_DESCRIPTION,
+      variant: 'info',
+      duration: STRETCHING_SESSION_CONFIG.GUIDE_TOAST_DURATION_MS,
+    });
+
+    hasShownGuideToastRef.current = true;
+  }, [currentStep, isCanvasReady]);
 
   if (isSessionComplete) {
     return <StretchingSessionCompletionResult result={completionResult} isLoading={isCompleting} />;
@@ -92,6 +111,7 @@ export function StretchingSessionView({
               timerTone={timerTone}
               accuracyPercent={accuracyPercent}
               accuracyTone={accuracyTone}
+              showAccuracy={shouldShowAccuracy}
               repsCount={repsCount}
               targetReps={targetReps}
               showReps={shouldShowReps}

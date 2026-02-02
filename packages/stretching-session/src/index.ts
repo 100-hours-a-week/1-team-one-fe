@@ -8,5 +8,6 @@ export type {
   RendererConfig,
   KeypointsConfig,
   SilhouetteConfig,
+  GuideConfig,
   Renderer,
 } from './renderers';

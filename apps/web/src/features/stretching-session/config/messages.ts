@@ -57,6 +57,10 @@ export const STRETCHING_SESSION_MESSAGES = {
     RESULT_SUCCESS: '성공',
     RESULT_FAIL: '실패',
   },
+  TOAST: {
+    GUIDE_TITLE: '파란 선은 가이드입니다.',
+    GUIDE_DESCRIPTION: '가이드를 따라 스트레칭을 진행해보세요!',
+  },
   NAV: {
     HOME_LABEL: '홈으로',
     HOME_ICON_ARIA: '홈으로 이동',

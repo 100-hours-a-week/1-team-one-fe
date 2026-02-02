@@ -88,7 +88,7 @@ export function withProviders<TProps extends object>(AppComponent: ComponentType
     return (
       <QueryClientProvider client={queryClient}>
         <AppComponent {...props} />
-        <ToastProvider />
+        <ToastProvider position="bottom-center" />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     );

@@ -7,6 +7,7 @@ type StretchingSessionOverlayProps = {
   timerTone: 'danger' | 'default';
   accuracyPercent: number;
   accuracyTone: 'danger' | 'warn' | 'brand';
+  showAccuracy: boolean;
   repsCount: number;
   targetReps: number;
   showReps: boolean;
@@ -19,6 +20,7 @@ export function StretchingSessionOverlay({
   timerTone,
   accuracyPercent,
   accuracyTone,
+  showAccuracy,
   repsCount,
   targetReps,
   showReps,
@@ -34,9 +36,11 @@ export function StretchingSessionOverlay({
         ? 'text-warning-600'
         : 'text-brand-600';
 
+  const containerClassName = showAccuracy ? 'grid-cols-3' : 'grid-cols-2';
+
   return (
     <div className="pointer-events-none absolute top-4 right-4 left-4 z-10">
-      <div className="bg-surface grid grid-cols-3 items-start rounded-lg py-2">
+      <div className={`bg-surface grid ${containerClassName} items-start rounded-lg py-2`}>
         <div className="flex flex-col items-center gap-1 rounded-xl">
           <span className="text-text-muted text-xs">
             {STRETCHING_SESSION_MESSAGES.OVERLAY.TIME_REMAINING}
@@ -72,14 +76,16 @@ export function StretchingSessionOverlay({
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-text-muted text-xs">
-            {STRETCHING_SESSION_MESSAGES.OVERLAY.ACCURACY}
-          </span>
-          <span className={`text-lg font-semibold ${accuracyTextClassName}`}>
-            {Math.round(accuracyPercent)}%
-          </span>
-        </div>
+        {showAccuracy && (
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-text-muted text-xs">
+              {STRETCHING_SESSION_MESSAGES.OVERLAY.ACCURACY}
+            </span>
+            <span className={`text-lg font-semibold ${accuracyTextClassName}`}>
+              {Math.round(accuracyPercent)}%
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
