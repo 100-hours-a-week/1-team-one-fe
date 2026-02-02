@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@repo/ui/button';
 import { InputImage } from '@repo/ui/input-image';
 import { Controller, useForm, type UseFormSetError } from 'react-hook-form';
 
@@ -41,6 +42,7 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
 
   const emailDup = useEmailDuplication(control, setError, clearErrors);
   const nicknameDup = useNicknameDuplication(control, setError, clearErrors);
+  const isSubmitLoading = Boolean(isPending || formState.isSubmitting);
 
   const handleFormSubmit = async (values: SignupFormValues) => {
     const isEmailAvailable = emailDup.state.status === 'available';
@@ -94,7 +96,7 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
       onSubmit={handleSubmit(handleFormSubmit)}
       className="flex w-full flex-col justify-center gap-6"
     >
-      {/* TODO: 설정 모아서 map 으로 변경 */}
+      {/* TODO: 설정 모아서 맵으로 변경 */}
       <Controller
         name="profileImage"
         control={control}
@@ -208,13 +210,9 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
         <p className="text-error-600 text-sm">{formState.errors.root.serverError.message}</p>
       )}
 
-      <button
-        type="submit"
-        disabled={isPending || formState.isSubmitting}
-        className="bg-brand-600 hover:bg-brand-700 w-full rounded-md px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isPending || formState.isSubmitting ? '처리 중...' : '회원가입'}
-      </button>
+      <Button type="submit" fullWidth isLoading={isSubmitLoading}>
+        {isSubmitLoading ? '처리 중' : '회원가입'}
+      </Button>
     </form>
   );
 }

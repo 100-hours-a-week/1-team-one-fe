@@ -1,17 +1,21 @@
+import { LOADING_CONFIG } from '@/src/shared/config/loading';
 import {
   formatNotificationDateLabel,
   getNotificationDateKey,
 } from '@/src/shared/lib/date/notification-date';
+import { useDelayedValue } from '@/src/shared/lib/loading';
 
 import { NOTIFICATIONS_CONFIG } from '../config/constants';
 import { NOTIFICATIONS_MESSAGES } from '../config/messages';
 import type { NotificationLogItem } from '../model/types';
 import { InfiniteScrollTrigger } from './InfiniteScrollTrigger';
 import { NotificationItem } from './NotificationItem';
+import { NotificationListSkeleton } from './NotificationList.skeleton';
 
 type NotificationListProps = {
   items: NotificationLogItem[];
   isLoading: boolean;
+  error?: Error | null | unknown;
   isFetchingNextPage: boolean;
   hasNextPage: boolean;
   onFetchNext: () => void;
@@ -20,14 +24,27 @@ type NotificationListProps = {
 export function NotificationList({
   items,
   isLoading,
+  error,
   isFetchingNextPage,
   hasNextPage,
   onFetchNext,
 }: NotificationListProps) {
-  if (isLoading) {
+  const shouldShowLoading = useDelayedValue(isLoading, LOADING_CONFIG.DEFAULT_DELAY);
+  const shouldShowBlockingError = Boolean(error) && items.length === 0;
+  const shouldShowWarning = Boolean(error) && items.length > 0;
+
+  if (isLoading && shouldShowLoading) {
+    return <NotificationListSkeleton />;
+  }
+
+  if (isLoading && !shouldShowLoading) {
+    return null;
+  }
+
+  if (shouldShowBlockingError) {
     return (
-      <div className="text-text-muted flex justify-center py-8 text-sm">
-        {NOTIFICATIONS_MESSAGES.LIST.LOADING}
+      <div className="text-error-600 flex justify-center py-8 text-sm">
+        {NOTIFICATIONS_MESSAGES.LIST.ERROR}
       </div>
     );
   }
@@ -65,6 +82,11 @@ export function NotificationList({
 
   return (
     <div className="flex flex-col gap-3">
+      {shouldShowWarning && (
+        <div className="text-error-600 text-xs" role="status">
+          {NOTIFICATIONS_MESSAGES.LIST.WARNING}
+        </div>
+      )}
       {grouped.map((group) => (
         <div key={group.dateKey} className="flex flex-col gap-3">
           <span className="text-text-muted text-xs font-semibold">{group.label}</span>

@@ -1,6 +1,4 @@
-import { Spinner } from '@repo/ui/spinner';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
 
 import { toAlarmSettingsValues } from '@/src/entities/alarm-settings';
 import { useAlarmSettingsQuery } from '@/src/features/alarm-settings';
@@ -17,6 +15,10 @@ import {
   TIME_CONFIG,
 } from '@/src/features/onboarding-alarm-settings/config';
 import { APP_ALARM_MESSAGES } from '@/src/pages/app-alarm/config/messages';
+import { LoadableBoundary } from '@/src/shared/ui/boundary';
+import { ErrorScreen } from '@/src/shared/ui/error-screen';
+
+import { AppAlarmPageSkeleton } from './AppAlarmPage.skeleton';
 
 const fallbackValues: AlarmSettingsValues = {
   intervalMinutes: INTERVAL_CONFIG.DEFAULT_MINUTES,
@@ -32,7 +34,7 @@ export function AppAlarmPage() {
   const {
     data: alarmSettings,
     isLoading,
-    isError,
+    error,
   } = useAlarmSettingsQuery({
     refetchOnMount: 'always',
   });
@@ -42,35 +44,25 @@ export function AppAlarmPage() {
     },
   });
 
-  const defaultValues = useMemo(
-    () => toAlarmSettingsValues(alarmSettings, fallbackValues),
-    [alarmSettings],
-  );
-
   const handleSubmit = async (values: AlarmSettingsValues) => {
     await mutateAsync(toAlarmSettingsRequest(values));
   };
 
-  if (isError) {
-    throw new Error('app-alarm:alarm-settings');
-  }
-
-  if (isLoading && !alarmSettings) {
-    return (
-      <div className="bg-bg text-text flex min-h-[60vh] items-center justify-center">
-        <div className="flex items-center gap-3">
-          <Spinner size="md" />
-          <span className="text-text-muted text-sm font-medium">{APP_ALARM_MESSAGES.LOADING}</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <NotificationSettingsForm
-      defaultValues={defaultValues}
-      onSubmit={handleSubmit}
-      submitLabel={APP_ALARM_MESSAGES.SUBMIT_DEFAULT}
-    />
+    <LoadableBoundary
+      isLoading={isLoading}
+      error={error}
+      data={alarmSettings}
+      renderLoading={() => <AppAlarmPageSkeleton />}
+      renderError={() => <ErrorScreen variant="unexpected" />}
+    >
+      {(alarmSettingsData) => (
+        <NotificationSettingsForm
+          defaultValues={toAlarmSettingsValues(alarmSettingsData, fallbackValues)}
+          onSubmit={handleSubmit}
+          submitLabel={APP_ALARM_MESSAGES.SUBMIT_DEFAULT}
+        />
+      )}
+    </LoadableBoundary>
   );
 }

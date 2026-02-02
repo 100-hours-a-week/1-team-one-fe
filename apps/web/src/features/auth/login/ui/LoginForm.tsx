@@ -37,6 +37,7 @@ export function LoginForm({ onSubmit, isPending }: LoginFormProps) {
   const emailValue = useWatch({ control, name: 'email' });
   const passwordValue = useWatch({ control, name: 'password' });
   const isSubmitDisabled = isPending || formState.isSubmitting;
+  const isSubmitLoading = isSubmitDisabled;
 
   useClearFieldErrorsOnChange({
     control,
@@ -128,7 +129,7 @@ export function LoginForm({ onSubmit, isPending }: LoginFormProps) {
         )}
       </div>
 
-      <Button type="submit" disabled={isSubmitDisabled}>
+      <Button type="submit" disabled={isSubmitDisabled} isLoading={isSubmitLoading}>
         {LOGIN_FORM_MESSAGES.BUTTON.SUBMIT}
       </Button>
     </form>

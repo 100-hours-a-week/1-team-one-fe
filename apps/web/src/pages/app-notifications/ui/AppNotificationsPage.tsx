@@ -15,7 +15,7 @@ export function AppNotificationsPage() {
   const queryClient = useQueryClient();
   const hasMarkedReadRef = useRef(false);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useNotificationsInfiniteQuery(NOTIFICATIONS_CONFIG.PAGE_LIMIT);
 
   const notifications = useMemo(
@@ -56,6 +56,7 @@ export function AppNotificationsPage() {
         <NotificationList
           items={notifications}
           isLoading={isLoading}
+          error={error}
           isFetchingNextPage={isFetchingNextPage}
           hasNextPage={Boolean(hasNextPage)}
           onFetchNext={() => void fetchNextPage()}

@@ -210,7 +210,7 @@ export function NotificationSettingsForm({
           />
         </CardContent>
       </Card>
-      <Button type="submit" disabled={formState.isSubmitting} fullWidth>
+      <Button type="submit" isLoading={formState.isSubmitting} fullWidth>
         {formState.isSubmitting ? '저장 중...' : submitLabel}
       </Button>
     </form>

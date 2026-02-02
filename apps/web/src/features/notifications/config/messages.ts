@@ -11,6 +11,8 @@ export const NOTIFICATIONS_MESSAGES = {
     EMPTY: '아직 정보가 없습니다',
     LOADING: '불러오는 중...',
     FETCHING_MORE: '추가 알림 불러오는 중...',
+    ERROR: '알림을 불러오지 못했습니다.',
+    WARNING: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
   },
   META: {
     DETAILS_EMPTY: '-',
