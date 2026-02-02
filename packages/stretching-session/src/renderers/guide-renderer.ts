@@ -37,7 +37,7 @@ const DEFAULT_CONFIG: Required<GuideConfig> = {
   labelOffset: { x: 12, y: 5 },
   alphaActive: 0.5,
   alphaIdle: 0.7,
-  mirrorMode: true,
+  mirrorMode: false,
 };
 
 const MIN_SHOULDER_WIDTH = 0.01;
