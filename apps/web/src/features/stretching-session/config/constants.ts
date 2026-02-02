@@ -42,7 +42,7 @@ export const STRETCHING_SESSION_CONFIG = {
   GUIDE_ALPHA_IDLE: 0.7,
   GUIDE_TOAST_DURATION_MS: 4500,
 
-  // 정확도 디버그 로그 설정
+  // 정확도 디버그 로그 설정 - 현재 사용 안함
   DEBUG_ACCURACY_LOG_ENABLED: true,
   DEBUG_ACCURACY_LOG_VERBOSE: false,
   DEBUG_ACCURACY_LOG_INTERVAL_MS: 500,
