@@ -137,6 +137,7 @@ export function FormField({
               type="button"
               size="sm"
               variant="outline"
+              className="text-xs"
               disabled={
                 disabled || duplicationCheck.disabled || duplicationCheck.status === 'checking'
               }
