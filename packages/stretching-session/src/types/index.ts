@@ -4,6 +4,7 @@ export type {
   RendererConfig,
   KeypointsConfig,
   SilhouetteConfig,
+  GuideConfig,
 } from '../renderers';
 
 export type { RgbaColor, SegmentationColor } from '../utils/color-cache';

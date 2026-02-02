@@ -10,6 +10,7 @@
  */
 
 import { CompositeRenderer } from './composite-renderer';
+import { GuideRenderer, type GuideConfig } from './guide-renderer';
 import { KeypointsRenderer, type KeypointsConfig } from './keypoints-renderer';
 import type { Renderer } from './renderer-base';
 import { SilhouetteRenderer, type SilhouetteConfig } from './silhouette-renderer';
@@ -20,18 +21,22 @@ export type VisualizationMode = 'video' | 'keypoints' | 'video-keypoints' | 'sil
 export type RendererConfig =
   | {
       mode: 'video';
+      guide?: GuideConfig;
     }
   | {
       mode: 'keypoints';
       keypoints?: KeypointsConfig;
+      guide?: GuideConfig;
     }
   | {
       mode: 'video-keypoints';
       keypoints?: KeypointsConfig;
+      guide?: GuideConfig;
     }
   | {
       mode: 'silhouette';
       silhouette: SilhouetteConfig;
+      guide?: GuideConfig;
     };
 
 type RendererFactory = (config: RendererConfig) => Renderer;
@@ -100,13 +105,20 @@ export function createRenderer(config: RendererConfig): Renderer {
     return new FallbackRenderer(config.mode);
   }
 
-  return factory(config);
+  const baseRenderer = factory(config);
+  if (!config.guide || config.guide.enabled === false) {
+    return baseRenderer;
+  }
+
+  return new CompositeRenderer([baseRenderer, new GuideRenderer(config.guide)]);
 }
 
 export type { Renderer, RenderContext, RenderOptions } from './renderer-base';
 export type { KeypointsConfig } from './keypoints-renderer';
 export type { SilhouetteConfig } from './silhouette-renderer';
+export type { GuideConfig } from './guide-renderer';
 export { VideoRenderer } from './video-renderer';
 export { KeypointsRenderer } from './keypoints-renderer';
 export { SilhouetteRenderer } from './silhouette-renderer';
 export { CompositeRenderer } from './composite-renderer';
+export { GuideRenderer } from './guide-renderer';

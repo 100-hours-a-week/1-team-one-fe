@@ -259,19 +259,21 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
         return;
       }
 
+      const progressRatio = getProgressRatio();
+      const resolvedReferencePose = getReferencePose ? getReferencePose() : referencePose;
+
       // 렌더러에 위임하여 프레임을 렌더링
       renderer.render(frame?.landmarks ?? null, {
         width: video.videoWidth,
         height: video.videoHeight,
+        referencePose: resolvedReferencePose,
+        progressRatio,
       });
 
       // 포즈가 감지된 경우 정확도를 처리
       if (frame) {
         onFrame?.(frame);
-
-        const progressRatio = getProgressRatio();
         const phase = getPhase();
-        const resolvedReferencePose = getReferencePose ? getReferencePose() : referencePose;
         const resolvedExerciseType = getExerciseType ? getExerciseType() : exerciseType;
 
         if (resolvedReferencePose && resolvedExerciseType) {
