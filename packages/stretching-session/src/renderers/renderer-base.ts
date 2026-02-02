@@ -5,7 +5,7 @@
  * 모든 렌더러 구현은 인터페이스를 준수해야 함
  */
 
-import type { Landmark2D } from '@repo/stretching-accuracy';
+import type { Landmark2D, ReferencePose } from '@repo/stretching-accuracy';
 
 /**
  * 모든 렌더러가 공유하는 렌더링 컨텍스트
@@ -22,6 +22,8 @@ export type RenderOptions = {
   width: number;
   height: number;
   mirrorMode?: boolean;
+  referencePose?: ReferencePose;
+  progressRatio?: number;
 };
 
 /**
