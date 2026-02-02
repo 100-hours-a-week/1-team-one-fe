@@ -8,7 +8,7 @@ export function AppMainPageSkeleton() {
     <Shimmer>
       <div className="flex flex-col gap-6 p-6 pb-20">
         <section aria-label="프로필 상태">
-          <div className="bg-bg border-border flex items-center gap-4 rounded-lg border p-4">
+          <div className="bg-bg flex items-center gap-4 rounded-lg p-4">
             <SkeletonAvatar size="lg" />
             <div className="flex-1 space-y-3">
               <SkeletonText lines={1} widths={['40%']} />
