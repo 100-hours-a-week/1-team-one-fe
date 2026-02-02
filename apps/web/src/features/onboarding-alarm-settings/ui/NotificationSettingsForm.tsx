@@ -69,7 +69,7 @@ export function NotificationSettingsForm({
       onSubmit={handleSubmit(handleFormSubmit)}
       className="mx-auto flex h-full w-full max-w-2xl flex-col justify-center gap-6 p-6"
     >
-      <Card padding="sm">
+      <Card padding="sm" variant="elevated">
         <CardHeader>
           <CardTitle>알림 설정</CardTitle>
         </CardHeader>
