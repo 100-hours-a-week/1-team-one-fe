@@ -1,6 +1,6 @@
 export const STRETCHING_SESSION_CONFIG = {
   // 미디어파이프 세팅
-  MODEL_ASSET_PATH: '/models/pose_landmarker_lite.task',
+  MODEL_ASSET_PATH: '/models/pose_landmarker_full.task',
   WASM_ROOT: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm',
 
   // 캔버스 어떻게 보여주는지 mode (video | keypoints | video-keypoints | silhouette)
@@ -63,11 +63,12 @@ export const STRETCHING_SESSION_CONFIG = {
   ACCURACY_SCORE_MAX: 100,
   ACCURACY_THRESHOLD_LOW: 10,
   ACCURACY_THRESHOLD_MID: 60,
-  SUCCESS_ACCURACY_THRESHOLD: 60,
+  SUCCESS_ACCURACY_THRESHOLD: 45,
   DEFAULT_PROGRESS_RATIO: 0,
   DEFAULT_PHASE: 'undefined',
   REPS_RESET_PHASE: 'start',
   DURATION_ACCUMULATE_ON_FAILURE: true,
+  ACCURACY_INPUT_MIRROR_MODE: true,
 
   // 캐릭터 레벨 업 임계치
   CHARACTER_LEVEL_EXP_THRESHOLD: 1000,
