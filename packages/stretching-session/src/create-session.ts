@@ -10,6 +10,7 @@ import {
 } from '@repo/stretching-accuracy';
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 import { createRenderer, type RendererConfig, type Renderer } from './renderers';
+import { mirrorPoseFrame } from './utils/mirror-pose';
 
 type PoseLandmarkerResultLike = {
   landmarks?: ReadonlyArray<ReadonlyArray<Landmark2D>>;
@@ -28,6 +29,7 @@ export type CreateSessionOptions = {
   getExerciseType?: () => ExerciseType;
   getPhase: () => string;
   getAccuracyEngine?: () => AccuracyEngine;
+  mirrorInput?: boolean;
   visualization: RendererConfig;
   onFrame?: (frame: PoseFrame) => void;
   onTick?: (payload: {
@@ -98,6 +100,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     onError,
     accuracyEngine = createAccuracyEngine(),
     getAccuracyEngine,
+    mirrorInput = false,
     videoConstraints,
     frameIntervalMs = 0,
   } = options;
@@ -282,10 +285,11 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
         onFrame?.(frame);
         const phase = getPhase();
         const resolvedExerciseType = getExerciseType ? getExerciseType() : exerciseType;
+        const accuracyFrame = mirrorInput ? mirrorPoseFrame(frame) : frame;
 
         if (resolvedReferencePose && resolvedExerciseType) {
           const accuracyInput: AccuracyEvaluateInput = {
-            frame,
+            frame: accuracyFrame,
             referencePose: resolvedReferencePose,
             progressRatio,
             type: resolvedExerciseType,
@@ -295,7 +299,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
           const nextAccuracyEngine = resolveAccuracyEngine();
           const accuracy = nextAccuracyEngine.evaluate(accuracyInput);
           onAccuracyDebug?.({ input: accuracyInput, result: accuracy });
-          onAccuracy?.(accuracy, frame);
+          onAccuracy?.(accuracy, accuracyFrame);
         }
       }
 
