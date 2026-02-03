@@ -391,6 +391,18 @@ export function useStretchingSession(
 
       progressRatioRef.current = result.progressRatio;
       phaseRef.current = result.phase;
+      console.debug('[stretching-session][accuracy-input]', {
+        routineStepId: step.routineStepId,
+        stepOrder: step.stepOrder,
+        exerciseType: type,
+        inputProgressRatio,
+        inputPhase,
+        outputProgressRatio: result.progressRatio,
+        outputPhase: result.phase,
+        timestampMs: frame.timestampMs,
+        targetKeypoints: step.exercise.pose.referencePose.targetKeypoints,
+        userLandmarks: frame.landmarks,
+      });
 
       if (
         process.env.NODE_ENV !== 'production' &&
@@ -402,18 +414,6 @@ export function useStretchingSession(
           STRETCHING_SESSION_CONFIG.DEBUG_ACCURACY_LOG_INTERVAL_MS
         ) {
           lastAccuracyInputLogAtRef.current = now;
-          console.debug('[stretching-session][accuracy-input]', {
-            routineStepId: step.routineStepId,
-            stepOrder: step.stepOrder,
-            exerciseType: type,
-            inputProgressRatio,
-            inputPhase,
-            outputProgressRatio: result.progressRatio,
-            outputPhase: result.phase,
-            timestampMs: frame.timestampMs,
-            targetKeypoints: step.exercise.pose.referencePose.targetKeypoints,
-            userLandmarks: frame.landmarks,
-          });
         }
       }
 
@@ -648,6 +648,7 @@ export function useStretchingSession(
       getAccuracyEngine: () => accuracyEngineRef.current,
       accuracyEngine: accuracyEngineRef.current,
       onAccuracyDebug: options?.debug?.onAccuracyDebug,
+      mirrorInput: STRETCHING_SESSION_CONFIG.ACCURACY_INPUT_MIRROR_MODE,
       onTick: ({ videoWidth, videoHeight }: { videoWidth: number; videoHeight: number }) => {
         if (!isCanvasReadyRef.current && videoWidth !== 0 && videoHeight !== 0) {
           isCanvasReadyRef.current = true;
