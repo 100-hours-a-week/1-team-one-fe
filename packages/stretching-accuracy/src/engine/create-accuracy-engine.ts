@@ -310,7 +310,7 @@ function calculateAccuracy(
   reference: (Landmark2D | undefined)[],
   user: (Landmark2D | undefined)[],
   tolerance: number = 0.15,
-  zWeight: number = 0.3,
+  zWeight: number = 0.2,
 ): number {
   if (reference.length === 0 || reference.length !== user.length) {
     return 0;
