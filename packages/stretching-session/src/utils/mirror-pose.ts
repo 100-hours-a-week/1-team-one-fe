@@ -1,18 +1,15 @@
 import type { Landmark2D, PoseFrame } from '@repo/stretching-accuracy';
 
-// MediaPipe Pose (33 landmarks) 0-based index
-// 0: nose (no swap)
-// 1~6: eyes/ears swap (L/R)
-// 7~32: body joints swap (L/R)
+//0~32
 const MIRROR_PAIRS = [
-  // face
+  //얼굴
   [1, 4], // left_eye_inner  <-> right_eye_inner
   [2, 5], // left_eye        <-> right_eye
   [3, 6], // left_eye_outer  <-> right_eye_outer
   [7, 8], // left_ear        <-> right_ear
   [9, 10], // left_mouth     <-> right_mouth
 
-  // upper body
+  //상체
   [11, 12], // left_shoulder <-> right_shoulder
   [13, 14], // left_elbow    <-> right_elbow
   [15, 16], // left_wrist    <-> right_wrist
@@ -20,7 +17,7 @@ const MIRROR_PAIRS = [
   [19, 20], // left_index    <-> right_index
   [21, 22], // left_thumb    <-> right_thumb
 
-  // lower body
+  //하체
   [23, 24], // left_hip      <-> right_hip
   [25, 26], // left_knee     <-> right_knee
   [27, 28], // left_ankle    <-> right_ankle
