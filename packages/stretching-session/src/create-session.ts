@@ -23,9 +23,11 @@ export type CreateSessionOptions = {
   referencePose: ReferencePose;
   getReferencePose?: () => ReferencePose;
   getProgressRatio: () => number;
+  getRenderProgressRatio?: () => number;
   exerciseType: ExerciseType;
   getExerciseType?: () => ExerciseType;
   getPhase: () => string;
+  getAccuracyEngine?: () => AccuracyEngine;
   visualization: RendererConfig;
   onFrame?: (frame: PoseFrame) => void;
   onTick?: (payload: {
@@ -83,6 +85,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     referencePose,
     getReferencePose,
     getProgressRatio,
+    getRenderProgressRatio,
     exerciseType,
     getExerciseType,
     getPhase,
@@ -94,9 +97,12 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     onAccuracy,
     onError,
     accuracyEngine = createAccuracyEngine(),
+    getAccuracyEngine,
     videoConstraints,
     frameIntervalMs = 0,
   } = options;
+
+  const resolveAccuracyEngine = getAccuracyEngine ?? (() => accuracyEngine);
 
   // 세션 상태
   let isRunning = false;
@@ -260,6 +266,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
       }
 
       const progressRatio = getProgressRatio();
+      const renderProgressRatio = getRenderProgressRatio ? getRenderProgressRatio() : progressRatio;
       const resolvedReferencePose = getReferencePose ? getReferencePose() : referencePose;
 
       // 렌더러에 위임하여 프레임을 렌더링
@@ -267,7 +274,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
         width: video.videoWidth,
         height: video.videoHeight,
         referencePose: resolvedReferencePose,
-        progressRatio,
+        progressRatio: renderProgressRatio,
       });
 
       // 포즈가 감지된 경우 정확도를 처리
@@ -285,7 +292,8 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
             prevPhase: phase,
           };
 
-          const accuracy = accuracyEngine.evaluate(accuracyInput);
+          const nextAccuracyEngine = resolveAccuracyEngine();
+          const accuracy = nextAccuracyEngine.evaluate(accuracyInput);
           onAccuracyDebug?.({ input: accuracyInput, result: accuracy });
           onAccuracy?.(accuracy, frame);
         }
