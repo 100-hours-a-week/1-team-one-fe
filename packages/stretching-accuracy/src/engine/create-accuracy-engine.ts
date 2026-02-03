@@ -3,8 +3,8 @@
  * @description AI 기반 운동 정확도 평가 엔진
  *
  * 두 가지 운동 타입을 지원:
- * - REPS: 반복 운동 (스쿼트, 팔굽혀펴기 등) - 포즈 매칭 기반 phase 진행
- * - DURATION: 유지 운동 (플랭크, 스트레칭 등) - 포즈 매칭 + 시간 누적 기반
+ * - REPS: 반복 운동 - 포즈 매칭 기반 phase 진행
+ * - DURATION: 유지 운동 - 포즈 매칭 + 시간 누적 기반
  *
  * 공통 흐름:
  * 1. 사용자 포즈 추출 (targetKeypoints 기준)
@@ -32,6 +32,7 @@ const POSE_MATCH_THRESHOLD = 45;
 /**
  * 정확도 평가 엔진 생성
  *
+ * @param
  * @returns AccuracyEngine - evaluate 메서드를 포함한 엔진 객체
  */
 export function createAccuracyEngine(): AccuracyEngine {
@@ -180,7 +181,11 @@ export function createAccuracyEngine(): AccuracyEngine {
     // - end: 누적 시간이 totalDuration 도달 시
     // - 점수: 현재 목표 phase의 정확도
     else {
-      const prevPhase = input.prevPhase || keyframes[0]?.phase || 'start';
+      // 'undefined' 문자열도 falsy로 처리 (첫 호출 시 'undefined'가 들어옴)
+      const prevPhase =
+        !input.prevPhase || input.prevPhase === 'undefined'
+          ? keyframes[0]?.phase || 'start'
+          : input.prevPhase;
 
       // 시간 델타 계산
       const deltaMs = lastFrameTimestampMs !== null ? currentTime - lastFrameTimestampMs : 0;
@@ -305,7 +310,7 @@ function calculateAccuracy(
   reference: (Landmark2D | undefined)[],
   user: (Landmark2D | undefined)[],
   tolerance: number = 0.15,
-  zWeight: number = 0.3,
+  zWeight: number = 0.2,
 ): number {
   if (reference.length === 0 || reference.length !== user.length) {
     return 0;
