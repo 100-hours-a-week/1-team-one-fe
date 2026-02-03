@@ -122,7 +122,10 @@ export function createAccuracyEngine(): AccuracyEngine {
     // - 점수: 보간된 기준 포즈와의 정확도 (크기 보정 적용)
     if (input.type === 'REPS') {
       const lastPhase = keyframes[keyframes.length - 1]?.phase;
-      const prevPhase = input.prevPhase || keyframes[0]?.phase || 'start';
+      const prevPhase =
+        !input.prevPhase || input.prevPhase === 'undefined'
+          ? keyframes[0]?.phase || 'start'
+          : input.prevPhase;
       const nextPhase = getNextRepsPhase(prevPhase, keyframes);
 
       if (nextPhase !== null) {
