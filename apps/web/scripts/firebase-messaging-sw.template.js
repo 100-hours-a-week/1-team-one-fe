@@ -21,6 +21,7 @@ const messaging = firebase.messaging();
 //     }
 // }
 
+// fcm 알람 두번씩 오는 것 해결 - notification 을 응답값에서 제거하고 커스텀 알람 처리
 messaging.onBackgroundMessage((payload) => {
   try {
     console.log('[push-sw] raw_payload', payload);
@@ -31,11 +32,10 @@ messaging.onBackgroundMessage((payload) => {
   const data = normalizePushData(rawData);
   const route = resolvePushRoute(data);
 
-  const notification = payload?.notification ?? {};
-  const title = notification.title ?? '알림';
+  const title = data.title ?? '운동할 시간이에요';
   const options = {
-    body: notification.body ?? '',
-    icon: notification.icon ?? '/icons/icon-192.png',
+    body: data.body ?? '오늘 루틴을 시작해볼까요?',
+    icon: data.icon ?? '/icons/logo-192.png',
     data: { ...rawData, ...data, route },
   };
 
