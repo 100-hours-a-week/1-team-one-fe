@@ -3,17 +3,59 @@
  * @description AI 기반 운동 정확도 평가 엔진
  *
  * 두 가지 운동 타입을 지원:
- * - REPS: 반복 운동 (스쿼트, 팔굽혀펴기 등) - 포즈 매칭 기반 phase 진행
- * - DURATION: 유지 운동 (플랭크, 스트레칭 등) - 포즈 매칭 + 시간 누적 기반
+ * - REPS: 반복 운동 - 포즈 매칭 기반 phase 진행
+ * - DURATION: 유지 운동 - 포즈 매칭 + 시간 누적 기반
  *
  * 공통 흐름:
- * 1. 사용자 포즈 추출 (targetKeypoints 기준)
- * 2. visibility 필터링 (보이는 keypoint만 사용)
- * 3. 각 keyframe별 정확도 계산
+ * 1. extractTargetKeypoints
+ *      사용자 포즈 추출 (targetKeypoints 기준)
+ *
+ * 2. getUsableKeypointIndices
+ *      visibility 필터링 (보이는 keypoint만 사용)
+ *
+ * 3. calculateAccuracyPerKeyframe
+ *      각 keyframe별 정확도 계산 (하이브리드: 정렬 기반 + 각도 기반)
+ *
  * 4. 타입별 로직 분기 (REPS / DURATION)
- *  - REPS:
- *  - DURATION:
- * 5. 결과 반환 (score, phase, progressRatio, counted)
+ *
+ *  4-A. REPS:
+ *  ## input
+ *  - 첫 프레임 input.prevPhase = "undefined"
+ *  - 첫 프레임 input.progressRatio = 0
+ *
+ *  ## output
+ *  - phase = "start" | "quarter" | "peak" | "threeQuarter", counted = "NOT_INCREMENTED" : 다음 프레임에 prevPhase로 들어감
+ *  - phase = "end", counted = "INCREMENTED" 다음 프레임에 prevPhase로 들어가면 안됨
+ *      - 다음 reps 카운트 시작
+ *          - 다음 프레임에 input.prevPhase = "undefined" 혹은 "start"
+ *          - 다음 프레임에 input.progressRatio = 0
+ *      - 혹은 다음 운동으로 이동
+ *
+ *  - score: output.phase와의 유사도
+ *      - 그냥 화면 표시용, 따로 로직 필요 X
+ *      - score = calculateAccuracy(alignKeypoints(interpolateKeyframe))
+ *
+ *  - phase: 다음 프레임에 input.prevPhase로 입력
+ *      - "start" | "quarter" | "peak" | "threeQuarter" | "end"
+ *      - "end" -> INCREMENTED (다음 프레임에 포함되면 안됨!)
+ *
+ *
+ *  4-B. DURATION:
+ *  ## input
+ *  - 첫 프레임 input.prevPhase = "undefined"
+ *  - 첫 프레임 input.progressRatio = 0
+ *
+ *  ## output
+ *  - phase = "hold", progressRatio = 0.0 : 처음에 start 한번 맞추면 반환되는 output
+ *  - phase = "hold", progressRatio = n.n : 다음 input에 hold, progressRatio 전달 & hold 누적 시간 += deltaMs
+ *  - phase = "end", progressRatio = 1.0 : 운동 완료, 다음 input에 start/undefined, 0 (다음 운동 시작)
+ *
+ *  - score:
+ *      - 현재 phase pose와의 유사도
+ *      - hold 시간 체크 기준 (60 이상이면 hold 누적 시간++)
+ *
+ * - score: round(smoothedFinalScore), smoothedFinalScore = smoothScore(finalScore)
+ *
  */
 
 import type {
@@ -26,22 +68,24 @@ import type {
   ReferenceKeyframe,
 } from '../types';
 
+/* visibility 점수 */
+const DEFAULT_VISIBILITY = 0.4;
+
 /** 포즈가 일치한다고 판단하는 최소 점수 (0~100) */
-const POSE_MATCH_THRESHOLD = 45;
+const REPS_MATCH_THRESHOLD = 45; // 내부 로직에만 쓰임
+const DURATION_MATCH_THRESHOLD = 60; // 함수 호출 로직이랑 맞춰야 함
 
 /**
  * 정확도 평가 엔진 생성
- *
  * @returns AccuracyEngine - evaluate 메서드를 포함한 엔진 객체
  */
 export function createAccuracyEngine(): AccuracyEngine {
-  let lastTimestampMs: number | null = null;
   // DURATION용: 시간 델타 계산을 위한 이전 프레임 타임스탬프
   let lastFrameTimestampMs: number | null = null;
 
   // 점수 스무딩을 위한 상태
   let smoothedScore: number | null = null;
-  const SCORE_SMOOTHING_FACTOR = 0.3; // 낮을수록 더 안정적
+  const SCORE_SMOOTHING_FACTOR = 0.4; // 낮을수록 더 안정적
 
   /**
    * 점수에 Exponential Moving Average 적용하여 안정화
@@ -60,108 +104,61 @@ export function createAccuracyEngine(): AccuracyEngine {
   /**
    * 정확도 평가 메인 함수
    *
-   * @param input - 평가 입력 데이터
-   * @returns AccuracyResult - 평가 결과 (score, phase, progressRatio, counted, meta)
+   * @param input - AccuracyEvaluateInput - 평가 입력 데이터
+   * - frame: PoseFrame; 현재 프레임 (timestampMs, landmarks: MediaPipe가 추출한 사용자 키포인트 33개)
+   * - referencePose: ReferencePose; 서버에서 받아오는 레퍼런스 포즈 데이터
+   * - type: ExerciseType; REPS인지 DURATION인지
+   *
+   * - progressRatio: number;
+   *    - 이전 프레임의 progressRatio (0~1)
+   *    - REPS phase 계산용 정보
+   *    - 첫 호출 시: 0 입력
+   *    - 이후: 이전 프레임의 AccuracyResult.progressRatio
+   *
+   * - prevPhase: string;
+   *    - 이전 프레임의 phase
+   *    - 첫 호출: 'undefined'
+   *    - REPS: 'start' | 'quarter' | 'peak' | 'threeQuarter' | 'end'
+   *    - DURATION: 'start' | 'hold' | 'end'
+   *
+   * @returns AccuracyResult - 평가 결과
+   * - score: number; 정확도 점수 (0~100)
+   * - counted: CountedStatus; 카운트 상태 (REPS에서 end 도달 시 'INCREMENTED')
+   * - progressRatio: number;
+   *    - 계산된 새 progressRatio (0~1)
+   *    - 다음 프레임 호출 시 input.progressRatio로 전달
+   *
+   * - phase: string;
+   *    - 이번 프레임의 phase
+   *    - REPS: 'start' | 'quarter' | 'peak' | 'threeQuarter' | 'end'
+   *    - DURATION: 'start' | 'hold' | 'end'
+   *    - 다음 프레임의 input.prevPhase로 전달
+   *
+   * - meta?: Readonly<Record<string, unknown>>; 추가 정보 (디버깅용)
+   *
+   * @howtouse
+   * DURATION:
+   * -
+   *
+   * REPS:
+   * - score ===
    */
   const evaluate = (input: AccuracyEvaluateInput): AccuracyResult => {
-    if (input.type === 'REPS') {
-      // 1. deltaTime 계산 - 이전 프레임과의 시간 차이 계산 (첫 호출 시 0)
-      const currentTime = input.frame.timestampMs;
-      const deltaTimeMs = lastTimestampMs !== null ? currentTime - lastTimestampMs : 0; // 첫 호출
-      lastTimestampMs = currentTime;
-
-      // 2. 새 progressRatio 계산
-      //    - REPS: "end" → "start" 전환 감지 시 0으로 리셋 (새 회차)
-      //    - DURATION: 시간 경과에 따라 계속 증가
-      let newProgressRatio: number;
-      let phaseChanged = false;
-
-      // REPS: "end" → "start" 전환 감지
-      const willComplete = input.prevPhase === 'end' || input.progressRatio >= 0.95; // 거의 끝에 도달
-
-      if (willComplete && input.prevPhase !== undefined) {
-        // 새 회차 시작
-        newProgressRatio = 0;
-        phaseChanged = true;
-      } else {
-        const totalDurationMs = input.referencePose.totalDuration * 1000;
-        const increment = deltaTimeMs / totalDurationMs;
-        newProgressRatio = Math.min(input.progressRatio + increment, 1.0);
-      }
-
-      // 3. 현재 phase 결정
-      //    - progressRatio 기준으로
-      //    - referencePose의 phase 중 어디인지 찾기
-      const currentPhase = getCurrentPhase(newProgressRatio, input.referencePose.keyframes);
-
-      // 4. 기준 포즈 보간
-      //    - progressRatio에 따라 인접 keyframe 사이를 선형 보간
-      //    - referenceKeypoints: 현재 시점의 기준 포즈
-      const referenceKeypoints = interpolateKeyframe(newProgressRatio, input.referencePose);
-
-      // 5. 사용자 포즈 추출 - 전체 랜드마크 중 targetKeypoints 인덱스에 해당하는 것만 추출
-      const userKeypoints = extractTargetKeypoints(
-        input.frame.landmarks,
-        input.referencePose.targetKeypoints,
-      );
-
-      // 6. visibility 필터링
-      //    - threshold 이상인 keypoint 인덱스만 추출
-      //    - visible한 keypoint가 3개 미만이면 정확도 측정 불가
-      const visibleIndices = filterVisibleIndices(userKeypoints);
-      if (visibleIndices.length < 3) {
-        return {
-          score: 0,
-          phase: currentPhase,
-          counted: 'NOT_INCREMENTED',
-          progressRatio: newProgressRatio,
-          meta: {
-            warning: '정확도 측정 불가: 안보여용',
-            visibleCount: visibleIndices.length,
-          },
-        };
-      }
-
-      // 7. 정확도 계산 - visible한 keypoint만으로 유클리드 거리 기반 유사도 산출
-      const validPairs = visibleIndices
-        .map((i) => ({ ref: referenceKeypoints[i], user: userKeypoints[i] }))
-        .filter(
-          (pair): pair is { ref: Landmark2D; user: Landmark2D } =>
-            pair.ref !== undefined && pair.user !== undefined,
-        );
-      const visibleRef = validPairs.map((p) => p.ref);
-      const visibleUser = validPairs.map((p) => p.user);
-      const accuracy = calculateAccuracyRaw(visibleRef, visibleUser);
-
-      // 8. counted 판단 - REPS 모드에서 "end" → "start" 전환이 감지되면 INCREMENTED
-      let counted: CountedStatus = 'NOT_APPLICABLE';
-      // phase 변화 재확인 (progressRatio 리셋 + phase 전환 둘 다 체크)
-      const actualPhaseChanged =
-        input.prevPhase !== undefined && input.prevPhase === 'end' && currentPhase === 'start';
-
-      counted = phaseChanged || actualPhaseChanged ? 'INCREMENTED' : 'NOT_INCREMENTED';
-
-      // 9. 결과 반환
-      return {
-        score: Math.round(accuracy),
-        counted,
-        progressRatio: newProgressRatio, // 다음 프레임 단계 전달용
-        phase: currentPhase, // 다음 프레임 단계 전달용
-        meta: {},
-      };
-    }
-
     const currentTime = input.frame.timestampMs;
     const totalDurationMs = input.referencePose.totalDuration * 1000;
 
+    // ─────────────────────────────────────────────────────────────────
     // 1. 사용자 포즈 추출
+    // ─────────────────────────────────────────────────────────────────
     const userKeypoints = extractTargetKeypoints(
       input.frame.landmarks,
       input.referencePose.targetKeypoints,
     );
 
+    // ─────────────────────────────────────────────────────────────────
     // 2. visibility 필터링
-    const visibleIndices = filterVisibleIndices(userKeypoints);
+    // ─────────────────────────────────────────────────────────────────
+    const visibleIndices = getUsableKeypointIndices(userKeypoints);
 
     // 보이는 keypoint가 3개 미만이면 측정 불가
     if (visibleIndices.length < 3) {
@@ -169,7 +166,7 @@ export function createAccuracyEngine(): AccuracyEngine {
       return {
         score: 0,
         phase: currentPhase,
-        counted: 'NOT_APPLICABLE',
+        counted: input.type === 'REPS' ? 'NOT_INCREMENTED' : 'NOT_APPLICABLE',
         progressRatio: input.progressRatio,
         meta: {
           warning: '정확도 측정 불가: 안보여용',
@@ -178,73 +175,161 @@ export function createAccuracyEngine(): AccuracyEngine {
       };
     }
 
+    // ─────────────────────────────────────────────────────────────────
     // 3. 각 keyframe별 정확도 계산 (크기 보정 적용)
-    // [변경] targetKeypoints 파라미터 추가 - 정렬에 필요
+    // targetKeypoints 파라미터 추가 - 정렬에 필요
+    // ─────────────────────────────────────────────────────────────────
     const keyframes = input.referencePose.keyframes;
     const accuracyPerKeyframe = calculateAccuracyPerKeyframe(
       userKeypoints,
       keyframes,
       visibleIndices,
-      input.referencePose.targetKeypoints, // [추가] 크기 보정용
+      input.referencePose.targetKeypoints, // 크기 보정용
     );
 
     // 결과값 초기화
     let newProgressRatio: number;
     let currentPhase: string;
-    const counted: CountedStatus = 'NOT_APPLICABLE';
+    let counted: CountedStatus = 'NOT_APPLICABLE';
     let finalScore: number;
 
-    // DURATION: 포즈 매칭 + 시간 누적 기반
-    // 흐름: start → hold → end
-    // - start: start 포즈 매칭 시 hold로 진행
-    // - hold: hold 포즈 유지 시에만 시간 누적
-    // - end: 누적 시간이 totalDuration 도달 시
-    // - 점수: 현재 목표 phase의 정확도
-    const prevPhase = input.prevPhase || keyframes[0]?.phase || 'start';
+    // ─────────────────────────────────────────────────────────────────
+    // 4-A. REPS: 포즈 매칭 기반 phase 진행
+    // ─────────────────────────────────────────────────────────────────
+    // 흐름: start → quarter → peak → threeQuarter → end
+    // - 초기 input === "undefined" -> 내부에서 알아서 start로 바꿈
+    // - 현재 프레임의 user keypoints가 다음 phase 포즈와 일치하면 phase & progressRatio 진행
+    // - end 도달 시 counted = INCREMENTED
+    // - 점수: 보간된 기준 포즈와의 정확도 (크기 보정 적용)
 
-    // 시간 델타 계산
-    const deltaMs = lastFrameTimestampMs !== null ? currentTime - lastFrameTimestampMs : 0;
-    lastFrameTimestampMs = currentTime;
+    if (input.type === 'REPS') {
+      // 1. lastPhase, prevPhase, nextPhase 계산
+      const lastPhase = keyframes[keyframes.length - 1]?.phase;
+      const prevPhase =
+        !input.prevPhase || input.prevPhase === 'undefined'
+          ? keyframes[0]?.phase || 'start'
+          : input.prevPhase;
+      const nextPhase = getNextRepsPhase(prevPhase, keyframes);
 
-    // 누적 시간 (progressRatio에서 복원)
-    let accumulatedTimeMs = input.progressRatio * totalDurationMs;
+      // 2. 현재 phase 위치 확인
+      if (nextPhase !== null) {
+        // 다음 phase가 존재하는 경우
+        const nextPhaseAccuracy = accuracyPerKeyframe.find((a) => a.phase === nextPhase);
 
-    // 각 phase별 정확도 조회
-    const startAccuracy = accuracyPerKeyframe.find((a) => a.phase === 'start')?.accuracy ?? 0;
-    const holdAccuracy = accuracyPerKeyframe.find((a) => a.phase === 'hold')?.accuracy ?? 0;
-
-    if (prevPhase === 'start') {
-      // start phase: start 포즈 매칭 시 hold로 진행
-      if (startAccuracy >= POSE_MATCH_THRESHOLD) {
-        currentPhase = 'hold';
+        if (nextPhaseAccuracy && nextPhaseAccuracy.accuracy >= REPS_MATCH_THRESHOLD) {
+          // 다음 phase 포즈 매칭 성공 → phase 진행
+          currentPhase = nextPhase;
+          counted = currentPhase === lastPhase ? 'INCREMENTED' : 'NOT_INCREMENTED';
+        } else {
+          // 매칭 실패 → 현재 phase 유지
+          currentPhase = prevPhase;
+          counted = 'NOT_INCREMENTED';
+        }
       } else {
-        currentPhase = 'start';
-      }
-      newProgressRatio = 0;
-    } else if (prevPhase === 'hold') {
-      // hold phase: hold 포즈 유지 시에만 시간 누적
-      if (holdAccuracy >= POSE_MATCH_THRESHOLD) {
-        accumulatedTimeMs += deltaMs;
+        // 다음 phase가 없음 (마지막 또는 유효하지 않은 phase)
+        currentPhase = prevPhase;
+        counted = 'NOT_INCREMENTED';
       }
 
-      newProgressRatio = Math.min(accumulatedTimeMs / totalDurationMs, 1.0);
+      // 3. progressRatio 계산 (phase 인덱스 기반)
+      newProgressRatio = getProgressRatioFromPhase(currentPhase, keyframes);
 
-      if (newProgressRatio >= 1.0) {
-        currentPhase = 'end';
-        newProgressRatio = 1.0;
-      } else {
-        currentPhase = 'hold';
+      // 4. progressRatio 기반 레퍼런스 포즈 보간
+      const referenceKeypoints = interpolateKeyframe(input.progressRatio, input.referencePose);
+
+      // 5. 보간된 레퍼런스 포즈를 사용자 포즈에 맞게 정렬 (크기 보정)
+      //    X축: 어깨 너비 (11, 12) 기준
+      //    Y축: 어깨 중심에서 얼굴(코/귀)까지 거리 기준
+      const alignedReference = alignKeypoints(
+        referenceKeypoints,
+        userKeypoints,
+        input.referencePose.targetKeypoints,
+      );
+
+      // 6. 데이터 정합성을 보장
+      const validPairs = visibleIndices
+        .map((i) => ({ ref: alignedReference[i], user: userKeypoints[i] }))
+        .filter(
+          (pair): pair is { ref: Landmark2D; user: Landmark2D } =>
+            pair.ref !== undefined && pair.user !== undefined,
+        );
+
+      // 7. 정확도 계산
+      const refs: Landmark2D[] = [];
+      const users: Landmark2D[] = [];
+      for (const p of validPairs) {
+        refs.push(p.ref);
+        users.push(p.user);
       }
-    } else {
-      // end phase: 완료 상태 유지
-      currentPhase = 'end';
-      newProgressRatio = 1.0;
+      finalScore = calculateAccuracy(refs, users);
     }
 
-    // 점수: 현재 목표 phase의 정확도
-    finalScore = currentPhase === 'start' ? startAccuracy : holdAccuracy;
+    // ─────────────────────────────────────────────────────────────────
+    // 4-B. DURATION: 포즈 매칭 + 시간 누적 기반
+    // ─────────────────────────────────────────────────────────────────
+    // 흐름: ~~start~~ → hold → end
+    // - start: ~~start 포즈 매칭 시 hold로 진행~~ → 그냥 무시하고 hold만 체크
+    // - hold: hold 포즈 유지 시에만 시간 누적 (threshold === DURATION_MATCH_THRESHOLD)
+    // - end: 누적 시간이 totalDuration 도달 시
+    // - 점수: 현재 목표 phase의 정확도
+    else {
+      const prevPhase =
+        !input.prevPhase || input.prevPhase === 'undefined'
+          ? keyframes[0]?.phase || 'start'
+          : input.prevPhase;
 
-    // 점수 스무딩 및 결과 반환
+      // 1. 시간 델타 계산
+      // TODO: deltaMs 계산 로직 개선
+      // lastFrameTimestampMs 상태가 엔진 인스턴스 내부에서 관리되므로,
+      // 엔진이 재생성되거나 프레임 간격이 불규칙하면 deltaMs가 비정상적으로 커질 수 있습니다.
+      const deltaMs = lastFrameTimestampMs !== null ? currentTime - lastFrameTimestampMs : 0;
+      lastFrameTimestampMs = currentTime;
+
+      // 2. 누적 시간 계산 (progressRatio에서 복원)
+      // TODO: use-stretching-session.ts에서 사용하는 holdMsRef를 가져다가 쓰기
+      // 엔진의 phase와 훅의 hold 시간이 동기화
+      let accumulatedTimeMs = input.progressRatio * totalDurationMs;
+
+      // 3. 각 phase별 정확도 조회
+      //const startAccuracy = accuracyPerKeyframe.find((a) => a.phase === 'start')?.accuracy ?? 0;
+      const startAccuracy = 100; // 무조건 hold로 넘기기 (이게 맞나.. 일단 넘어가자)
+      const holdAccuracy = accuracyPerKeyframe.find((a) => a.phase === 'hold')?.accuracy ?? 0;
+
+      if (prevPhase === 'start') {
+        // start phase: start 포즈 매칭 시 hold로 진행
+        if (startAccuracy >= DURATION_MATCH_THRESHOLD) {
+          currentPhase = 'hold';
+        } else {
+          currentPhase = 'start';
+        }
+        newProgressRatio = 0;
+      } else if (prevPhase === 'hold') {
+        // hold phase: hold 포즈 유지 시에만 시간 누적
+        if (holdAccuracy >= DURATION_MATCH_THRESHOLD) {
+          accumulatedTimeMs += deltaMs;
+        }
+
+        newProgressRatio = Math.min(accumulatedTimeMs / totalDurationMs, 1.0);
+
+        if (newProgressRatio >= 1.0) {
+          currentPhase = 'end';
+          newProgressRatio = 1.0;
+        } else {
+          currentPhase = 'hold';
+        }
+      } else {
+        // end phase: 완료 상태 유지
+        currentPhase = 'end';
+        newProgressRatio = 1.0;
+      }
+
+      // 점수: 현재 목표 phase의 정확도 (start / hold / end)
+      finalScore = currentPhase === 'start' ? startAccuracy : holdAccuracy;
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // 5. 점수 스무딩 및 결과 반환
+    // ─────────────────────────────────────────────────────────────────
     const smoothedFinalScore = smoothScore(finalScore);
 
     return {
@@ -281,16 +366,16 @@ function extractTargetKeypoints(
  * visibility threshold 이상인 keypoint의 인덱스 목록 반환
  *
  * @param keypoints - keypoint 배열
- * @param threshold - visibility 임계값 (기본값: 0.4)
+ * @param threshold - visibility 임계값 (기본값: DEFAULT_VISIBILITY)
  * @returns 보이는 keypoint의 인덱스 배열
  *
  * @remarks
  * - visibility가 undefined인 경우 visible로 간주
  * - keypoint 자체가 undefined인 경우 제외
  */
-function filterVisibleIndices(
+function getUsableKeypointIndices(
   keypoints: (Landmark2D | undefined)[],
-  threshold: number = 0.4,
+  threshold: number = DEFAULT_VISIBILITY,
 ): number[] {
   const indices: number[] = [];
   for (let i = 0; i < keypoints.length; i++) {
@@ -305,10 +390,10 @@ function filterVisibleIndices(
 }
 
 /**
- * 3D 유클리드 거리 기반 정확도 계산
+ * 가중 3D 유클리드 거리 기반 정확도 계산
  *
  * 계산 과정:
- * 1. 각 keypoint 쌍의 3D 거리: d = sqrt[(x1-x2)² + (y1-y2)² + (z1-z2)²]
+ * 1. 각 keypoint 쌍의 가중 3D 거리: d = sqrt[(x1-x2)² + (y1-y2)² + zWeight*(z1-z2)²]
  * 2. 평균 거리: D = Σd / n
  * 3. 유사도: similarity = exp(-D / tolerance)
  * 4. 점수: score = similarity × 100
@@ -316,13 +401,14 @@ function filterVisibleIndices(
  * @param reference - 기준 포즈 keypoints
  * @param user - 사용자 포즈 keypoints
  * @param tolerance - 허용 오차 (기본값: 0.15, 클수록 관대한 평가)
+ * @param zWeight - z축 가중치 (기본값: 0.2, 낮을수록 z축 영향 감소)
  * @returns 정확도 점수 (0~100)
  */
 function calculateAccuracy(
   reference: (Landmark2D | undefined)[],
   user: (Landmark2D | undefined)[],
   tolerance: number = 0.15,
-  zWeight: number = 0.3,
+  zWeight: number = 0.2,
 ): number {
   if (reference.length === 0 || reference.length !== user.length) {
     return 0;
@@ -342,40 +428,6 @@ function calculateAccuracy(
       Math.pow(ref.x - usr.x, 2) +
         Math.pow(ref.y - usr.y, 2) +
         zWeight * Math.pow(ref.z - usr.z, 2),
-    );
-
-    totalDistance += distance;
-    validPairCount++;
-  }
-
-  if (validPairCount === 0) return 0;
-
-  const avgDistance = totalDistance / validPairCount;
-  const similarity = Math.exp(-avgDistance / tolerance);
-
-  return similarity * 100;
-}
-
-function calculateAccuracyRaw(
-  reference: Landmark2D[],
-  user: Landmark2D[],
-  tolerance: number = 0.15,
-): number {
-  if (reference.length === 0 || reference.length !== user.length) {
-    return 0;
-  }
-
-  let totalDistance = 0;
-  let validPairCount = 0;
-
-  for (let i = 0; i < reference.length; i++) {
-    const ref = reference[i];
-    const usr = user[i];
-
-    if (ref === undefined || usr === undefined) continue;
-
-    const distance = Math.sqrt(
-      Math.pow(ref.x - usr.x, 2) + Math.pow(ref.y - usr.y, 2) + Math.pow(ref.z - usr.z, 2),
     );
 
     totalDistance += distance;
@@ -541,14 +593,14 @@ function calculateAngleBasedAccuracy(
  * @param reference - 레퍼런스 keypoints (targetKeypoints 순서)
  * @param user - 사용자 keypoints (targetKeypoints 순서)
  * @param targetKeypoints - 대상 keypoint 인덱스 배열
- * @param visibilityThreshold - visibility 최소 임계값 (기본값: 0.5)
+ * @param visibilityThreshold - visibility 최소 임계값 (기본값: DEFAULT_VISIBILITY)
  * @returns 정렬된 레퍼런스 keypoints (정렬 불가 시 원본 반환)
  */
 function alignKeypoints(
   reference: (Landmark2D | undefined)[],
   user: (Landmark2D | undefined)[],
   targetKeypoints: ReadonlyArray<number>,
-  visibilityThreshold: number = 0.5,
+  visibilityThreshold: number = DEFAULT_VISIBILITY,
 ): (Landmark2D | undefined)[] {
   // targetKeypoints에서 필요한 인덱스 찾기
   // key: MediaPipe 랜드마크 번호, value: targetKeypoints 배열 내 위치
@@ -720,7 +772,7 @@ function calculateAccuracyPerKeyframe(
   visibleIndices: number[],
   targetKeypoints: ReadonlyArray<number>,
 ): { phase: string; accuracy: number }[] {
-  // target_keypoints에서 어깨 위치 찾기
+  // 준비: target_keypoints에서 어깨 위치 찾기
   let leftShPos: number | null = null;
   let rightShPos: number | null = null;
   for (let i = 0; i < targetKeypoints.length; i++) {
@@ -729,8 +781,8 @@ function calculateAccuracyPerKeyframe(
   }
 
   return keyframes.map((keyframe) => {
-    // 어깨가 visible_indices에 없으면 정확도 0
     if (
+      // 어깨가 visible_indices에 없으면 정확도 0
       (leftShPos !== null && !visibleIndices.includes(leftShPos)) ||
       (rightShPos !== null && !visibleIndices.includes(rightShPos))
     ) {
@@ -753,41 +805,6 @@ function calculateAccuracyPerKeyframe(
 
     return { phase: keyframe.phase, accuracy };
   });
-}
-
-function getCurrentPhase(
-  progressRatio: number,
-  keyframes: ReadonlyArray<ReferenceKeyframe>,
-): string {
-  // 빈 배열 체크
-  if (keyframes.length === 0) {
-    return 'start';
-  }
-
-  const firstKeyframe = keyframes[0]!;
-  const lastKeyframe = keyframes[keyframes.length - 1]!;
-
-  // 첫 keyframe 이전
-  if (progressRatio <= firstKeyframe.timestampRatio) {
-    return firstKeyframe.phase;
-  }
-  // 마지막 keyframe 이후
-  if (progressRatio >= lastKeyframe.timestampRatio) {
-    return lastKeyframe.phase;
-  }
-
-  // 현재 위치한 구간 찾기
-  for (let i = 0; i < keyframes.length - 1; i++) {
-    const current = keyframes[i]!;
-    const next = keyframes[i + 1]!;
-    if (current.timestampRatio <= progressRatio && next.timestampRatio >= progressRatio) {
-      // 구간의 중간점 기준으로 앞/뒤 phase 결정
-      const midpoint = (current.timestampRatio + next.timestampRatio) / 2;
-      return progressRatio < midpoint ? current.phase : next.phase;
-    }
-  }
-
-  return firstKeyframe.phase;
 }
 
 /**
