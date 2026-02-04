@@ -1,3 +1,8 @@
+/**
+ * NOTE: DURATION holdMs 동기화 관련 변경
+ * - CreateSessionOptions에 getHoldMs, getTotalDurationMs 옵션 추가
+ * - accuracyInput 생성 시 holdMs, totalDurationMs 전달
+ */
 import {
   createAccuracyEngine,
   type AccuracyEngine,

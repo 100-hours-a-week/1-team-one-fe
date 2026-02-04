@@ -1,3 +1,8 @@
+/**
+ * NOTE: DURATION holdMs 동기화 관련 변경
+ * - AccuracyEvaluateInput에 holdMs, totalDurationMs 필드 추가
+ * - DURATION 타입에서 외부 holdMs 기반 progressRatio 계산 지원
+ */
 export type Landmark2D = {
   x: number;
   y: number;

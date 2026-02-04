@@ -1,3 +1,9 @@
+/**
+ * NOTE: DURATION holdMs 동기화 관련 변경
+ * - DURATION_MATCH_THRESHOLD를 @repo/stretching-accuracy에서 import하여 사용
+ * - SUCCESS_ACCURACY_THRESHOLD: 60 → DURATION_MATCH_THRESHOLD 상수 참조로 변경
+ * - 참고: py-reference/accuracy.py의 DURATION_MATCH_THRESHOLD와 동일 값 사용
+ */
 import { DURATION_MATCH_THRESHOLD } from '@repo/stretching-accuracy';
 
 export const STRETCHING_SESSION_CONFIG = {
