@@ -125,6 +125,7 @@ interface MotionInfo {
 
 /**
  * 정확도 평가 엔진 생성
+ *
  * @returns AccuracyEngine - evaluate 메서드를 포함한 엔진 객체
  */
 export function createAccuracyEngine(): AccuracyEngine {
@@ -649,10 +650,7 @@ export function createAccuracyEngine(): AccuracyEngine {
     // - end: 누적 시간이 totalDuration 도달 시
     // - 점수: 현재 목표 phase의 정확도
     else {
-      const prevPhase =
-        !input.prevPhase || input.prevPhase === 'undefined'
-          ? keyframes[0]?.phase || 'start'
-          : input.prevPhase;
+      const prevPhase = input.prevPhase || keyframes[0]?.phase || 'start';
 
       // NOTE: holdMs 계산은 use-stretching-session.ts에서 관리 (동기화됨)
       // input.holdMs: 외부에서 관리하는 누적 hold 시간 (ms)
