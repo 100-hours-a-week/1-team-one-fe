@@ -67,16 +67,23 @@ jobs:
         with:
           fetch-depth: 0 # Git Tag 생성 위해 전체 히스토리 필요함
 
-      # 2. Artifact Download
-      - name: Download build artifact
+      # 2. Artifact Download (환경별 분기)
+      - name: Download Production artifact (same run)
+        if: inputs.environment == 'production'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name_prefix }}-${{ inputs.commit_sha }}
+          path: ./artifacts
+
+      - name: Download Dev/Staging artifact (different run)
+        if: inputs.environment != 'production'
         uses: dawidd6/action-download-artifact@v6
-        # 다른 워크플로우 실행의 Artifact도 다운로드 가능한 커스텀 액션
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: frontend-ci-cd.yml # Artifact를 생성한 워크플로우 파일명
-          pr: ${{ inputs.pr_number }} # PR 번호로 검색
-          workflow_conclusion: success # 성공한 워크플로우만 검색
-          name_is_regexp: true # Artifact 이름을 정규표현식으로 검색 true는 패턴 매칭 가능
+          workflow: frontend-ci-cd.yml
+          pr: ${{ inputs.pr_number }}
+          workflow_conclusion: success
+          name_is_regexp: true
           name: '${{ inputs.artifact_name_prefix }}-.*'
           path: ./artifacts
 
