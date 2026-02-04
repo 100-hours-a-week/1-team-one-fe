@@ -92,9 +92,17 @@ jobs:
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           cd artifacts
-          cd $(ls -d ${{ inputs.artifact_name_prefix }}-* | head -n 1)
-          TAR_FILE=$(ls *.tar.gz | head -n 1)
-          mv $TAR_FILE ../../frontend-${TIMESTAMP}.tar.gz
+
+          # Production: artifacts/ 바로 아래에 tar.gz (actions/download-artifact)
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            TAR_FILE=$(ls *.tar.gz | head -n 1)
+            mv $TAR_FILE ../frontend-${TIMESTAMP}.tar.gz
+          else
+            cd $(ls -d ${{ inputs.artifact_name_prefix }}-* | head -n 1)
+            TAR_FILE=$(ls *.tar.gz | head -n 1)
+            mv $TAR_FILE ../../frontend-${TIMESTAMP}.tar.gz
+          fi
+          
           cd ../..
           echo "TAR_FILENAME=frontend-${TIMESTAMP}.tar.gz" >> $GITHUB_ENV
           echo "DEPLOY_TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
