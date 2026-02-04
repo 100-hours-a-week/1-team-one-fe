@@ -1,6 +1,6 @@
 {
-  "name": "Growing Developer",
-  "short_name": "GrowingDev",
+  "name": "개발자 키우기",
+  "short_name": "개발자 키우기",
   "description": "Stretching and onboarding experience",
   "start_url": "/",
   "scope": "/",

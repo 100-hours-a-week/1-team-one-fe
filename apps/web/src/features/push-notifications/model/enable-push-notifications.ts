@@ -21,7 +21,6 @@ function bindForegroundNotifications(messaging: ReturnType<typeof getMessaging>)
   onMessage(messaging, (payload) => {
     console.debug('[push-notifications] raw_payload', payload);
 
-    const notification = payload?.notification ?? {};
     const data = normalizePushData(payload?.data);
     const route = resolvePushRoute(data.type, data);
 
@@ -31,18 +30,10 @@ function bindForegroundNotifications(messaging: ReturnType<typeof getMessaging>)
       data,
     });
 
-    if (payload?.notification) {
-      console.debug('[push-notifications] foreground_skip_manual_notification', {
-        userId: data.userId,
-        type: data.type,
-      });
-
-      return;
-    }
-    const title = notification.title ?? '알림';
+    const title = '운동할 시간이에요';
     const options: NotificationOptions = {
-      body: notification.body ?? '',
-      icon: notification.icon ?? '/icons/icon-192.png',
+      body: '오늘 루틴을 시작해볼까요?',
+      icon: '/icons/logo-192.png',
       data,
     };
     const toast = new Notification(title, options);
