@@ -28,6 +28,7 @@ on:
 
       # CI/CD 워크플로우
       - '.github/workflows/frontend-ci-cd.yml'
+      - '.github/workflows/frontend-deploy-template.yml'
 
 jobs:
   build-and-test: # PR 대상: Full CI (Build → Test → Artifact)
