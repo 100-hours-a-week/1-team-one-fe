@@ -1,4 +1,4 @@
-export { createAccuracyEngine } from './engine/create-accuracy-engine';
+export { createAccuracyEngine, DURATION_MATCH_THRESHOLD } from './engine/create-accuracy-engine';
 export type {
   AccuracyEngine,
   AccuracyEvaluateInput,

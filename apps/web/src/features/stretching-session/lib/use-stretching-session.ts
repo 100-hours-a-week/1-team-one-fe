@@ -455,6 +455,13 @@ export function useStretchingSession(
       }
 
       //DURATION 로직
+      // 엔진에서 phase: "end" 반환 시 즉시 완료 처리
+      // (holdMs 기반으로 progressRatio >= 1.0 계산됨)
+      if (result.phase === 'end' && result.progressRatio >= 1) {
+        completeStep('success');
+        return;
+      }
+
       if (percent < STRETCHING_SESSION_CONFIG.SUCCESS_ACCURACY_THRESHOLD) {
         if (!STRETCHING_SESSION_CONFIG.DURATION_ACCUMULATE_ON_FAILURE) {
           holdMsRef.current = 0;
@@ -647,6 +654,9 @@ export function useStretchingSession(
       getPhase,
       getAccuracyEngine: () => accuracyEngineRef.current,
       accuracyEngine: accuracyEngineRef.current,
+      // DURATION 전용: holdMs, totalDurationMs 전달 (엔진과 동기화)
+      getHoldMs: () => holdMsRef.current,
+      getTotalDurationMs: () => (currentStepRef.current?.durationTime ?? 0) * 1000,
       onAccuracyDebug: options?.debug?.onAccuracyDebug,
       mirrorInput: STRETCHING_SESSION_CONFIG.ACCURACY_INPUT_MIRROR_MODE,
       onTick: ({ videoWidth, videoHeight }: { videoWidth: number; videoHeight: number }) => {

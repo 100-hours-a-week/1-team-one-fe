@@ -29,6 +29,16 @@ export type CreateSessionOptions = {
   getExerciseType?: () => ExerciseType;
   getPhase: () => string;
   getAccuracyEngine?: () => AccuracyEngine;
+  /**
+   * DURATION 전용: 외부에서 관리하는 누적 hold 시간 (ms) 반환
+   * use-stretching-session.ts의 holdMsRef.current 값
+   */
+  getHoldMs?: () => number;
+  /**
+   * DURATION 전용: 목표 hold 시간 (ms) 반환
+   * step.durationTime * 1000
+   */
+  getTotalDurationMs?: () => number;
   mirrorInput?: boolean;
   visualization: RendererConfig;
   onFrame?: (frame: PoseFrame) => void;
@@ -91,6 +101,8 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     exerciseType,
     getExerciseType,
     getPhase,
+    getHoldMs,
+    getTotalDurationMs,
     visualization,
     onFrame,
     onTick,
@@ -294,6 +306,9 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
             progressRatio,
             type: resolvedExerciseType,
             prevPhase: phase,
+            // DURATION 전용: 외부에서 관리하는 holdMs, totalDurationMs 전달
+            holdMs: getHoldMs?.(),
+            totalDurationMs: getTotalDurationMs?.(),
           };
 
           const nextAccuracyEngine = resolveAccuracyEngine();

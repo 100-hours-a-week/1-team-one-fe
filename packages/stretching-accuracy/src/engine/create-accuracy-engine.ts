@@ -69,19 +69,29 @@ import type {
 } from '../types';
 
 /* visibility 점수 */
-const DEFAULT_VISIBILITY = 0.4;
+const DEFAULT_VISIBILITY = 0.5;
 
 /** 포즈가 일치한다고 판단하는 최소 점수 (0~100) */
 const REPS_MATCH_THRESHOLD = 45; // 내부 로직에만 쓰임
-const DURATION_MATCH_THRESHOLD = 60; // 함수 호출 로직이랑 맞춰야 함
+
+/**
+ * DURATION 타입에서 포즈가 일치한다고 판단하는 최소 점수 (0~100)
+ * 웹 앱의 STRETCHING_SESSION_CONFIG.SUCCESS_ACCURACY_THRESHOLD에서 이 값을 사용함
+ */
+export const DURATION_MATCH_THRESHOLD = 60;
 
 /**
  * 정확도 평가 엔진 생성
  * @returns AccuracyEngine - evaluate 메서드를 포함한 엔진 객체
  */
 export function createAccuracyEngine(): AccuracyEngine {
-  // DURATION용: 시간 델타 계산을 위한 이전 프레임 타임스탬프
-  let lastFrameTimestampMs: number | null = null;
+  // NOTE: holdMs 계산은 use-stretching-session.ts에서 관리하도록 변경됨 (동기화)
+  // 이전에는 lastFrameTimestampMs를 엔진 내부에서 관리했음
+  // 검토 후 삭제 가능 (2024-02)
+  // ─────────────────────────────────────────────────────────────────
+  // [LEGACY] DURATION용: 시간 델타 계산을 위한 이전 프레임 타임스탬프
+  // let lastFrameTimestampMs: number | null = null;
+  // ─────────────────────────────────────────────────────────────────
 
   // 점수 스무딩을 위한 상태
   let smoothedScore: number | null = null;
@@ -144,7 +154,8 @@ export function createAccuracyEngine(): AccuracyEngine {
    * - score ===
    */
   const evaluate = (input: AccuracyEvaluateInput): AccuracyResult => {
-    const currentTime = input.frame.timestampMs;
+    // [LEGACY] DURATION에서 deltaMs 계산에 사용했으나, 이제 외부에서 holdMs를 전달받음
+    // const currentTime = input.frame.timestampMs;
     const totalDurationMs = input.referencePose.totalDuration * 1000;
 
     // ─────────────────────────────────────────────────────────────────
@@ -278,19 +289,23 @@ export function createAccuracyEngine(): AccuracyEngine {
           ? keyframes[0]?.phase || 'start'
           : input.prevPhase;
 
-      // 1. 시간 델타 계산
-      // TODO: deltaMs 계산 로직 개선
-      // lastFrameTimestampMs 상태가 엔진 인스턴스 내부에서 관리되므로,
-      // 엔진이 재생성되거나 프레임 간격이 불규칙하면 deltaMs가 비정상적으로 커질 수 있습니다.
-      const deltaMs = lastFrameTimestampMs !== null ? currentTime - lastFrameTimestampMs : 0;
-      lastFrameTimestampMs = currentTime;
+      // NOTE: holdMs 계산은 use-stretching-session.ts에서 관리 (동기화됨)
+      // input.holdMs: 외부에서 관리하는 누적 hold 시간 (ms)
+      // input.totalDurationMs: 목표 hold 시간 (ms), 미제공 시 referencePose.totalDuration * 1000 사용
+      const accumulatedTimeMs = input.holdMs ?? 0;
+      const resolvedTotalDurationMs = input.totalDurationMs ?? totalDurationMs;
 
-      // 2. 누적 시간 계산 (progressRatio에서 복원)
-      // TODO: use-stretching-session.ts에서 사용하는 holdMsRef를 가져다가 쓰기
-      // 엔진의 phase와 훅의 hold 시간이 동기화
-      let accumulatedTimeMs = input.progressRatio * totalDurationMs;
+      // ─────────────────────────────────────────────────────────────────
+      // [LEGACY] 엔진 내부에서 deltaMs를 계산하던 방식
+      // const deltaMs = lastFrameTimestampMs !== null ? currentTime - lastFrameTimestampMs : 0;
+      // lastFrameTimestampMs = currentTime;
+      // let accumulatedTimeMs = input.progressRatio * totalDurationMs;
+      // if (holdAccuracy >= DURATION_MATCH_THRESHOLD) {
+      //   accumulatedTimeMs += deltaMs;
+      // }
+      // ─────────────────────────────────────────────────────────────────
 
-      // 3. 각 phase별 정확도 조회
+      // 각 phase별 정확도 조회
       //const startAccuracy = accuracyPerKeyframe.find((a) => a.phase === 'start')?.accuracy ?? 0;
       const startAccuracy = 100; // 무조건 hold로 넘기기 (이게 맞나.. 일단 넘어가자)
       const holdAccuracy = accuracyPerKeyframe.find((a) => a.phase === 'hold')?.accuracy ?? 0;
@@ -304,12 +319,11 @@ export function createAccuracyEngine(): AccuracyEngine {
         }
         newProgressRatio = 0;
       } else if (prevPhase === 'hold') {
-        // hold phase: hold 포즈 유지 시에만 시간 누적
-        if (holdAccuracy >= DURATION_MATCH_THRESHOLD) {
-          accumulatedTimeMs += deltaMs;
-        }
-
-        newProgressRatio = Math.min(accumulatedTimeMs / totalDurationMs, 1.0);
+        // hold phase: progressRatio는 외부에서 전달받은 holdMs 기반으로 계산
+        newProgressRatio =
+          resolvedTotalDurationMs > 0
+            ? Math.min(accumulatedTimeMs / resolvedTotalDurationMs, 1.0)
+            : 0;
 
         if (newProgressRatio >= 1.0) {
           currentPhase = 'end';
