@@ -110,7 +110,12 @@ export function FormField({
       {label && (
         <Input.Label htmlFor={id}>
           {label}
-          {required && <span aria-label="required"> *</span>}
+          {required && (
+            <span aria-label="required" className="text-brand-500">
+              {' '}
+              *
+            </span>
+          )}
         </Input.Label>
       )}
 
@@ -137,6 +142,7 @@ export function FormField({
               type="button"
               size="sm"
               variant="outline"
+              className="text-xs"
               disabled={
                 disabled || duplicationCheck.disabled || duplicationCheck.status === 'checking'
               }
