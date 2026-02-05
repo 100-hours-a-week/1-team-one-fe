@@ -451,13 +451,6 @@ export function createAccuracyEngine(): AccuracyEngine {
    *    - 다음 프레임의 input.prevPhase로 전달
    *
    * - meta?: Readonly<Record<string, unknown>>; 추가 정보 (디버깅용)
-   *
-   * @howtouse
-   * DURATION:
-   * -
-   *
-   * REPS:
-   * - score ===
    */
   const evaluate = (input: AccuracyEvaluateInput): AccuracyResult => {
     // [LEGACY] DURATION에서 deltaMs 계산에 사용했으나, 이제 외부에서 holdMs를 전달받음
@@ -650,7 +643,10 @@ export function createAccuracyEngine(): AccuracyEngine {
     // - end: 누적 시간이 totalDuration 도달 시
     // - 점수: 현재 목표 phase의 정확도
     else {
-      const prevPhase = input.prevPhase || keyframes[0]?.phase || 'start';
+      const prevPhase =
+        !input.prevPhase || input.prevPhase === 'undefined'
+          ? keyframes[0]?.phase || 'start'
+          : input.prevPhase;
 
       // NOTE: holdMs 계산은 use-stretching-session.ts에서 관리 (동기화됨)
       // input.holdMs: 외부에서 관리하는 누적 hold 시간 (ms)
