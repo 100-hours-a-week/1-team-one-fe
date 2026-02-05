@@ -12,7 +12,7 @@ import { ROUTES } from '@/src/shared/routes';
 
 type SignupValues = z.infer<typeof signupSchema>;
 
-const PROFILE_DEFAULT_IMAGE_URL = '/users/profile/default.png';
+const PROFILE_DEFAULT_IMAGE_URL = 'users/profile/default.png';
 
 export function SignupPage() {
   const router = useRouter();
