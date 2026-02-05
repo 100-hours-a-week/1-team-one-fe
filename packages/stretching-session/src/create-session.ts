@@ -1,3 +1,8 @@
+/**
+ * NOTE: DURATION holdMs 동기화 관련 변경
+ * - CreateSessionOptions에 getHoldMs, getTotalDurationMs 옵션 추가
+ * - accuracyInput 생성 시 holdMs, totalDurationMs 전달
+ */
 import {
   createAccuracyEngine,
   type AccuracyEngine,
@@ -10,6 +15,7 @@ import {
 } from '@repo/stretching-accuracy';
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 import { createRenderer, type RendererConfig, type Renderer } from './renderers';
+import { mirrorPoseFrame } from './utils/mirror-pose';
 
 type PoseLandmarkerResultLike = {
   landmarks?: ReadonlyArray<ReadonlyArray<Landmark2D>>;
@@ -23,9 +29,22 @@ export type CreateSessionOptions = {
   referencePose: ReferencePose;
   getReferencePose?: () => ReferencePose;
   getProgressRatio: () => number;
+  getRenderProgressRatio?: () => number;
   exerciseType: ExerciseType;
   getExerciseType?: () => ExerciseType;
   getPhase: () => string;
+  getAccuracyEngine?: () => AccuracyEngine;
+  /**
+   * DURATION 전용: 외부에서 관리하는 누적 hold 시간 (ms) 반환
+   * use-stretching-session.ts의 holdMsRef.current 값
+   */
+  getHoldMs?: () => number;
+  /**
+   * DURATION 전용: 목표 hold 시간 (ms) 반환
+   * step.durationTime * 1000
+   */
+  getTotalDurationMs?: () => number;
+  mirrorInput?: boolean;
   visualization: RendererConfig;
   onFrame?: (frame: PoseFrame) => void;
   onTick?: (payload: {
@@ -83,9 +102,12 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     referencePose,
     getReferencePose,
     getProgressRatio,
+    getRenderProgressRatio,
     exerciseType,
     getExerciseType,
     getPhase,
+    getHoldMs,
+    getTotalDurationMs,
     visualization,
     onFrame,
     onTick,
@@ -94,9 +116,13 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
     onAccuracy,
     onError,
     accuracyEngine = createAccuracyEngine(),
+    getAccuracyEngine,
+    mirrorInput = false,
     videoConstraints,
     frameIntervalMs = 0,
   } = options;
+
+  const resolveAccuracyEngine = getAccuracyEngine ?? (() => accuracyEngine);
 
   // 세션 상태
   let isRunning = false;
@@ -260,6 +286,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
       }
 
       const progressRatio = getProgressRatio();
+      const renderProgressRatio = getRenderProgressRatio ? getRenderProgressRatio() : progressRatio;
       const resolvedReferencePose = getReferencePose ? getReferencePose() : referencePose;
 
       // 렌더러에 위임하여 프레임을 렌더링
@@ -267,7 +294,7 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
         width: video.videoWidth,
         height: video.videoHeight,
         referencePose: resolvedReferencePose,
-        progressRatio,
+        progressRatio: renderProgressRatio,
       });
 
       // 포즈가 감지된 경우 정확도를 처리
@@ -275,19 +302,24 @@ export function createSession(options: CreateSessionOptions): StretchingSession 
         onFrame?.(frame);
         const phase = getPhase();
         const resolvedExerciseType = getExerciseType ? getExerciseType() : exerciseType;
+        const accuracyFrame = mirrorInput ? mirrorPoseFrame(frame) : frame;
 
         if (resolvedReferencePose && resolvedExerciseType) {
           const accuracyInput: AccuracyEvaluateInput = {
-            frame,
+            frame: accuracyFrame,
             referencePose: resolvedReferencePose,
             progressRatio,
             type: resolvedExerciseType,
             prevPhase: phase,
+            // DURATION 전용: 외부에서 관리하는 holdMs, totalDurationMs 전달
+            holdMs: getHoldMs?.(),
+            totalDurationMs: getTotalDurationMs?.(),
           };
 
-          const accuracy = accuracyEngine.evaluate(accuracyInput);
+          const nextAccuracyEngine = resolveAccuracyEngine();
+          const accuracy = nextAccuracyEngine.evaluate(accuracyInput);
           onAccuracyDebug?.({ input: accuracyInput, result: accuracy });
-          onAccuracy?.(accuracy, frame);
+          onAccuracy?.(accuracy, accuracyFrame);
         }
       }
 

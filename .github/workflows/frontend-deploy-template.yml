@@ -102,7 +102,7 @@ jobs:
             TAR_FILE=$(ls *.tar.gz | head -n 1)
             mv $TAR_FILE ../../frontend-${TIMESTAMP}.tar.gz
           fi
-          
+
           cd ../..
           echo "TAR_FILENAME=frontend-${TIMESTAMP}.tar.gz" >> $GITHUB_ENV
           echo "DEPLOY_TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
