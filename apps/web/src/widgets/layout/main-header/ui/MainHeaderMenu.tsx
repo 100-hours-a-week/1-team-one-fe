@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@repo/ui/dropdown-menu';
+import { useQueryClient } from '@tanstack/react-query';
 import { Menu } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -28,7 +29,14 @@ export function MainHeaderMenu() {
   const router = useRouter();
   const [isDndSheetOpen, setIsDndSheetOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-  const { mutateAsync: logoutAsync, isPending: isLogoutPending } = useLogoutMutation();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync: logoutAsync, isPending: isLogoutPending } = useLogoutMutation({
+    onSuccess: () => {
+      //TODO: public 데이터는 캐시 초기화 x
+      queryClient.clear(); //로그아웃 시 캐시 초기화
+    },
+  });
 
   const handleLogoutConfirm = async () => {
     if (isLogoutPending) return;

@@ -12,26 +12,26 @@ export function LoginPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useLoginMutation();
-  const { mutateAsync: putFcmToken } = usePutFcmTokenMutation();
+  const { mutateAsync: putFcmToken } = usePutFcmTokenMutation({
+    onSuccess: async () => {
+      try {
+        await refreshPushTokenOnLogin(putFcmToken);
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('[push-notifications] refresh_on_login_failed', { error });
+        }
+      }
+      await queryClient.refetchQueries({
+        queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
+        type: 'all',
+      });
+      router.push(ROUTES.POST_LOGIN);
+    },
+  });
   const handleSignUp = () => router.push(ROUTES.SIGNUP);
 
   const handleSubmit = async (values: LoginFormValues) => {
-    await mutateAsync(values, {
-      onSuccess: async () => {
-        try {
-          await refreshPushTokenOnLogin(putFcmToken);
-        } catch (error) {
-          if (process.env.NODE_ENV !== 'production') {
-            console.warn('[push-notifications] refresh_on_login_failed', { error });
-          }
-        }
-        await queryClient.refetchQueries({
-          queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
-          type: 'all',
-        });
-        router.push(ROUTES.POST_LOGIN);
-      },
-    });
+    await mutateAsync(values);
   };
 
   return (
