@@ -116,8 +116,9 @@ export function AppMainCharacterSection({
       <Image
         src={characterImage}
         alt={APP_MAIN_MESSAGES.CHARACTER_IMAGE_ALT}
-        width={400}
+        width={300}
         height={300}
+        className="rounded-xl py-6"
       />
       <p className="text-xl font-semibold">{characterName}</p>
     </section>
