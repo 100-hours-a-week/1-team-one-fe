@@ -3,8 +3,10 @@ import {
   type AccuracyEvaluateInput,
   type AccuracyResult,
   type CountedStatus,
+  createAccuracyEngine,
   type ExerciseType,
   type PoseFrame,
+  type ReferencePose,
 } from '@repo/stretching-accuracy';
 import { createSession, type StretchingSession } from '@repo/stretching-session';
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -51,6 +53,7 @@ export type UseStretchingSessionResult = {
 
 export type StretchingSessionDebugOptions = {
   accuracyEngine?: AccuracyEngine;
+  accuracyEngineFactory?: () => AccuracyEngine;
   onAccuracyDebug?: (payload: { input: AccuracyEvaluateInput; result: AccuracyResult }) => void;
 };
 
@@ -121,8 +124,32 @@ export function useStretchingSession(
 
   const progressRatioRef = useRef<number>(STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO);
   const phaseRef = useRef<string>(STRETCHING_SESSION_CONFIG.DEFAULT_PHASE);
+  const guideProgressRatioRef = useRef(0);
+  const guideStartAtRef = useRef<number | null>(null);
+  const lastGuideLogAtRef = useRef(0);
 
   const sessionRef = useRef<StretchingSession | null>(null);
+
+  //정확도 엔진 생성
+  const createAccuracyEngineInstance = useCallback((): AccuracyEngine => {
+    if (options?.debug?.accuracyEngineFactory) {
+      return options.debug.accuracyEngineFactory();
+    }
+    if (options?.debug?.accuracyEngine) {
+      return options.debug.accuracyEngine;
+    }
+    return createAccuracyEngine();
+  }, [options?.debug]);
+
+  const accuracyEngineRef = useRef<AccuracyEngine>(createAccuracyEngineInstance());
+
+  const resetAccuracyEngine = useCallback(() => {
+    accuracyEngineRef.current = createAccuracyEngineInstance();
+  }, [createAccuracyEngineInstance]);
+
+  useEffect(() => {
+    accuracyEngineRef.current = createAccuracyEngineInstance();
+  }, [createAccuracyEngineInstance]);
 
   const stepStartAtRef = useRef<number | null>(null);
   const holdMsRef = useRef(0); ///hold 시간 누적용
@@ -137,6 +164,7 @@ export function useStretchingSession(
 
   const currentStepRef = useRef<ExerciseSessionStep | null>(null);
   const referencePoseRef = useRef(currentStepRef.current?.exercise.pose.referencePose ?? null);
+  const initialReferencePoseRef = useRef<ReferencePose | null>(null);
   const exerciseTypeRef = useRef<ExerciseType | null>(null);
   const sessionStartedAtRef = useRef<Date | null>(null);
   const sessionEndedAtRef = useRef<Date | null>(null);
@@ -175,9 +203,10 @@ export function useStretchingSession(
   const lastUiHoldSecondsRef = useRef(0);
   const lastUiTimerSecondsRef = useRef<number | null>(null);
   const lastUiAccuracyCommitAtRef = useRef<number>(0);
+  const lastAccuracyInputLogAtRef = useRef(0);
   const canStopRef = useRef(false);
 
-  const { data, isLoading } = useExerciseSessionQuery(sessionId ?? '', {
+  const { data: sessionData, isLoading } = useExerciseSessionQuery(sessionId ?? '', {
     enabled: Boolean(sessionId),
   });
   const { mutate: completeSession, isPending: isCompleting } = useCompleteExerciseSessionMutation({
@@ -187,23 +216,22 @@ export function useStretchingSession(
     },
   });
 
-  const steps = data?.routineSteps ?? [];
+  const steps = sessionData?.routineSteps ?? []; //steps
   const totalSteps = steps.length;
   const currentStep = steps[currentStepIndex];
-
-  useEffect(() => {
-    currentStepIndexRef.current = currentStepIndex;
-  }, [currentStepIndex]);
 
   useEffect(() => {
     totalStepsRef.current = totalSteps;
   }, [totalSteps]);
 
+  //루틴스텝 초기화 시 progress_ratio = 0, phase = undefined로 넘김
   useEffect(() => {
+    currentStepIndexRef.current = currentStepIndex;
     progressRatioRef.current = STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO;
     phaseRef.current = STRETCHING_SESSION_CONFIG.DEFAULT_PHASE;
-  }, [currentStep?.routineStepId]);
+  }, [currentStepIndex]);
 
+  //REPS for DURATION
   const exerciseType = useMemo(() => {
     if (!currentStep) return null;
     return toExerciseType(currentStep.exercise.type);
@@ -214,6 +242,10 @@ export function useStretchingSession(
     if (!steps[0]) return 'DURATION';
     return toExerciseType(steps[0].exercise.type);
   }, [steps]);
+
+  useEffect(() => {
+    initialReferencePoseRef.current = initialReferencePose ?? null;
+  }, [initialReferencePose]);
 
   // const isInitialDataReady = Boolean(initialReferencePose && initialExerciseType && totalSteps > 0);
   const isInitialDataReady = true;
@@ -235,8 +267,44 @@ export function useStretchingSession(
   }, [initialReferencePose, initialExerciseType, isInitialDataReady, totalSteps]);
 
   // TODO 정책 확정 전: identity 고정 함수로 둠
+  //정확도 엔진 input - 다음 프레임 입력값
   const getProgressRatio = useCallback(() => progressRatioRef.current, []);
   const getPhase = useCallback(() => phaseRef.current, []);
+
+  //렌더링용 진행도 (DURATION일 때 시간 기반 진행도 반영)
+  const getRenderProgressRatio = useCallback(() => {
+    const exerciseType = exerciseTypeRef.current ?? initialExerciseType;
+    if (exerciseType !== 'DURATION') return progressRatioRef.current;
+    if (!STRETCHING_SESSION_CONFIG.GUIDE_DURATION_USE_TIME_PROGRESS) {
+      return progressRatioRef.current;
+    }
+
+    const referencePose = referencePoseRef.current ?? initialReferencePoseRef.current;
+    const totalDuration = referencePose?.totalDuration ?? currentStepRef.current?.durationTime ?? 0;
+
+    if (!referencePose || !Number.isFinite(totalDuration) || totalDuration <= 0) {
+      return progressRatioRef.current;
+    }
+
+    const startedAt = guideStartAtRef.current;
+    if (!startedAt) return progressRatioRef.current;
+
+    const elapsedSeconds = (performance.now() - startedAt) / 1000;
+    const ratioRaw = elapsedSeconds / totalDuration;
+    const normalizedRatio = STRETCHING_SESSION_CONFIG.GUIDE_DURATION_LOOP
+      ? ((ratioRaw % 1) + 1) % 1
+      : Math.min(Math.max(ratioRaw, 0), 1);
+
+    const nextRatio = Number.isFinite(normalizedRatio) ? normalizedRatio : 0;
+    guideProgressRatioRef.current = nextRatio;
+    return nextRatio;
+  }, [initialExerciseType]);
+
+  const resetRepsAccuracyState = useCallback(() => {
+    progressRatioRef.current = STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO;
+    phaseRef.current = STRETCHING_SESSION_CONFIG.REPS_RESET_PHASE;
+    resetAccuracyEngine();
+  }, [resetAccuracyEngine]);
 
   const completeStepImpl = useCallback((status: StretchingStepResult['status']) => {
     const step = currentStepRef.current;
@@ -317,8 +385,37 @@ export function useStretchingSession(
       const type = exerciseTypeRef.current;
       if (!step || !type) return;
 
+      //이전 output 으로 캡쳐
+      const inputProgressRatio = progressRatioRef.current;
+      const inputPhase = phaseRef.current;
+
       progressRatioRef.current = result.progressRatio;
       phaseRef.current = result.phase;
+      console.debug('[stretching-session][accuracy-input]', {
+        routineStepId: step.routineStepId,
+        stepOrder: step.stepOrder,
+        exerciseType: type,
+        inputProgressRatio,
+        inputPhase,
+        outputProgressRatio: result.progressRatio,
+        outputPhase: result.phase,
+        timestampMs: frame.timestampMs,
+        targetKeypoints: step.exercise.pose.referencePose.targetKeypoints,
+        userLandmarks: frame.landmarks,
+      });
+
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        STRETCHING_SESSION_CONFIG.DEBUG_ACCURACY_LOG_ENABLED
+      ) {
+        const now = performance.now();
+        if (
+          now - lastAccuracyInputLogAtRef.current >=
+          STRETCHING_SESSION_CONFIG.DEBUG_ACCURACY_LOG_INTERVAL_MS
+        ) {
+          lastAccuracyInputLogAtRef.current = now;
+        }
+      }
 
       const percent = normalizeAccuracyPercent(result.score);
 
@@ -336,6 +433,8 @@ export function useStretchingSession(
 
       if (type === 'REPS') {
         if (!shouldIncrementReps(result.counted)) return;
+
+        resetRepsAccuracyState();
 
         setRepsCount((prev) => {
           const next = prev + 1;
@@ -356,13 +455,22 @@ export function useStretchingSession(
       }
 
       //DURATION 로직
-      if (percent < STRETCHING_SESSION_CONFIG.SUCCESS_ACCURACY_THRESHOLD) {
-        holdMsRef.current = 0;
+      // 엔진에서 phase: "end" 반환 시 즉시 완료 처리
+      // (holdMs 기반으로 progressRatio >= 1.0 계산됨)
+      if (result.phase === 'end' && result.progressRatio >= 1) {
+        completeStep('success');
+        return;
+      }
 
-        //초 단위가 바뀔 때만 set
-        if (lastUiHoldSecondsRef.current !== 0) {
-          lastUiHoldSecondsRef.current = 0;
-          setHoldSeconds(0);
+      if (percent < STRETCHING_SESSION_CONFIG.SUCCESS_ACCURACY_THRESHOLD) {
+        if (!STRETCHING_SESSION_CONFIG.DURATION_ACCUMULATE_ON_FAILURE) {
+          holdMsRef.current = 0;
+
+          //초 단위가 바뀔 때만 set
+          if (lastUiHoldSecondsRef.current !== 0) {
+            lastUiHoldSecondsRef.current = 0;
+            setHoldSeconds(0);
+          }
         }
 
         lastAccuracyAtRef.current = frame.timestampMs;
@@ -386,7 +494,7 @@ export function useStretchingSession(
         completeStep('success');
       }
     },
-    [completeStep],
+    [completeStep, resetRepsAccuracyState],
   );
 
   const handleAccuracy = useEvent(handleAccuracyImpl);
@@ -405,6 +513,8 @@ export function useStretchingSession(
     sessionEndedAtRef.current = null;
     stepStartedAtRef.current = null;
     setCompletionResult(null);
+    guideStartAtRef.current = null;
+    guideProgressRatioRef.current = 0;
 
     //ui cache refs도 초기화
     lastUiAccuracyPercentRef.current = 0;
@@ -428,6 +538,8 @@ export function useStretchingSession(
     stepStartedAtRef.current = null;
     lastAccuracyAtRef.current = null;
     holdMsRef.current = 0;
+    guideStartAtRef.current = null;
+    guideProgressRatioRef.current = 0;
 
     lastUiHoldSecondsRef.current = 0;
     lastUiAccuracyPercentRef.current = 0;
@@ -442,7 +554,7 @@ export function useStretchingSession(
     setRepsPopupValue(null);
 
     if (transitionTimeoutRef.current) window.clearTimeout(transitionTimeoutRef.current);
-  }, [currentStep?.routineStepId]);
+  }, [currentStepIndex, currentStep]);
 
   //타이머
   useEffect(() => {
@@ -455,6 +567,9 @@ export function useStretchingSession(
       stepStartedAtRef.current = new Date();
       if (!sessionStartedAtRef.current) {
         sessionStartedAtRef.current = stepStartedAtRef.current;
+      }
+      if (!guideStartAtRef.current) {
+        guideStartAtRef.current = performance.now();
       }
     }
 
@@ -518,6 +633,9 @@ export function useStretchingSession(
     const frameIntervalMs =
       targetFps > 0 ? Math.round(STRETCHING_SESSION_CONFIG.MILLISECONDS_PER_SECOND / targetFps) : 0;
 
+    progressRatioRef.current = STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO;
+    phaseRef.current = STRETCHING_SESSION_CONFIG.DEFAULT_PHASE;
+
     const session: StretchingSession = createSession({
       video: videoRef.current,
       canvas: canvasRef.current,
@@ -529,21 +647,51 @@ export function useStretchingSession(
       getReferencePose: () => referencePoseRef.current ?? initialReferencePose!,
 
       getProgressRatio,
+      getRenderProgressRatio,
       exerciseType: initialExerciseType,
       getExerciseType: () => exerciseTypeRef.current ?? initialExerciseType,
 
       getPhase,
-      accuracyEngine: options?.debug?.accuracyEngine,
+      getAccuracyEngine: () => accuracyEngineRef.current,
+      accuracyEngine: accuracyEngineRef.current,
+      // DURATION 전용: holdMs, totalDurationMs 전달 (엔진과 동기화)
+      getHoldMs: () => holdMsRef.current,
+      getTotalDurationMs: () => (currentStepRef.current?.durationTime ?? 0) * 1000,
       onAccuracyDebug: options?.debug?.onAccuracyDebug,
+      mirrorInput: STRETCHING_SESSION_CONFIG.ACCURACY_INPUT_MIRROR_MODE,
       onTick: ({ videoWidth, videoHeight }: { videoWidth: number; videoHeight: number }) => {
-        if (isCanvasReadyRef.current) return;
-        if (videoWidth === 0 || videoHeight === 0) return;
-        isCanvasReadyRef.current = true;
-        if (!sessionStartedAtRef.current) {
-          sessionStartedAtRef.current = new Date();
+        if (!isCanvasReadyRef.current && videoWidth !== 0 && videoHeight !== 0) {
+          isCanvasReadyRef.current = true;
+          if (!sessionStartedAtRef.current) {
+            sessionStartedAtRef.current = new Date();
+          }
+          canStopRef.current = true;
+          setIsCanvasReady(true);
         }
-        canStopRef.current = true;
-        setIsCanvasReady(true);
+
+        if (process.env.NODE_ENV === 'production') return;
+        if (!STRETCHING_SESSION_CONFIG.DEBUG_GUIDE_PROGRESS_LOG_ENABLED) return;
+        if (exerciseTypeRef.current !== 'DURATION') return;
+
+        const now = performance.now();
+        if (
+          now - lastGuideLogAtRef.current <
+          STRETCHING_SESSION_CONFIG.DEBUG_GUIDE_PROGRESS_LOG_INTERVAL_MS
+        ) {
+          return;
+        }
+
+        lastGuideLogAtRef.current = now;
+
+        const referencePose = referencePoseRef.current ?? initialReferencePoseRef.current;
+        console.debug('[stretching-session][guide] duration_progress', {
+          guideProgressRatio: getRenderProgressRatio(),
+          accuracyProgressRatio: progressRatioRef.current,
+          phase: phaseRef.current,
+          totalDuration: referencePose?.totalDuration,
+          keyframes: referencePose?.keyframes.length,
+          routineStepId: currentStepRef.current?.routineStepId,
+        });
       },
       onLog: ({ type, detail }) => {
         if (process.env.NODE_ENV === 'production') return;
@@ -601,9 +749,9 @@ export function useStretchingSession(
   }, [
     getPhase,
     getProgressRatio,
+    getRenderProgressRatio,
     handleAccuracy,
     isInitialDataReady,
-    options?.debug?.accuracyEngine,
     options?.debug?.onAccuracyDebug,
     options?.targetFps,
   ]);
