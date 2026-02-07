@@ -4,6 +4,7 @@ about: 백로그 템플릿
 title: ''
 labels: Backlog, FE
 assignees: jieun0824
+
 ---
 
 ### 작업 개요
