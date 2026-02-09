@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 import { toAlarmSettingsValues } from '@/src/entities/alarm-settings';
 import { useAlarmSettingsQuery } from '@/src/features/alarm-settings';
@@ -14,6 +15,10 @@ import {
   INTERVAL_CONFIG,
   TIME_CONFIG,
 } from '@/src/features/onboarding-alarm-settings/config';
+import {
+  PushPermissionBottomSheet,
+  usePushPermissionSheet,
+} from '@/src/features/push-notifications';
 import { APP_ALARM_MESSAGES } from '@/src/pages/app-alarm/config/messages';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen';
@@ -31,6 +36,7 @@ const fallbackValues: AlarmSettingsValues = {
 
 export function AppAlarmPage() {
   const queryClient = useQueryClient();
+  const pushPermissionSheet = usePushPermissionSheet();
   const {
     data: alarmSettings,
     isLoading,
@@ -48,6 +54,13 @@ export function AppAlarmPage() {
     await mutateAsync(toAlarmSettingsRequest(values));
   };
 
+  useEffect(() => {
+    if (pushPermissionSheet.permission === 'granted') {
+      return;
+    }
+    pushPermissionSheet.openSheet();
+  }, [pushPermissionSheet.openSheet, pushPermissionSheet.permission]);
+
   return (
     <LoadableBoundary
       isLoading={isLoading}
@@ -57,11 +70,21 @@ export function AppAlarmPage() {
       renderError={() => <ErrorScreen variant="unexpected" />}
     >
       {(alarmSettingsData) => (
-        <NotificationSettingsForm
-          defaultValues={toAlarmSettingsValues(alarmSettingsData, fallbackValues)}
-          onSubmit={handleSubmit}
-          submitLabel={APP_ALARM_MESSAGES.SUBMIT_DEFAULT}
-        />
+        <>
+          <NotificationSettingsForm
+            defaultValues={toAlarmSettingsValues(alarmSettingsData, fallbackValues)}
+            onSubmit={handleSubmit}
+            submitLabel={APP_ALARM_MESSAGES.SUBMIT_DEFAULT}
+          />
+          <PushPermissionBottomSheet
+            open={pushPermissionSheet.open}
+            onOpenChange={pushPermissionSheet.setOpen}
+            permission={pushPermissionSheet.permission}
+            platform={pushPermissionSheet.platform}
+            isRequesting={pushPermissionSheet.isRequesting}
+            onRequestPermission={pushPermissionSheet.requestPermission}
+          />
+        </>
       )}
     </LoadableBoundary>
   );

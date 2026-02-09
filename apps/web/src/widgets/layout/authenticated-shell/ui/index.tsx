@@ -3,6 +3,10 @@ import type { PropsWithChildren } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
+import {
+  PushPermissionBottomSheet,
+  usePushPermissionSheet,
+} from '@/src/features/push-notifications';
 import { isIosUserAgent, isMobileUserAgent } from '@/src/shared/lib/device/user-agent';
 import { usePwaInstallState } from '@/src/shared/lib/pwa/use-pwa-install-state';
 import { ROUTE_GROUPS, ROUTES } from '@/src/shared/routes';
@@ -21,6 +25,11 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
     () => (ROUTE_GROUPS.APP as readonly string[]).includes(router.pathname),
     [router.pathname],
   );
+  const shouldAutoOpenPushPermissionSheet = isAppRoute && router.isReady;
+  const pushPermissionSheet = usePushPermissionSheet({
+    autoOpen: shouldAutoOpenPushPermissionSheet,
+  });
+  const shouldRenderGlobalPushSheet = isAppRoute && router.pathname !== ROUTES.ALARM;
 
   const { data: onboardingStatus } = useOnboardingStatusQuery({ enabled: isAppRoute });
 
@@ -72,6 +81,16 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
   return (
     <main className="h-dvh">
       {children}
+      {shouldRenderGlobalPushSheet && (
+        <PushPermissionBottomSheet
+          open={pushPermissionSheet.open}
+          onOpenChange={pushPermissionSheet.setOpen}
+          permission={pushPermissionSheet.permission}
+          platform={pushPermissionSheet.platform}
+          isRequesting={pushPermissionSheet.isRequesting}
+          onRequestPermission={pushPermissionSheet.requestPermission}
+        />
+      )}
       {isAppRoute && isMobile && (
         <PwaInstallBottomSheet
           open={isPwaSheetOpen}
