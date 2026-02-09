@@ -41,10 +41,6 @@ export function AppNotificationsPage() {
     hasMarkedReadRef.current = true;
   }, [data?.pages, mutate]);
 
-  useEffect(() => {
-    console.log(fetchNextPage, hasNextPage);
-  }, [fetchNextPage, hasNextPage]);
-
   const handleScrollTop = () => {
     if (typeof window === 'undefined') return;
     window.scrollTo({ top: 0, behavior: 'smooth' });
