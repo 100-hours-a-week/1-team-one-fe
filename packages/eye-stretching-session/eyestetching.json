@@ -1,0 +1,45 @@
+{
+  // "routineSteps":
+  "routineStepId": 1,
+  "stepOrder": 1,
+  "targetReps": null,
+  "durationTime": null,
+  "limitTime": 60,
+  "exercise": {
+    "exerciseId": 1,
+    "type": "EYES",
+    "name": "눈 근육 스트레칭",
+    "content": "화면에서 가리키는 방향으로 시선을 옮기고 유지합니다.",
+    "effect": "눈 피로가 해소된다",
+    "references": {
+      "keyFrames": [
+        {
+          "phase": "follow1",
+          "x": 0.5,
+          "y": 0.5,
+          "holdMs": 3000
+        },
+        {
+          "phase": "follow2",
+          "x": 0.3,
+          "y": 0.4,
+          "holdMs": 3000
+        },
+        {
+          "phase": "follow3",
+          "x": 0.7,
+          "y": 0.4,
+          "holdMs": 3000
+        },
+        {
+          "phase": "hold",
+          "x": 0.9,
+          "y": 0.2,
+          "holdMs": 10000
+        }
+        // end 생략
+      ],
+      "totalDurationMs": 20000
+    }
+  }
+}
