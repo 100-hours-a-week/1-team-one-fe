@@ -1,9 +1,4 @@
 export const PUSH_PERMISSION_MESSAGES = {
-  CARD: {
-    TITLE: '알림 권한',
-    DESCRIPTION: '알림 권한을 허용해야 스트레칭 알림을 받을 수 있습니다.',
-    CTA_REQUEST: '알림 권한 요청',
-  },
   SHEET: {
     TITLE: '알림 권한이 필요해요',
     DESCRIPTION_DEFAULT: '알림 권한을 허용해야 스트레칭 알림을 받을 수 있습니다.',
