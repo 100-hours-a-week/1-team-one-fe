@@ -114,14 +114,15 @@ jobs:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           # SENTRY_PROJECT는 위에서 설정한 환경변수를 자동으로 가져옴
         run: |
+          npm install -g @sentry/cli
           # 1. 릴리즈 생성 (New Release)
           # 위에서 설정한 환경변수 NEXT_PUBLIC_RELEASE 사용
-          npx sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
+          sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
 
           # 2. 커밋 연결 (Set Commits --auto)
           # --auto: Sentry가 GitHub 통합을 통해 자동으로 커밋 범위를 계산함
           # 조직 레포에 권한이 없어서 CI가 터지는 것을 방지하기 위해서 || true 추가
-          npx sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
+          sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
 
       - name: Build Next.js application
         run: pnpm turbo build --filter=web
@@ -132,7 +133,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           # SENTRY_PROJECT는 위에서 설정한 환경변수를 자동으로 가져옴
-        run: npx sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
+        run: sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
 
       # Phase 3: Test
       #- name: Run unit tests
@@ -330,13 +331,14 @@ jobs:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           # SENTRY_PROJECT는 위에서 설정한 환경변수를 자동으로 가져옴
         run: |
+          npm install -g @sentry/cli
           # 1. 릴리즈 생성
-          npx sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
+          sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
           
           # 2. 커밋 자동 연결 (GitHub Integration 필요)
           # --auto: Sentry가 GitHub 통합을 통해 자동으로 커밋 범위를 계산함
           # 조직 레포에 권한이 없어서 CI가 터지는 것을 방지하기 위해서 || true 추가
-          npx sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
+          sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
 
       # 8. Production 빌드
       - name: Build for Production
@@ -349,7 +351,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           # SENTRY_PROJECT는 위에서 설정한 환경변수를 자동으로 가져옴
-        run: npx sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
+        run: sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
 
       # 10. Artifact 준비
       - name: Bundle Production Artifacts
