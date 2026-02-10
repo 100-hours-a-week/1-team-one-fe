@@ -17,12 +17,23 @@ Sentry.init({
   //성능 수집
   tracesSampleRate: env === 'production' ? 0.1 : 1.0,
 
-  integrations: [
-    Sentry.breadcrumbsIntegration(),
-    // TODO: breadcrumb 자동 수집 + console warn/error만
-    // Sentry.captureConsoleIntegration({ levels: ['warn', 'error'] }),
-    Sentry.replayIntegration(),
-  ],
+  integrations: (integrations) => {
+    const withoutBrowserTracing = integrations.filter(
+      (integration) => integration.name !== 'BrowserTracing',
+    );
+
+    return [
+      ...withoutBrowserTracing,
+      Sentry.browserTracingIntegration({
+        enableInp: true,
+        enableLongTask: true,
+        enableElementTiming: true,
+      }),
+      // TODO: breadcrumb 자동 수집 + console warn/error만
+      // Sentry.captureConsoleIntegration({ levels: ['warn', 'error'] }),
+      Sentry.replayIntegration(),
+    ];
+  },
 
   replaysSessionSampleRate: env === 'production' ? 0.1 : 1.0,
   replaysOnErrorSampleRate: 1.0,
