@@ -96,8 +96,10 @@ jobs:
         run: |
           if [[ "${{ github.base_ref }}" == "main" ]]; then
             echo "${{ secrets.WEB_ENV_STAGING }}" >> "$GITHUB_ENV"
+            echo "NEXT_PUBLIC_RELEASE=raisedev-web@staging-${{ github.sha }}" >> "$GITHUB_ENV"
           else
             echo "${{ secrets.WEB_ENV_DEV }}" >> "$GITHUB_ENV"
+            echo "NEXT_PUBLIC_RELEASE=raisedev-web@development-${{ github.sha }}" >> "$GITHUB_ENV"
           fi
 
       - name: Build Next.js application
@@ -288,6 +290,7 @@ jobs:
         shell: bash
         run: |
           echo "${{ secrets.WEB_ENV_PROD }}" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_RELEASE=raisedev-web@prod-${{ github.sha }}" >> "$GITHUB_ENV"
 
       # 7. Production 빌드
       - name: Build for Production
