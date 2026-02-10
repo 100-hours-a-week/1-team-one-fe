@@ -4,6 +4,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from '@sentry/nextjs';
+import { getCommonSentryEdgeOptions } from '@tooling/sentry-config';
 
 const env = process.env.NEXT_PUBLIC_ENV;
 const isProd = env === 'production';
@@ -11,8 +12,9 @@ const isProd = env === 'production';
 //엣지 런타임에 실행되는 코드에서 발생하는 에러를 수집
 //cdn 요청 실패 에러 수집 가능 (proxy.ts 는 server.config.ts 에서 수집)
 Sentry.init({
+  ...getCommonSentryEdgeOptions(),
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  environment: process.env.NEXT_PUBLIC_ENV,
+  environment: env,
   release: process.env.NEXT_PUBLIC_RELEASE,
 
   //Edge/middleware는 호출이 많을 수 있으니
