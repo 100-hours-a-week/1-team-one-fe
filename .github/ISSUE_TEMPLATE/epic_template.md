@@ -2,8 +2,9 @@
 name: Epic-Template
 about: 에픽 템플릿
 title: ''
-labels: ''
+labels: EPIC, FE
 assignees: jieun0824
+
 ---
 
 ### Epic 개요

@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 import { PutFcmTokenRequest } from '../api/put-fcm-token-mutation';
+import { markPushPermissionPromptNeeded } from '../lib/permission-prompt';
 import { resolvePushRoute } from '../lib/resolve-push-route';
 import type { PushNotificationData } from './types';
 
@@ -74,15 +75,30 @@ function normalizePushData(raw: Record<string, string> | undefined): PushNotific
   };
 }
 
+//로그인 직후 권한 미허용이면 바텀시트로 재요청을 유도
+//TODO: 로그 정리
 export async function refreshPushTokenOnLogin(
   putFcm: (payload: PutFcmTokenRequest) => Promise<void>,
 ) {
-  if (!('serviceWorker' in navigator)) return;
-  if (typeof Notification === 'undefined') return;
-  // TODO: 알림 설정 화면에서 사용자 액션으로 permission 재요청 처리로 이동
-  if (Notification.permission !== 'granted') return;
+  if (!('serviceWorker' in navigator)) {
+    console.log('[push-notifications] service_worker_not_supported');
+    return;
+  }
+  if (typeof Notification === 'undefined') {
+    console.log('[push-notifications] notification_not_supported');
+    return;
+  }
+  if (Notification.permission !== 'granted') {
+    markPushPermissionPromptNeeded();
+    console.log(Notification.permission);
+    console.log('[push-notifications] notification_permission_not_granted');
+    return;
+  }
   const swReg = await registerServiceWorker();
-  if (!swReg) return;
+  if (!swReg) {
+    console.log('[push-notifications] service_worker_registration_failed');
+    return;
+  }
 
   await registerFcmToken(swReg, putFcm);
 }
