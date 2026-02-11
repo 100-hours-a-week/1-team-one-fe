@@ -1,5 +1,6 @@
 // engine
-export { createEyeStretchingEngine, EYE_MATCH_THRESHOLD } from './engine/create-eye-engine';
+export { createEyeStretchingEngine } from './engine/create-eye-engine';
+export { EYE_MATCH_THRESHOLD } from './constants';
 
 // session
 export { createEyeSession } from './session/create-eye-session';
@@ -9,6 +10,10 @@ export type {
   EyeTracker,
   GazePrediction,
 } from './session/create-eye-session';
+
+// trackers
+export { createWebGazerTracker } from './trackers/webgazer-tracker';
+export type { WebGazerInstance, WebGazerTrackerOptions } from './trackers/webgazer-tracker';
 
 // utils
 export { createGazeSmoother } from './utils';

@@ -8,7 +8,8 @@
     ".": {
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
-    }
+    },
+    "./hook": "./lib/use-eye-stretching-session.ts"
   },
   "files": [
     "dist"
@@ -19,10 +20,20 @@
     "lint": "eslint .",
     "check-types": "tsc -p tsconfig.json --noEmit"
   },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "webgazer": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "webgazer": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@tooling/eslint-config": "workspace:*",
     "@tooling/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
+    "@types/react": "^19.2.13",
     "eslint": "^9.39.1",
     "tsup": "^8.5.0",
     "typescript": "5.9.2"

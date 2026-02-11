@@ -27,8 +27,10 @@ export type GazeFrame = {
 
 /** 가이드 경로 위의 한 목표 지점 */
 export type EyeTarget = {
-  /** 이 목표에 해당하는 phase
-   * follow1 | follow2 | follow3 | hold (end 생략)
+  /**
+   * 이 목표에 해당하는 phase
+   * - keyFrames에는 'end'가 포함되지 않는다.
+   * - 'end' phase는 마지막 target의 holdMs 완료 시 엔진에서 파생된다.
    */
   phase: EyePhase;
   /** 목표 위치 (정규화: 0~1) */
@@ -52,19 +54,18 @@ export type EyeStretchingReference = {
 
 /**
  * 'follow1' ~ 'follow3': calibration 용 시선 위치 (모니터 내) - 3초
- * 'hold': 실제 유지해야 할 시선 위치 (모니터 외) - 10초
+ * 'hold1' ~ 'holdN': 실제 유지해야 할 시선 위치 (모니터 외) - 10초
+ * 'end': 마지막 target의 holdMs 완료 시 엔진에서 파생되는 결과 - keyFrames에는 포함되지 않음
  */
-export type EyePhase = 'follow1' | 'follow2' | 'follow3' | 'hold' | 'end';
+export type EyePhase = `follow${number}` | `hold${number}` | 'end';
 
 export type EyeEvaluateInput = {
   /** 현재 시선 프레임 */
   frame: GazeFrame;
   /** 눈운동 레퍼런스 데이터 */
   reference: EyeStretchingReference;
-  /** 이전 프레임의 목표 인덱스 (첫 호출: 0) */
-  prevTargetIndex: number;
-  /** 이전 프레임의 phase (첫 호출: 'follow1') */
-  prevPhase: EyePhase;
+  /** 이전 프레임의 목표 인덱스이자 현재 기준 target (첫 호출: 0) */
+  currentTargetIndex: number;
   /** 현재 목표에서 누적된 hold 시간 (ms, 외부 관리) */
   holdMs: number;
 };

@@ -8,20 +8,18 @@ import type { EyeGazePoint } from '../types';
  * @param alpha - EMA 가중치 (0~1, 낮을수록 더 안정적, 기본값: 0.4)
  */
 export function createGazeSmoother(alpha: number = 0.4) {
+  const clampedAlpha = Math.min(1, Math.max(0, alpha));
   let prev: EyeGazePoint | null = null;
 
-  /**
-   * EMA 적용: smoothed = alpha * current + (1 - alpha) * previous
-   */
   const smooth = (point: EyeGazePoint): EyeGazePoint => {
     if (prev === null) {
       prev = { ...point };
-      return point;
+      return prev;
     }
 
     const smoothed: EyeGazePoint = {
-      x: alpha * point.x + (1 - alpha) * prev.x,
-      y: alpha * point.y + (1 - alpha) * prev.y,
+      x: clampedAlpha * point.x + (1 - clampedAlpha) * prev.x,
+      y: clampedAlpha * point.y + (1 - clampedAlpha) * prev.y,
     };
     prev = smoothed;
     return smoothed;
