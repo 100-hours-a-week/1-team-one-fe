@@ -15,8 +15,19 @@ export interface ReferencePoseResponse {
   fpsHint?: number;
 }
 
+export interface EyeKeyframeResponse {
+  phase: string;
+  x: number;
+  y: number;
+  holdMs: number;
+}
+
 export interface ExercisePoseResponse {
-  referencePose: ReferencePoseResponse;
+  /** 스트레칭 (DURATION / REPS) 용 */
+  referencePose?: ReferencePoseResponse;
+  /** 눈운동 (EYES) 용 */
+  keyFrames?: ReadonlyArray<EyeKeyframeResponse>;
+  totalDurationMs?: number;
 }
 
 export interface ExerciseResponse {

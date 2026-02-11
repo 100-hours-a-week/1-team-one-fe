@@ -1,7 +1,9 @@
+import type { EyeStretchingReference } from '@repo/eye-stretching-session';
 import type { ReferencePose } from '@repo/stretching-accuracy';
 
 export interface ExerciseSessionExercisePose {
-  referencePose: ReferencePose;
+  referencePose?: ReferencePose;
+  eyeReference?: EyeStretchingReference;
 }
 
 export interface ExerciseSessionExercise {

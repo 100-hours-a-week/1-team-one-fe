@@ -1,10 +1,30 @@
 import type { ExerciseSessionData, RoutineStepResponse } from '../api/types';
-import type { ExerciseSession, ExerciseSessionStep } from '../model/types';
+import type {
+  ExerciseSession,
+  ExerciseSessionExercisePose,
+  ExerciseSessionStep,
+} from '../model/types';
+import { toEyeReference } from './to-eye-reference';
 import { toReferencePose } from './to-reference-pose';
 
 /**
  * @description API 응답 형태의 RoutineStepResponse 를 정확도 엔진의 input 형식으로 변환
  */
+
+const toExerciseSessionPose = (step: RoutineStepResponse): ExerciseSessionExercisePose => {
+  if (step.exercise.type === 'EYES') {
+    return {
+      eyeReference: toEyeReference(
+        step.exercise.pose.keyFrames ?? [],
+        step.exercise.pose.totalDurationMs ?? 0,
+      ),
+    };
+  }
+
+  return {
+    referencePose: toReferencePose(step.exercise.pose.referencePose!),
+  };
+};
 
 const toExerciseSessionStep = (step: RoutineStepResponse): ExerciseSessionStep => {
   return {
@@ -19,9 +39,7 @@ const toExerciseSessionStep = (step: RoutineStepResponse): ExerciseSessionStep =
       name: step.exercise.name,
       content: step.exercise.content,
       effect: step.exercise.effect,
-      pose: {
-        referencePose: toReferencePose(step.exercise.pose.referencePose),
-      },
+      pose: toExerciseSessionPose(step),
     },
   };
 };

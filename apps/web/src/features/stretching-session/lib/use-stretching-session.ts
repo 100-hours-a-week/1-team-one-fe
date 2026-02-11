@@ -400,7 +400,7 @@ export function useStretchingSession(
         outputProgressRatio: result.progressRatio,
         outputPhase: result.phase,
         timestampMs: frame.timestampMs,
-        targetKeypoints: step.exercise.pose.referencePose.targetKeypoints,
+        targetKeypoints: step.exercise.pose.referencePose!.targetKeypoints,
         userLandmarks: frame.landmarks,
       });
 
