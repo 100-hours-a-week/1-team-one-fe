@@ -20,6 +20,7 @@ import {
 import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
 
 import { STRETCHING_SESSION_CONFIG } from '../config/constants';
+import { createStretchingPerformanceTracker } from './stretching-performance-tracker';
 
 const toExerciseType = (type: string): ExerciseType => {
   if (type === 'REPS') return 'REPS';
@@ -121,6 +122,8 @@ export function useStretchingSession(
 ): UseStretchingSessionResult {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  //성능 측정 트래커로 분리
+  const performanceTrackerRef = useRef(createStretchingPerformanceTracker());
 
   const progressRatioRef = useRef<number>(STRETCHING_SESSION_CONFIG.DEFAULT_PROGRESS_RATIO);
   const phaseRef = useRef<string>(STRETCHING_SESSION_CONFIG.DEFAULT_PHASE);
@@ -129,6 +132,11 @@ export function useStretchingSession(
   const lastGuideLogAtRef = useRef(0);
 
   const sessionRef = useRef<StretchingSession | null>(null);
+
+  useEffect(() => {
+    //세션 - 트래커 동기화
+    performanceTrackerRef.current.setSessionId(sessionId);
+  }, [sessionId]);
 
   //정확도 엔진 생성
   const createAccuracyEngineInstance = useCallback((): AccuracyEngine => {
@@ -150,6 +158,20 @@ export function useStretchingSession(
   useEffect(() => {
     accuracyEngineRef.current = createAccuracyEngineInstance();
   }, [createAccuracyEngineInstance]);
+
+  const handleSessionLog = useEvent(
+    (event: { type: string; detail?: Readonly<Record<string, unknown>> }) => {
+      performanceTrackerRef.current.onLog(event);
+
+      if (process.env.NODE_ENV === 'production') return;
+      const payload = event.detail ?? {};
+      console.debug(`[stretching-session] ${event.type}`, payload);
+    },
+  );
+
+  const handleSessionError = useEvent((error: Error) => {
+    performanceTrackerRef.current.onError(error);
+  });
 
   const stepStartAtRef = useRef<number | null>(null);
   const holdMsRef = useRef(0); ///hold 시간 누적용
@@ -626,6 +648,9 @@ export function useStretchingSession(
     if (!canvasRef.current) return;
     if (!isInitialDataReady) return;
 
+    //세션 재생성마다 성능 측정 상태 리셋
+    performanceTrackerRef.current.reset();
+
     isCanvasReadyRef.current = false;
     setIsCanvasReady(false);
 
@@ -659,7 +684,19 @@ export function useStretchingSession(
       getTotalDurationMs: () => (currentStepRef.current?.durationTime ?? 0) * 1000,
       onAccuracyDebug: options?.debug?.onAccuracyDebug,
       mirrorInput: STRETCHING_SESSION_CONFIG.ACCURACY_INPUT_MIRROR_MODE,
-      onTick: ({ videoWidth, videoHeight }: { videoWidth: number; videoHeight: number }) => {
+      onTick: ({
+        timestampMs,
+        hasPose,
+        videoWidth,
+        videoHeight,
+      }: {
+        timestampMs: number;
+        hasPose: boolean;
+        videoWidth: number;
+        videoHeight: number;
+      }) => {
+        performanceTrackerRef.current.onTick({ timestampMs, hasPose, videoWidth, videoHeight });
+
         if (!isCanvasReadyRef.current && videoWidth !== 0 && videoHeight !== 0) {
           isCanvasReadyRef.current = true;
           if (!sessionStartedAtRef.current) {
@@ -693,12 +730,8 @@ export function useStretchingSession(
           routineStepId: currentStepRef.current?.routineStepId,
         });
       },
-      onLog: ({ type, detail }) => {
-        if (process.env.NODE_ENV === 'production') return;
-        const payload = detail ?? {};
-
-        console.debug(`[stretching-session] ${type}`, payload);
-      },
+      onLog: handleSessionLog,
+      onError: handleSessionError,
       onAccuracy: handleAccuracy,
 
       visualization: {
@@ -751,6 +784,8 @@ export function useStretchingSession(
     getProgressRatio,
     getRenderProgressRatio,
     handleAccuracy,
+    handleSessionError,
+    handleSessionLog,
     isInitialDataReady,
     options?.debug?.onAccuracyDebug,
     options?.targetFps,
