@@ -1,10 +1,9 @@
+export type {
+  AlarmSettingsDataType,
+  AlarmSettingsRequestDTO,
+  AlarmSettingsResponseDTO,
+} from './api';
+export { fetchAlarmSettingsFn, submitAlarmSettingsFn } from './api';
 export { WEEKDAY_VALUES } from './config/constants';
 export { toAlarmSettingsValues } from './lib/to-alarm-settings-values';
-export type {
-  AlarmSettings,
-  AlarmSettingsData,
-  AlarmSettingsFormValues,
-  AlarmSettingsRequest,
-  AlarmSettingsResponse,
-  Weekday,
-} from './model/types';
+export type { AlarmSettingsFormValuesType, AlarmSettingsType, WeekdayType } from './model/types';
