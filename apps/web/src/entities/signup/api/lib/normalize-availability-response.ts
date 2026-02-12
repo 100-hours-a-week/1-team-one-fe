@@ -2,13 +2,13 @@ import type { ApiResponse } from '@/src/shared/api';
 
 import type {
   AvailabilityResult,
-  DuplicationErrorResponse,
+  DuplicationErrorResponseDTO,
   DuplicationField,
-  EmailAvailabilityData,
-  NicknameAvailabilityData,
-} from '../api/types';
+  EmailAvailabilityDataType,
+  NicknameAvailabilityDataType,
+} from '../dto/availability.dto';
 
-type AvailabilityData = EmailAvailabilityData | NicknameAvailabilityData;
+type AvailabilityData = EmailAvailabilityDataType | NicknameAvailabilityDataType;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -21,7 +21,7 @@ const hasAvailabilityData = (payload: unknown): payload is ApiResponse<Availabil
   return typeof data.available === 'boolean';
 };
 
-const hasDuplicationErrors = (payload: unknown): payload is DuplicationErrorResponse => {
+const hasDuplicationErrors = (payload: unknown): payload is DuplicationErrorResponseDTO => {
   if (!isRecord(payload)) return false;
   if (!('errors' in payload)) return false;
   if (!Array.isArray(payload.errors)) return false;
@@ -30,7 +30,7 @@ const hasDuplicationErrors = (payload: unknown): payload is DuplicationErrorResp
 };
 
 const getDuplicationError = (
-  payload: DuplicationErrorResponse,
+  payload: DuplicationErrorResponseDTO,
   field: DuplicationField,
 ): AvailabilityResult['error'] | null => {
   const match = payload.errors.find(
