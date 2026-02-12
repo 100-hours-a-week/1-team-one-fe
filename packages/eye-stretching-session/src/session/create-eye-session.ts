@@ -123,6 +123,19 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
 
   let isRunning = false;
 
+  /**
+   * 캘리브레이션 데이터 기록 주기 (ms)
+   *
+   * WebGazer ridge regression의 click DataWindow는 최대 50개.
+   * 매 프레임(~30fps) 기록하면 ~1.7초 만에 50칸이 차서
+   * 이전 follow 타겟 데이터가 덮어씌워진다.
+   *
+   * 400ms 간격이면 follow 타겟당 ~7개 × 6타겟 = ~42개로
+   * 모든 캘리브레이션 위치가 DataWindow에 보존된다.
+   */
+  const CALIBRATE_INTERVAL_MS = 400;
+  let lastCalibrateAt = 0;
+
   const emitLog = (type: string, detail?: Readonly<Record<string, unknown>>): void => {
     onLog?.({ type, detail });
   };
@@ -145,16 +158,22 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
 
     try {
       const timestampMs = performance.now();
+
+      // WebGazer 내부 util.bound()와 동일한 뷰포트 기준 사용
+      // (clientWidth/Height vs innerWidth/Height 불일치 시 대각선 왜곡 방지)
+      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+      const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
       const gaze = {
-        x: prediction.x / window.innerWidth,
-        y: prediction.y / window.innerHeight,
+        x: prediction.x / vw,
+        y: prediction.y / vh,
       };
 
       // 30프레임마다 1회 로깅 (콘솔 과부하 방지)
       if (gazeLogCounter % 30 === 0) {
         emitLog('gaze_frame', {
           raw: { x: prediction.x, y: prediction.y },
-          viewport: { w: window.innerWidth, h: window.innerHeight },
+          viewport: { w: vw, h: vh },
           normalized: { x: gaze.x, y: gaze.y },
         });
       }
@@ -166,12 +185,16 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
       const currentTargetIndex = getCurrentTargetIndex();
       const holdMs = getHoldMs();
 
-      // follow phase → WebGazer ridge regression 캘리브레이션 데이터 주입 (매 프레임)
+      // follow phase → WebGazer ridge regression 캘리브레이션 데이터 주입
+      // DataWindow(50) 오버플로 방지를 위해 CALIBRATE_INTERVAL_MS 간격으로 기록
       const currentTarget = resolvedReference.keyFrames[currentTargetIndex];
       if (currentTarget && currentTarget.phase.startsWith('follow') && tracker.calibrate) {
-        const pixelX = currentTarget.x * window.innerWidth;
-        const pixelY = currentTarget.y * window.innerHeight;
-        tracker.calibrate(pixelX, pixelY);
+        if (timestampMs - lastCalibrateAt >= CALIBRATE_INTERVAL_MS) {
+          lastCalibrateAt = timestampMs;
+          const pixelX = currentTarget.x * vw;
+          const pixelY = currentTarget.y * vh;
+          tracker.calibrate(pixelX, pixelY);
+        }
       }
 
       const result = engine.evaluate({

@@ -13,7 +13,16 @@ declare module 'webgazer' {
     showFaceFeedbackBox(show: boolean): WebGazer;
     recordScreenPosition(x: number, y: number, eventType?: string): WebGazer;
     clearData(): void;
-    begin(): void;
+    removeMouseEventListeners(): WebGazer;
+    getRegression(): Array<{
+      addData(eyes: unknown, screenPos: unknown, type: string): void;
+      [key: string]: unknown;
+    }>;
+    params: {
+      saveDataAcrossSessions: boolean;
+      [key: string]: unknown;
+    };
+    begin(): Promise<WebGazer>;
     end(): void;
   }
 
