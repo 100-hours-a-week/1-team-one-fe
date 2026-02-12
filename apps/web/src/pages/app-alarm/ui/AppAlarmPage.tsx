@@ -2,19 +2,19 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import { toAlarmSettingsValues } from '@/src/entities/alarm-settings';
-import { useAlarmSettingsQuery } from '@/src/features/alarm-settings';
-import { ALARM_SETTINGS_QUERY_KEYS } from '@/src/features/alarm-settings/config/query-keys';
 import {
-  type AlarmSettingsValues,
+  ALARM_SETTINGS_QUERY_KEYS,
+  type AlarmSettingsValuesType,
   NotificationSettingsForm,
   toAlarmSettingsRequest,
   useAlarmSettingsMutation,
-} from '@/src/features/onboarding-alarm-settings';
+  useAlarmSettingsQuery,
+} from '@/src/features/alarm-settings';
 import {
   DEFAULT_WEEKDAYS,
   INTERVAL_CONFIG,
   TIME_CONFIG,
-} from '@/src/features/onboarding-alarm-settings/config';
+} from '@/src/features/alarm-settings/config';
 import {
   PushPermissionBottomSheet,
   usePushPermissionSheet,
@@ -25,7 +25,7 @@ import { ErrorScreen } from '@/src/shared/ui/error-screen';
 
 import { AppAlarmPageSkeleton } from './AppAlarmPage.skeleton';
 
-const fallbackValues: AlarmSettingsValues = {
+const fallbackValues: AlarmSettingsValuesType = {
   intervalMinutes: INTERVAL_CONFIG.DEFAULT_MINUTES,
   activeStart: TIME_CONFIG.DEFAULT_ACTIVE_START,
   activeEnd: TIME_CONFIG.DEFAULT_ACTIVE_END,
@@ -50,7 +50,7 @@ export function AppAlarmPage() {
     },
   });
 
-  const handleSubmit = async (values: AlarmSettingsValues) => {
+  const handleSubmit = async (values: AlarmSettingsValuesType) => {
     await mutateAsync(toAlarmSettingsRequest(values));
   };
 
