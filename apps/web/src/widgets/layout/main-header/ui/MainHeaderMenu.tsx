@@ -19,9 +19,9 @@ import { Menu } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
-import { DndBottomSheet } from '@/src/features/alarm-settings';
 import { useLogoutMutation } from '@/src/features/auth/logout';
 import { ROUTES } from '@/src/shared/routes/routes';
+import { DndBottomSheet } from '@/src/widgets/dnd-bottom-sheet';
 
 import { MAIN_HEADER_MESSAGES } from '../config/messages';
 
