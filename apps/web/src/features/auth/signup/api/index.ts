@@ -1,21 +1,17 @@
-export { useEmailAvailabilityQuery } from './email-availability';
-export { useNicknameAvailabilityQuery } from './nickname-availability';
+export { useEmailAvailabilityQuery } from './useEmailAvailabilityQuery';
+export { useNicknameAvailabilityQuery } from './useNicknameAvailabilityQuery';
+export { useProfileImageUploadMutation } from './useProfileImageUploadMutation';
+export { useSignupMutation } from './useSignupMutation';
 export type {
-  ProfileImageUploadUrlData,
-  ProfileImageUploadUrlRequest,
-} from './profile-image-upload';
-export {
-  PROFILE_IMAGE_UPLOAD_ERROR_CODE,
-  uploadToPresignedPut,
-  useProfileImageUploadMutation,
-} from './profile-image-upload';
-export { useSignupMutation } from './signup-mutation';
-export type {
-  EmailAvailabilityData,
-  EmailAvailabilityResponse,
-  NicknameAvailabilityData,
-  NicknameAvailabilityResponse,
-  SignupData,
-  SignupRequest,
-  SignupResponse,
-} from './types';
+  EmailAvailabilityDataType,
+  EmailAvailabilityResponseDTO,
+  NicknameAvailabilityDataType,
+  NicknameAvailabilityResponseDTO,
+  ProfileImageUploadUrlDataType,
+  ProfileImageUploadUrlRequestDTO,
+  ProfileImageUploadUrlResponseDTO,
+  SignupDataType,
+  SignupRequestDTO,
+  SignupResponseDTO,
+} from '@/src/entities/signup';
+export { PROFILE_IMAGE_UPLOAD_ERROR_CODE, uploadToPresignedPutFn } from '@/src/entities/signup';
