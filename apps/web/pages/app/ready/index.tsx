@@ -1,4 +1,4 @@
-import { createAuthenticatedLayout } from '@/src/shared/lib/layout';
+import { createAuthenticatedLayout } from '@/src/shared/lib/layout/layout';
 import type { NextPageWithLayout } from '@/src/shared/types';
 import { DevelopingScreen } from '@/src/shared/ui/developing-screen/DevelopingScreen';
 

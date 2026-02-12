@@ -5,7 +5,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 
 import { isApiError } from '@/src/shared/api';
 import { HTTP_STATUS } from '@/src/shared/config/http-status';
-import { useClearFieldErrorsOnChange } from '@/src/shared/lib/form/use-clear-field-errors-on-change';
+import { useClearFieldErrorsOnChange } from '@/src/shared/lib/form/useClearFieldErrorsOnChange';
 
 import { EmailField, PasswordField } from '../../ui';
 import { LOGIN_FORM_MESSAGES } from '../config/messages';
