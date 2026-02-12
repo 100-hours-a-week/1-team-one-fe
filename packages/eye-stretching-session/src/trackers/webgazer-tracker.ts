@@ -93,14 +93,10 @@ export function createWebGazerTracker(
       await webgazer.begin();
       webgazer.removeMouseEventListeners();
 
-      // regression 모델의 addData를 패치하여 'move' 타입(마우스 trail) 데이터 차단
-      for (const reg of webgazer.getRegression()) {
-        const origAddData = reg.addData;
-        reg.addData = (eyes: unknown, screenPos: unknown, type: string) => {
-          if (type === 'move') return;
-          origAddData.call(reg, eyes, screenPos, type);
-        };
-      }
+      // 'move' 차단 패치 제거됨:
+      // 이전에는 마우스 trail 오염 방지를 위해 addData('move')를 차단했으나,
+      // 이제 프로그래밍 방식으로 'move' (보간 trail)와 'click' (keyFrame 정확 좌표)을
+      // 구분하여 주입한다. removeMouseEventListeners()로 실제 마우스 이벤트는 이미 차단됨.
 
       // 부트스트랩: 뷰포트 중앙에 seed click 데이터 주입.
       //
@@ -163,8 +159,8 @@ export function createWebGazerTracker(
       });
     },
 
-    calibrate: (pixelX, pixelY) => {
-      webgazer.recordScreenPosition(pixelX, pixelY, 'click');
+    calibrate: (pixelX, pixelY, eventType = 'click') => {
+      webgazer.recordScreenPosition(pixelX, pixelY, eventType);
     },
   };
 }

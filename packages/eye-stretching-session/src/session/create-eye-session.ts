@@ -36,6 +36,7 @@ import type {
   GazeFrame,
 } from '../types';
 import { createEyeStretchingEngine } from '../engine/create-eye-engine';
+import { interpolateFollowTarget } from '../utils/interpolate-target';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Eye Tracker 인터페이스 (라이브러리 무관)
@@ -65,8 +66,11 @@ export type EyeTracker = {
   stop: () => void;
   /** 시선 데이터 수신 콜백 등록 */
   onGaze: (callback: (prediction: GazePrediction) => void) => void;
-  /** 캘리브레이션 데이터 주입 (pixel 좌표) — follow phase에서 호출 */
-  calibrate?: (pixelX: number, pixelY: number) => void;
+  /**
+   * 캘리브레이션 데이터 주입 (pixel 좌표)
+   * @param eventType 'click' = keyFrame 정확 좌표 (고가중), 'move' = 보간 trail (저가중)
+   */
+  calibrate?: (pixelX: number, pixelY: number, eventType?: 'click' | 'move') => void;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -124,17 +128,31 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
   let isRunning = false;
 
   /**
-   * 캘리브레이션 데이터 기록 주기 (ms)
-   *
-   * WebGazer ridge regression의 click DataWindow는 최대 50개.
-   * 매 프레임(~30fps) 기록하면 ~1.7초 만에 50칸이 차서
-   * 이전 follow 타겟 데이터가 덮어씌워진다.
-   *
-   * 400ms 간격이면 follow 타겟당 ~7개 × 6타겟 = ~42개로
-   * 모든 캘리브레이션 위치가 DataWindow에 보존된다.
+   * 모바일 브라우저 뷰포트 안정화:
+   * 주소창 표시/숨김으로 clientWidth/innerHeight가 ±10% 변동하면
+   * 캘리브레이션 pixel↔정규화 매핑이 프레임마다 달라져 학습 데이터 오염.
+   * → 세션 시작 시 1회 캡처하여 전체 세션에서 고정 사용.
    */
-  const CALIBRATE_INTERVAL_MS = 400;
-  let lastCalibrateAt = 0;
+  let fixedVw = 0;
+  let fixedVh = 0;
+
+  /**
+   * WebGazer ridge regression 데이터 구조:
+   *   - 'click' DataWindow(50): 주요 학습 데이터 (영구, 최근 50개)
+   *   - 'move'  DataWindow(10): 최근 컨텍스트 (~1초)
+   *   - predict() = ridge(50 clicks + 10 moves)
+   *
+   * Vanilla WebGazer 패턴 재현:
+   *   'click' (400ms 간격): 보간 trail + keyFrame → click DataWindow(50) 채움
+   *   'move'  (100ms 간격): 보간 trail → move DataWindow(10) 채움 (최근 1초 컨텍스트)
+   */
+  const CALIBRATE_CLICK_INTERVAL_MS = 400;
+  const CALIBRATE_MOVE_INTERVAL_MS = 100;
+  let lastClickCalibrateAt = 0;
+  let lastMoveCalibrateAt = 0;
+
+  /** 타겟 advance 감지용 — 각 keyFrame 정확 좌표에서 클릭 기록 */
+  let prevResultTargetIndex = 0;
 
   const emitLog = (type: string, detail?: Readonly<Record<string, unknown>>): void => {
     onLog?.({ type, detail });
@@ -159,14 +177,18 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
     try {
       const timestampMs = performance.now();
 
-      // WebGazer 내부 util.bound()와 동일한 뷰포트 기준 사용
-      // (clientWidth/Height vs innerWidth/Height 불일치 시 대각선 왜곡 방지)
-      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-      const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+      // 첫 프레임에서 뷰포트 크기 고정 (모바일 주소창 변동 방지)
+      if (fixedVw === 0) {
+        fixedVw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        fixedVh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+        emitLog('viewport_locked', { vw: fixedVw, vh: fixedVh });
+      }
+      const vw = fixedVw;
+      const vh = fixedVh;
 
       const gaze = {
-        x: prediction.x / vw,
-        y: prediction.y / vh,
+        x: Math.max(0, Math.min(1, prediction.x / vw)),
+        y: Math.max(0, Math.min(1, prediction.y / vh)),
       };
 
       // 30프레임마다 1회 로깅 (콘솔 과부하 방지)
@@ -185,15 +207,31 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
       const currentTargetIndex = getCurrentTargetIndex();
       const holdMs = getHoldMs();
 
-      // follow phase → WebGazer ridge regression 캘리브레이션 데이터 주입
-      // DataWindow(50) 오버플로 방지를 위해 CALIBRATE_INTERVAL_MS 간격으로 기록
+      // ── 캘리브레이션 데이터 주입 (follow phase에서만) ──────────────
+      // follow phase: 가이드 dot을 따라가므로 시선 위치를 알 수 있다 → 학습 데이터 주입
+      // hold phase: 시선 정확도를 측정하는 구간 → 캘리브레이션 하면 모델 오염
       const currentTarget = resolvedReference.keyFrames[currentTargetIndex];
-      if (currentTarget && currentTarget.phase.startsWith('follow') && tracker.calibrate) {
-        if (timestampMs - lastCalibrateAt >= CALIBRATE_INTERVAL_MS) {
-          lastCalibrateAt = timestampMs;
-          const pixelX = currentTarget.x * vw;
-          const pixelY = currentTarget.y * vh;
-          tracker.calibrate(pixelX, pixelY);
+      const isFollowPhase = currentTarget?.phase.startsWith('follow');
+
+      if (isFollowPhase && currentTarget && tracker.calibrate) {
+        const interpolated = interpolateFollowTarget(
+          resolvedReference.keyFrames,
+          currentTargetIndex,
+          holdMs,
+        );
+        const pixelX = interpolated.x * vw;
+        const pixelY = interpolated.y * vh;
+
+        // 'click' (400ms): click DataWindow(50) — 주요 학습 데이터
+        if (timestampMs - lastClickCalibrateAt >= CALIBRATE_CLICK_INTERVAL_MS) {
+          lastClickCalibrateAt = timestampMs;
+          tracker.calibrate(pixelX, pixelY, 'click');
+        }
+
+        // 'move' (100ms): move DataWindow(10) — 최근 ~1초 컨텍스트
+        if (timestampMs - lastMoveCalibrateAt >= CALIBRATE_MOVE_INTERVAL_MS) {
+          lastMoveCalibrateAt = timestampMs;
+          tracker.calibrate(pixelX, pixelY, 'move');
         }
       }
 
@@ -203,6 +241,30 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
         currentTargetIndex,
         holdMs,
       });
+
+      // ── keyFrame 정확 좌표 클릭 (target advance 감지, follow→* 전환만) ──
+      // follow phase가 완료되었을 때만 해당 keyFrame 정확 좌표에 클릭 기록.
+      // hold phase 완료 시에는 기록하지 않는다 (측정 구간이므로).
+      if (result.currentTargetIndex !== prevResultTargetIndex && tracker.calibrate) {
+        const completedTarget = resolvedReference.keyFrames[prevResultTargetIndex];
+        const wasFollowPhase = completedTarget?.phase.startsWith('follow');
+
+        if (completedTarget && wasFollowPhase) {
+          tracker.calibrate(completedTarget.x * vw, completedTarget.y * vh, 'click');
+          emitLog('calibrate_keyframe', {
+            type: 'complete',
+            targetIndex: prevResultTargetIndex,
+            phase: completedTarget.phase,
+            x: completedTarget.x,
+            y: completedTarget.y,
+          });
+        }
+
+        // 스로틀 리셋 → 새 follow 타겟의 연속 캘리브레이션이 즉시 시작
+        lastClickCalibrateAt = 0;
+        lastMoveCalibrateAt = 0;
+        prevResultTargetIndex = result.currentTargetIndex;
+      }
 
       // 30프레임마다 1회 로깅
       if ((gazeLogCounter - 1) % 30 === 0) {

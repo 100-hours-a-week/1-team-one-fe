@@ -16,7 +16,7 @@ export { createWebGazerTracker } from './trackers/webgazer-tracker';
 export type { WebGazerInstance, WebGazerTrackerOptions } from './trackers/webgazer-tracker';
 
 // utils
-export { createGazeSmoother } from './utils';
+export { createGazeSmoother, interpolateFollowTarget } from './utils';
 
 // types
 export type {

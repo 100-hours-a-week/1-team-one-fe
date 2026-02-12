@@ -66,6 +66,10 @@ export type UseEyeStretchingSessionResult = {
   gazeX: number;
   /** 시선 y 좌표 (0~1 정규화) */
   gazeY: number;
+  /** 가이드 dot x 좌표 (follow 보간 / hold 고정, 0~1 정규화) */
+  guideX: number;
+  /** 가이드 dot y 좌표 (follow 보간 / hold 고정, 0~1 정규화) */
+  guideY: number;
   /** 에러 */
   error: Error | null;
 };
@@ -121,6 +125,8 @@ export function useEyeStretchingSession(
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(options?.limitTimeSeconds ?? 0);
   const [gazeX, setGazeX] = useState(0);
   const [gazeY, setGazeY] = useState(0);
+  const [guideX, setGuideX] = useState(0.5);
+  const [guideY, setGuideY] = useState(0.5);
   const [error, setError] = useState<Error | null>(null);
 
   // ── reference ref 최신화 ─────────────────────────────────────────────
@@ -138,13 +144,20 @@ export function useEyeStretchingSession(
     // 2. 엔진 output → refs 갱신 (다음 프레임 input용)
     prevTargetIndexRef.current = result.currentTargetIndex;
 
-    // 3. phase / target / progressRatio / gaze → UI
+    // 3. phase / target / progressRatio / gaze / guide → UI
     phaseRef.current = result.phase;
     setPhase(result.phase);
     setCurrentTargetIndex(result.currentTargetIndex);
     setProgressRatio(result.progressRatio);
     setGazeX(frame.gaze.x);
     setGazeY(frame.gaze.y);
+
+    // 엔진이 계산한 보간된 가이드 dot 위치 (follow: cursor trail, hold: 고정)
+    const meta = result.meta as { interpolatedTarget?: { x: number; y: number } } | undefined;
+    if (meta?.interpolatedTarget) {
+      setGuideX(meta.interpolatedTarget.x);
+      setGuideY(meta.interpolatedTarget.y);
+    }
 
     // 4. score → UI (throttled)
     const now = performance.now();
@@ -174,8 +187,12 @@ export function useEyeStretchingSession(
     }
 
     // 7. holdMs 누적
-    if (result.score < EYE_SESSION_CONFIG.SUCCESS_SCORE_THRESHOLD) {
-      // 실패 시 리셋
+    // follow phase: 캘리브레이션이므로 score 무관하게 항상 누적 (auto-advance)
+    // hold phase:   score threshold 기반 누적/리셋
+    const isFollowPhase = result.phase.startsWith('follow');
+
+    if (!isFollowPhase && result.score < EYE_SESSION_CONFIG.SUCCESS_SCORE_THRESHOLD) {
+      // hold phase 실패 시 리셋
       if (EYE_SESSION_CONFIG.RESET_HOLD_ON_FAILURE) {
         holdMsRef.current = 0;
         if (lastUiHoldSecondsRef.current !== 0) {
@@ -187,7 +204,7 @@ export function useEyeStretchingSession(
       return;
     }
 
-    // 성공 시 delta 누적
+    // follow: 항상 누적 / hold: score >= threshold 시 누적
     const lastAt = lastResultAtRef.current ?? frame.timestampMs;
     const deltaMs = Math.max(0, frame.timestampMs - lastAt);
     lastResultAtRef.current = frame.timestampMs;
@@ -349,6 +366,8 @@ export function useEyeStretchingSession(
     timeRemainingSeconds,
     gazeX,
     gazeY,
+    guideX,
+    guideY,
     error,
   };
 }

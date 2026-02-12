@@ -39,6 +39,8 @@ export function EyeStretchingSessionView({
     timeRemainingSeconds,
     gazeX,
     gazeY,
+    guideX,
+    guideY,
     error,
   } = useEyeStretchingSession(reference, { limitTimeSeconds });
 
@@ -138,11 +140,11 @@ export function EyeStretchingSessionView({
             calibrationRemainingSeconds={calibrationRemainingSeconds}
           />
 
-          {currentTarget && phase.startsWith('follow') && (
+          {currentTarget && (
             <EyeStretchingGuideDot
               phase={phase}
-              targetX={currentTarget.x}
-              targetY={currentTarget.y}
+              targetX={guideX}
+              targetY={guideY}
               calibrationRemainingSeconds={calibrationRemainingSeconds}
             />
           )}

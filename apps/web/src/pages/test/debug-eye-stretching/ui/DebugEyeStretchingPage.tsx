@@ -11,17 +11,26 @@ import { EyeStretchingOverlay } from '@/src/features/eye-stretching-session/ui/E
 const MOCK_REFERENCE: EyeStretchingReference = {
   keyFrames: [
     { phase: 'follow1', x: 0.5, y: 0.5, holdMs: 3000 },
-    { phase: 'follow2', x: 0.1, y: 0.1, holdMs: 3000 },
-    { phase: 'follow3', x: 0.9, y: 0.1, holdMs: 3000 },
-    { phase: 'follow4', x: 0.9, y: 0.9, holdMs: 3000 },
-    { phase: 'follow5', x: 0.1, y: 0.9, holdMs: 3000 },
-    { phase: 'follow6', x: 0.5, y: 0.5, holdMs: 3000 },
-    { phase: 'hold1', x: 0.9, y: 0.5, holdMs: 10000 },
-    { phase: 'hold2', x: 0.1, y: 0.5, holdMs: 10000 },
-    { phase: 'hold3', x: 0.9, y: 0.5, holdMs: 10000 },
-    { phase: 'hold4', x: 0.1, y: 0.5, holdMs: 10000 },
+    { phase: 'follow2', x: 0.1, y: 0.1, holdMs: 1500 },
+    { phase: 'follow3', x: 0.5, y: 0.1, holdMs: 1500 },
+    { phase: 'follow4', x: 0.9, y: 0.1, holdMs: 1500 },
+    { phase: 'follow5', x: 0.9, y: 0.5, holdMs: 3000 },
+    { phase: 'follow6', x: 0.9, y: 0.9, holdMs: 3000 },
+    { phase: 'follow7', x: 0.5, y: 0.9, holdMs: 1500 },
+    { phase: 'follow8', x: 0.1, y: 0.9, holdMs: 1500 },
+    { phase: 'follow9', x: 0.1, y: 0.5, holdMs: 3000 },
+    { phase: 'follow10', x: 0.1, y: 0.1, holdMs: 3000 },
+    { phase: 'follow11', x: 0.5, y: 0.5, holdMs: 3000 },
+    { phase: 'follow12', x: 0.9, y: 0.9, holdMs: 3000 },
+    { phase: 'follow13', x: 0.1, y: 0.9, holdMs: 3000 },
+    { phase: 'follow14', x: 0.5, y: 0.5, holdMs: 3000 },
+    { phase: 'follow15', x: 0.9, y: 0.1, holdMs: 3000 },
+    { phase: 'hold1', x: 1.0, y: 0.5, holdMs: 10000 },
+    { phase: 'hold2', x: 0.0, y: 0.5, holdMs: 10000 },
+    { phase: 'hold3', x: 0.5, y: 0.0, holdMs: 10000 },
+    { phase: 'hold4', x: 0.5, y: 1.0, holdMs: 10000 },
   ],
-  totalDurationMs: 58000,
+  totalDurationMs: 67000,
 };
 
 const MOCK_LIMIT_TIME_SECONDS = 60;
@@ -39,6 +48,8 @@ export function DebugEyeStretchingPage() {
     timeRemainingSeconds,
     gazeX,
     gazeY,
+    guideX,
+    guideY,
     error,
   } = useEyeStretchingSession(MOCK_REFERENCE, {
     limitTimeSeconds: MOCK_LIMIT_TIME_SECONDS,
@@ -90,11 +101,11 @@ export function DebugEyeStretchingPage() {
             calibrationRemainingSeconds={calibrationRemainingSeconds}
           />
 
-          {currentTarget && phase.startsWith('follow') && (
+          {currentTarget && (
             <EyeStretchingGuideDot
               phase={phase}
-              targetX={currentTarget.x}
-              targetY={currentTarget.y}
+              targetX={guideX}
+              targetY={guideY}
               calibrationRemainingSeconds={calibrationRemainingSeconds}
             />
           )}

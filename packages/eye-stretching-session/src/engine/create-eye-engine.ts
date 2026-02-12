@@ -28,7 +28,14 @@
 
 import type { EyeStretchingEngine, EyeEvaluateInput, EyeSessionResult } from '../types';
 import { createGazeSmoother } from '../utils/gaze-smoothing';
-import { GAZE_SMOOTHING_FACTOR, GAZE_TOLERANCE, SCORE_SMOOTHING_FACTOR } from '../constants';
+import { interpolateFollowTarget } from '../utils/interpolate-target';
+import {
+  GAZE_SMOOTHING_FACTOR,
+  GAZE_TOLERANCE,
+  SCORE_SMOOTHING_FACTOR,
+  SCORING_TARGET_MAX,
+  SCORING_TARGET_MIN,
+} from '../constants';
 
 /**
  * 눈운동 스트레칭 평가 엔진 생성
@@ -110,12 +117,15 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
     // ─────────────────────────────────────────────────────────────────
     // 3. 시선-목표 거리 → score 계산
     // ─────────────────────────────────────────────────────────────────
-    const rawScore = calculateGazeScore(
-      smoothedGaze.x,
-      smoothedGaze.y,
-      currentTarget.x,
-      currentTarget.y,
-    );
+    // follow phase: cursor trail 보간된 위치를 스코어링 대상으로 사용
+    // hold phase:   고정된 타겟 위치를 사용
+    const interpolated = interpolateFollowTarget(keyFrames, currentIdx, holdMs);
+
+    // WebGazer 실측 정확도 범위로 클램프 (뷰포트 극단은 예측 불가)
+    const scoringX = Math.max(SCORING_TARGET_MIN, Math.min(SCORING_TARGET_MAX, interpolated.x));
+    const scoringY = Math.max(SCORING_TARGET_MIN, Math.min(SCORING_TARGET_MAX, interpolated.y));
+
+    const rawScore = calculateGazeScore(smoothedGaze.x, smoothedGaze.y, scoringX, scoringY);
     const finalScore = smoothScore(rawScore);
 
     // ─────────────────────────────────────────────────────────────────
@@ -163,9 +173,8 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
       progressRatio,
       meta: {
         smoothedGaze,
-        distance: Math.sqrt(
-          (smoothedGaze.x - currentTarget.x) ** 2 + (smoothedGaze.y - currentTarget.y) ** 2,
-        ),
+        distance: Math.sqrt((smoothedGaze.x - scoringX) ** 2 + (smoothedGaze.y - scoringY) ** 2),
+        interpolatedTarget: interpolated,
       },
     };
   };
