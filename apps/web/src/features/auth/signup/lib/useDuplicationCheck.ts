@@ -7,7 +7,8 @@ import {
   useWatch,
 } from 'react-hook-form';
 
-import type { AvailabilityResult } from '../api/types';
+import type { AvailabilityResult } from '@/src/entities/signup';
+
 import type { SignupFormValues } from '../model/signup-schema';
 import type { DupState } from './types';
 
