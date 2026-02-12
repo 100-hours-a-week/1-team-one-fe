@@ -1,2 +1,2 @@
-export { useStretchingSession } from './lib/use-stretching-session';
+export { useStretchingSession } from './lib/useStretchingSession';
 export { StretchingSessionView } from './ui/StretchingSessionView';
