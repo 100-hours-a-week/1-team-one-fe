@@ -3,7 +3,7 @@ import type { Control, UseFormClearErrors, UseFormSetError } from 'react-hook-fo
 import { useNicknameAvailabilityQuery } from '../api';
 import { FORM_MESSAGES } from '../config/form-messages';
 import type { SignupFormValues } from '../model/signup-schema';
-import { useDuplicationCheck } from './use-duplication-check';
+import { useDuplicationCheck } from './useDuplicationCheck';
 
 export function useNicknameDuplication(
   control: Control<SignupFormValues>,

@@ -1,7 +1,7 @@
 import { Card } from '@repo/ui/card';
 
 import { buildStretchSessionPath } from '@/src/shared/routes';
-import { LinkCard } from '@/src/shared/ui/LinkCard';
+import { LinkCard } from '@/src/shared/ui/link-card';
 
 import { APP_MAIN_MESSAGES } from '../config/messages';
 

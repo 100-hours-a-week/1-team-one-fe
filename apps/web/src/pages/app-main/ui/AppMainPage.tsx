@@ -7,7 +7,7 @@ import { transformGrassData, useGrassStatsQuery } from '@/src/features/grass-sta
 import { useUserProfileQuery } from '@/src/features/user-profile';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen';
-import { LinkCard } from '@/src/shared/ui/LinkCard';
+import { LinkCard } from '@/src/shared/ui/link-card';
 import { UserStatusCardSection } from '@/src/widgets/user-status-card';
 
 import { APP_MAIN_ACTION_CARDS } from '../config/action-cards';
