@@ -1,19 +1,19 @@
 import type { ApiResponse } from '@/src/shared/api';
 
-export interface LoginRequest {
+export interface LoginRequestDTO {
   email: string;
   password: string;
 }
 
-export interface LoginTokens {
+export interface LoginTokensType {
   accessToken: string;
   refreshToken: string;
 }
 
-export interface LoginData {
-  tokens: LoginTokens;
+export interface LoginDataType {
+  tokens: LoginTokensType;
   userId: number;
   isOnboardingCompleted: boolean;
 }
 
-export type LoginResponse = ApiResponse<LoginData>;
+export type LoginResponseDTO = ApiResponse<LoginDataType>;
