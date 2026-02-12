@@ -6,15 +6,14 @@ import { Controller, useForm } from 'react-hook-form';
 
 import { isApiError } from '@/src/shared/api';
 
-import { FORM_MESSAGES, INTERVAL_CONFIG } from '../config';
-import { ALARM_SETTINGS_FIELD_MAP } from '../config/field-map';
-import { alarmSettingsSchema, type AlarmSettingsValues } from '../lib';
+import { ALARM_SETTINGS_FIELD_MAP, FORM_MESSAGES, INTERVAL_CONFIG } from '../config';
+import { alarmSettingsSchema, type AlarmSettingsValuesType } from '../model/alarm-settings-schema';
 import { IntervalStepper } from './IntervalStepper';
 import { WeekdaySelector } from './WeekdaySelector';
 
 export interface NotificationSettingsFormProps {
-  defaultValues: AlarmSettingsValues;
-  onSubmit: (values: AlarmSettingsValues) => Promise<void>;
+  defaultValues: AlarmSettingsValuesType;
+  onSubmit: (values: AlarmSettingsValuesType) => Promise<void>;
   submitLabel: string;
 }
 
@@ -23,7 +22,7 @@ export function NotificationSettingsForm({
   onSubmit,
   submitLabel,
 }: NotificationSettingsFormProps) {
-  const { control, handleSubmit, formState, setError } = useForm<AlarmSettingsValues>({
+  const { control, handleSubmit, formState, setError } = useForm<AlarmSettingsValuesType>({
     resolver: zodResolver(alarmSettingsSchema),
     mode: 'onBlur',
     defaultValues,
@@ -31,7 +30,7 @@ export function NotificationSettingsForm({
 
   //TODO: 리팩토링
   //TODO: key 상수화
-  const handleFormSubmit = async (values: AlarmSettingsValues) => {
+  const handleFormSubmit = async (values: AlarmSettingsValuesType) => {
     try {
       await onSubmit(values);
     } catch (error: unknown) {
