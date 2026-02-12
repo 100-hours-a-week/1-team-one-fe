@@ -1,16 +1,16 @@
 import { useRouter } from 'next/router';
 
 import {
-  type AlarmSettingsValues,
+  type AlarmSettingsValuesType,
   NotificationSettingsForm,
   toAlarmSettingsRequest,
   useAlarmSettingsMutation,
-} from '@/src/features/onboarding-alarm-settings';
+} from '@/src/features/alarm-settings';
 import {
   DEFAULT_WEEKDAYS,
   INTERVAL_CONFIG,
   TIME_CONFIG,
-} from '@/src/features/onboarding-alarm-settings/config';
+} from '@/src/features/alarm-settings/config';
 import { enablePushNotifications, usePutFcmTokenMutation } from '@/src/features/push-notifications';
 import { ROUTES } from '@/src/shared/routes/routes';
 
@@ -19,7 +19,7 @@ export function OnboardingAlarmPage() {
   const { mutateAsync: putFcmToken } = usePutFcmTokenMutation();
   const { mutateAsync } = useAlarmSettingsMutation();
 
-  const handleSubmit = async (values: AlarmSettingsValues) => {
+  const handleSubmit = async (values: AlarmSettingsValuesType) => {
     await mutateAsync(toAlarmSettingsRequest(values));
     await enablePushNotifications(putFcmToken);
     void router.push(ROUTES.ONBOARDING_CHARACTER);
