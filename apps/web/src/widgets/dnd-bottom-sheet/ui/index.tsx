@@ -11,12 +11,19 @@ import { format } from 'date-fns';
 import type { PointerEventHandler } from 'react';
 import { useId, useRef, useState } from 'react';
 
-import { useAlarmSettingsQuery } from '../api/alarm-settings-query';
-import { useDndMutation } from '../api/dnd-mutation';
-import { DND_OPTION_IDS } from '../config/constants';
-import { DND_MESSAGES } from '../config/messages';
-import { DND_OPTIONS } from '../config/options';
-import { formatDndUntilLabel, getDndFinishedAt, isDndActive, toDndPayloadUtc } from '../lib/dnd';
+import { useAlarmSettingsQuery } from '@/src/features/alarm-settings';
+import {
+  DND_MESSAGES,
+  DND_OPTION_IDS,
+  DND_OPTIONS,
+  formatDndUntilLabel,
+  getDndFinishedAt,
+  isDndActive,
+  toDndPayloadUtc,
+  useDndMutation,
+} from '@/src/features/dnd';
+
+import { useDndMutationOptions } from '../model/useDndMutationOptions';
 
 const DRAG_HANDLE_HEIGHT = 40;
 const DRAG_CLOSE_THRESHOLD = 80;
@@ -34,7 +41,8 @@ export function DndBottomSheet({ open, onOpenChange }: DndBottomSheetProps) {
     gcTime: 0,
     refetchOnMount: 'always',
   });
-  const { mutateAsync, isPending } = useDndMutation();
+  const dndMutationOptions = useDndMutationOptions();
+  const { mutateAsync, isPending } = useDndMutation(dndMutationOptions);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartY = useRef<number | null>(null);
