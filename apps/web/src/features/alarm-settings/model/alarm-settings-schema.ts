@@ -56,5 +56,4 @@ export const alarmSettingsSchema = z
     }
   });
 
-export type AlarmSettingsFormValues = z.infer<typeof alarmSettingsSchema>;
-export type AlarmSettingsValues = AlarmSettingsFormValues;
+export type AlarmSettingsValuesType = z.infer<typeof alarmSettingsSchema>;

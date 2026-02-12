@@ -1,11 +1,11 @@
 import { Chip } from '@repo/ui/chip';
 
 import { WEEKDAY_OPTIONS } from '../config';
-import type { Weekday } from '../lib';
+import { type WeekdayType } from '../model';
 
 interface WeekdaySelectorProps {
-  value: Weekday[];
-  onChange: (weekdays: Weekday[]) => void;
+  value: WeekdayType[];
+  onChange: (weekdays: WeekdayType[]) => void;
   error?: boolean;
   errorMessage?: string;
   label?: string;
@@ -20,7 +20,7 @@ export function WeekdaySelector({
   label,
   helperText,
 }: WeekdaySelectorProps) {
-  const handleToggle = (day: Weekday) => {
+  const handleToggle = (day: WeekdayType) => {
     const newWeekdays = value.includes(day) ? value.filter((d) => d !== day) : [...value, day];
     onChange(newWeekdays);
   };
