@@ -1,12 +1,24 @@
 export type {
-  ExercisePoseResponse,
-  ExerciseResponse,
+  CompleteExerciseSessionRequestDTO,
+  CompleteExerciseSessionResponseDataType,
+  ExercisePoseRecordFrameType,
+  ExerciseResultItemType,
+  ExerciseResultStatusType,
   ExerciseSessionData,
-  ExerciseSessionResponse,
-  ReferenceKeyframeResponse,
-  ReferencePoseResponse,
-  RoutineStepResponse,
-} from './api/types';
+  ExerciseSessionResponseDTO,
+  ValidExerciseSessionItemType,
+  ValidExerciseSessionsResponseDTO,
+} from './api';
+export {
+  completeExerciseSessionFn,
+  fetchExerciseSessionFn,
+  fetchValidExerciseSessionsFn,
+} from './api';
 export { toExerciseSession } from './lib/to-exercise-session';
 export { toReferencePose } from './lib/to-reference-pose';
-export type { ExerciseSession, ExerciseSessionExercise, ExerciseSessionStep } from './model/types';
+export type {
+  ExerciseSessionExercisePoseType,
+  ExerciseSessionExerciseType,
+  ExerciseSessionStepType,
+  ExerciseSessionType,
+} from './model/types';
