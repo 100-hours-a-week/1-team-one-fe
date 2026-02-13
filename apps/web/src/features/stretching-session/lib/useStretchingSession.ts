@@ -11,9 +11,9 @@ import {
 import { createSession, type StretchingSession } from '@repo/stretching-session';
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { ExerciseSessionStep } from '@/src/entities/exercise-session';
+import type { ExerciseSessionStepType } from '@/src/entities/exercise-session';
 import {
-  type CompleteExerciseSessionResponseData,
+  type CompleteExerciseSessionResponseDataType,
   useCompleteExerciseSessionMutation,
   useExerciseSessionQuery,
 } from '@/src/features/exercise-session';
@@ -35,7 +35,7 @@ export type UseStretchingSessionResult = {
   isLoading: boolean;
   totalSteps: number;
   currentStepIndex: number;
-  currentStep?: ExerciseSessionStep;
+  currentStep?: ExerciseSessionStepType;
   timeRemainingSeconds: number;
   accuracyPercent: number;
   accuracyTone: 'danger' | 'warn' | 'brand';
@@ -48,7 +48,7 @@ export type UseStretchingSessionResult = {
   isCanvasReady: boolean;
   isSessionComplete: boolean;
   isRoutineSuccess: boolean;
-  completionResult: CompleteExerciseSessionResponseData | null;
+  completionResult: CompleteExerciseSessionResponseDataType | null;
   isCompleting: boolean;
 };
 
@@ -184,7 +184,7 @@ export function useStretchingSession(
   const hasLoggedMissingDataRef = useRef(false);
   const hasSubmittedResultRef = useRef(false);
 
-  const currentStepRef = useRef<ExerciseSessionStep | null>(null);
+  const currentStepRef = useRef<ExerciseSessionStepType | null>(null);
   const referencePoseRef = useRef(currentStepRef.current?.exercise.pose.referencePose ?? null);
   const initialReferencePoseRef = useRef<ReferencePose | null>(null);
   const exerciseTypeRef = useRef<ExerciseType | null>(null);
@@ -218,7 +218,7 @@ export function useStretchingSession(
   const [isCanvasReady, setIsCanvasReady] = useState(false);
   // 세션 완료 응답 데이터
   const [completionResult, setCompletionResult] =
-    useState<CompleteExerciseSessionResponseData | null>(null);
+    useState<CompleteExerciseSessionResponseDataType | null>(null);
 
   //마지막 ui 반영 값 refs
   const lastUiAccuracyPercentRef = useRef(0);
