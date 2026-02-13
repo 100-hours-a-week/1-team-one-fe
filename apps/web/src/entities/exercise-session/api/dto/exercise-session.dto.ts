@@ -2,24 +2,24 @@ import type { ApiResponse } from '@/src/shared/api';
 
 type TargetKeypoint = Readonly<[number, number, number]>;
 
-export interface ReferenceKeyframeResponse {
+interface ReferenceKeyframeResponse {
   phase: string;
   timestampRatio: number;
   keypoints: ReadonlyArray<TargetKeypoint>;
 }
 
-export interface ReferencePoseResponse {
+interface ReferencePoseResponse {
   targetKeypoints: ReadonlyArray<number>;
   keyframes: ReadonlyArray<ReferenceKeyframeResponse>;
   totalDuration: number;
   fpsHint?: number;
 }
 
-export interface ExercisePoseResponse {
+interface ExercisePoseResponse {
   referencePose: ReferencePoseResponse;
 }
 
-export interface ExerciseResponse {
+interface ExerciseResponse {
   exerciseId: number;
   type: string;
   name: string;
@@ -37,7 +37,7 @@ export interface RoutineStepResponse {
   exercise: ExerciseResponse;
 }
 
-export interface ExerciseSessionData {
+interface ExerciseSessionData {
   routineId: number;
   routineOrder: number;
   createdAt: string;
@@ -47,7 +47,7 @@ export interface ExerciseSessionData {
 export type ExerciseSessionResponseDTO = ApiResponse<ExerciseSessionData>;
 
 // valid exercise sessions
-export type ValidExerciseSessionItemType = {
+type ValidExerciseSessionItemType = {
   sessionId: number;
   routineId: number;
   createdAt: string;
@@ -60,15 +60,15 @@ type ValidExerciseSessionsData = {
 export type ValidExerciseSessionsResponseDTO = ApiResponse<ValidExerciseSessionsData>;
 
 // complete exercise session
-export type ExerciseResultStatusType = 'COMPLETED' | 'FAILED';
+type ExerciseResultStatusType = 'COMPLETED' | 'FAILED';
 
-export type ExercisePoseRecordFrameType = {
+type ExercisePoseRecordFrameType = {
   frameId: number;
   time: string;
   keypoints: ReadonlyArray<ReadonlyArray<number>>;
 };
 
-export type ExerciseResultItemType = {
+type ExerciseResultItemType = {
   routineStepId: number;
   status: ExerciseResultStatusType;
   accuracy: number;
@@ -82,6 +82,8 @@ export type CompleteExerciseSessionRequestDTO = {
   endAt: string;
   exerciseResult: ReadonlyArray<ExerciseResultItemType>;
 };
+
+//TODO: dto 만 export 하게 수정을 고려해보기
 
 export type CompleteExerciseSessionResponseDataType = {
   sessionId: number;
