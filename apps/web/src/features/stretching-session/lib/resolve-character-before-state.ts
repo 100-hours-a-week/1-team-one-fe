@@ -1,8 +1,8 @@
-import type { CompleteExerciseSessionResponseData } from '@/src/features/exercise-session';
+import type { CompleteExerciseSessionResponseDataType } from '@/src/features/exercise-session';
 
 import { STRETCHING_SESSION_CONFIG } from '../config/constants';
 
-type CharacterSnapshot = CompleteExerciseSessionResponseData['character'];
+type CharacterSnapshot = CompleteExerciseSessionResponseDataType['character'];
 
 export type CharacterBeforeState = {
   level: number;
