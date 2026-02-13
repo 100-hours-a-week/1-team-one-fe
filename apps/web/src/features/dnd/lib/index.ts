@@ -5,7 +5,7 @@ import {
   DND_DURATION_MINUTES,
   DND_INFINITE_YEARS,
   DND_OPTION_IDS,
-  type DndOptionId,
+  type DndOptionIdType,
 } from '../config/constants';
 import { DND_MESSAGES } from '../config/messages';
 
@@ -23,7 +23,7 @@ const normalizeDndIso = (value: string): string => {
 
 const parseDndDate = (value: string): Date => parseISO(normalizeDndIso(value));
 
-export function getDndFinishedAt(optionId: DndOptionId, now: Date = new Date()): Date {
+export function getDndFinishedAt(optionId: DndOptionIdType, now: Date = new Date()): Date {
   switch (optionId) {
     case DND_OPTION_IDS.MINUTES_15:
       return addMinutes(now, DND_DURATION_MINUTES.MINUTES_15);
