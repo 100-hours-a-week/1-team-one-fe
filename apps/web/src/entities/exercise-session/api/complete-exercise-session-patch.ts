@@ -6,7 +6,7 @@ import type {
   CompleteExerciseSessionRequestDTO,
   CompleteExerciseSessionResponseDataType,
   CompleteExerciseSessionResponseDTO,
-} from './types';
+} from './dto/exercise-session.dto';
 
 export async function completeExerciseSessionFn(
   sessionId: string,
