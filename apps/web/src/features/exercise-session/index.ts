@@ -1,19 +1,15 @@
 export {
-  type CompleteExerciseSessionRequest,
-  type CompleteExerciseSessionResponseData,
-  type ExercisePoseRecordFrame,
-  type ExerciseResultItem,
-  type ExerciseResultStatus,
+  type CompleteExerciseSessionMutationOptionsType,
   useCompleteExerciseSessionMutation,
-} from './api/complete-exercise-session-mutation';
+} from './api/useCompleteExerciseSessionMutation';
 export type {
   ExerciseSessionQueryKey,
-  ExerciseSessionQueryOptions,
-} from './api/exercise-session-query';
-export { useExerciseSessionQuery } from './api/exercise-session-query';
+  ExerciseSessionQueryOptionsType,
+} from './api/useExerciseSessionQuery';
+export { useExerciseSessionQuery } from './api/useExerciseSessionQuery';
 export type {
-  ValidExerciseSessionItem,
   ValidExerciseSessionsQueryKey,
-  ValidExerciseSessionsQueryOptions,
-} from './api/valid-exercise-sessions-query';
-export { useValidExerciseSessionsQuery } from './api/valid-exercise-sessions-query';
+  ValidExerciseSessionsQueryOptionsType,
+} from './api/useValidExerciseSessionsQuery';
+export { useValidExerciseSessionsQuery } from './api/useValidExerciseSessionsQuery';
+export type { CompleteExerciseSessionResponseDataType } from '@/src/entities/exercise-session';
