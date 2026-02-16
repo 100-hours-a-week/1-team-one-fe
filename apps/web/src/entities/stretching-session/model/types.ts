@@ -1,30 +1,30 @@
 import type { ReferencePose } from '@repo/stretching-accuracy';
 
-export interface ExerciseSessionExercisePoseType {
+export interface StretchingSessionExercisePoseType {
   referencePose: ReferencePose;
 }
 
-export interface ExerciseSessionExerciseType {
+export interface StretchingSessionExerciseType {
   exerciseId: number;
   type: string;
   name: string;
   content: string;
   effect: string;
-  pose: ExerciseSessionExercisePoseType;
+  pose: StretchingSessionExercisePoseType;
 }
 
-export interface ExerciseSessionStepType {
+export interface StretchingSessionStepType {
   routineStepId: number;
   stepOrder: number;
   targetReps: number | null;
   durationTime: number;
   limitTime: number;
-  exercise: ExerciseSessionExerciseType;
+  exercise: StretchingSessionExerciseType;
 }
 
-export interface ExerciseSessionType {
+export interface StretchingSessionType {
   routineId: number;
   routineOrder: number;
   createdAt: string;
-  routineSteps: ReadonlyArray<ExerciseSessionStepType>;
+  routineSteps: ReadonlyArray<StretchingSessionStepType>;
 }
