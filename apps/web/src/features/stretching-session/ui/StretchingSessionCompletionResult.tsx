@@ -1,6 +1,6 @@
 import { Card } from '@repo/ui/card';
 
-import type { CompleteExerciseSessionResponseDataType } from '@/src/features/exercise-session';
+import type { CompleteStretchingSessionResponseDataType } from '@/src/entities/stretching-session';
 
 import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
 import { resolveCharacterBeforeState } from '../lib/resolve-character-before-state';
@@ -11,7 +11,7 @@ import { StretchingSessionResultRewardCard } from './StretchingSessionResultRewa
 import { StretchingSessionResultStatusCard } from './StretchingSessionResultStatusCard';
 
 type StretchingSessionCompletionResultProps = {
-  result: CompleteExerciseSessionResponseDataType | null;
+  result: CompleteStretchingSessionResponseDataType | null;
   isLoading: boolean;
 };
 

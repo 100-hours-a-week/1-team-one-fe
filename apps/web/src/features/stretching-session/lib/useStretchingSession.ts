@@ -11,14 +11,14 @@ import {
 import { createSession, type StretchingSession } from '@repo/stretching-session';
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { ExerciseSessionStepType } from '@/src/entities/exercise-session';
-import {
-  type CompleteExerciseSessionResponseDataType,
-  useCompleteExerciseSessionMutation,
-  useExerciseSessionQuery,
-} from '@/src/features/exercise-session';
+import type {
+  CompleteStretchingSessionResponseDataType,
+  StretchingSessionStepType,
+} from '@/src/entities/stretching-session';
 import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
 
+import { useCompleteStretchingSessionMutation } from '../api/useCompleteStretchingSessionMutation';
+import { useStretchingSessionQuery } from '../api/useStretchingSessionQuery';
 import { STRETCHING_SESSION_CONFIG } from '../config/constants';
 import { createStretchingPerformanceTracker } from './stretching-performance-tracker';
 
@@ -35,7 +35,7 @@ export type UseStretchingSessionResult = {
   isLoading: boolean;
   totalSteps: number;
   currentStepIndex: number;
-  currentStep?: ExerciseSessionStepType;
+  currentStep?: StretchingSessionStepType;
   timeRemainingSeconds: number;
   accuracyPercent: number;
   accuracyTone: 'danger' | 'warn' | 'brand';
@@ -48,7 +48,7 @@ export type UseStretchingSessionResult = {
   isCanvasReady: boolean;
   isSessionComplete: boolean;
   isRoutineSuccess: boolean;
-  completionResult: CompleteExerciseSessionResponseDataType | null;
+  completionResult: CompleteStretchingSessionResponseDataType | null;
   isCompleting: boolean;
 };
 
@@ -184,7 +184,7 @@ export function useStretchingSession(
   const hasLoggedMissingDataRef = useRef(false);
   const hasSubmittedResultRef = useRef(false);
 
-  const currentStepRef = useRef<ExerciseSessionStepType | null>(null);
+  const currentStepRef = useRef<StretchingSessionStepType | null>(null);
   const referencePoseRef = useRef(currentStepRef.current?.exercise.pose.referencePose ?? null);
   const initialReferencePoseRef = useRef<ReferencePose | null>(null);
   const exerciseTypeRef = useRef<ExerciseType | null>(null);
@@ -218,7 +218,7 @@ export function useStretchingSession(
   const [isCanvasReady, setIsCanvasReady] = useState(false);
   // 세션 완료 응답 데이터
   const [completionResult, setCompletionResult] =
-    useState<CompleteExerciseSessionResponseDataType | null>(null);
+    useState<CompleteStretchingSessionResponseDataType | null>(null);
 
   //마지막 ui 반영 값 refs
   const lastUiAccuracyPercentRef = useRef(0);
@@ -228,15 +228,17 @@ export function useStretchingSession(
   const lastAccuracyInputLogAtRef = useRef(0);
   const canStopRef = useRef(false);
 
-  const { data: sessionData, isLoading } = useExerciseSessionQuery(sessionId ?? '', {
+  const { data: sessionData, isLoading } = useStretchingSessionQuery(sessionId ?? '', {
     enabled: Boolean(sessionId),
   });
-  const { mutate: completeSession, isPending: isCompleting } = useCompleteExerciseSessionMutation({
-    sessionId: sessionId ?? '',
-    onSuccess: (payload) => {
-      setCompletionResult(payload);
+  const { mutate: completeSession, isPending: isCompleting } = useCompleteStretchingSessionMutation(
+    {
+      sessionId: sessionId ?? '',
+      onSuccess: (payload) => {
+        setCompletionResult(payload);
+      },
     },
-  });
+  );
 
   const steps = sessionData?.routineSteps ?? []; //steps
   const totalSteps = steps.length;
