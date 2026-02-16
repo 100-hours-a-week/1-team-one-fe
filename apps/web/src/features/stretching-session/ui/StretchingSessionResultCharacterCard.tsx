@@ -2,7 +2,7 @@ import { Card } from '@repo/ui/card';
 import { Chip } from '@repo/ui/chip';
 import type { ReactNode } from 'react';
 
-import type { CompleteExerciseSessionResponseDataType } from '@/src/features/exercise-session';
+import type { CompleteStretchingSessionResponseDataType } from '@/src/entities/stretching-session';
 
 import type { CharacterBeforeState } from '../lib/resolve-character-before-state';
 
@@ -21,7 +21,7 @@ type CharacterLabels = {
 };
 
 type StretchingSessionResultCharacterCardProps = {
-  character: CompleteExerciseSessionResponseDataType['character'];
+  character: CompleteStretchingSessionResponseDataType['character'];
   beforeState: CharacterBeforeState;
   earnedExp: number;
   earnedStatusScore: number;
