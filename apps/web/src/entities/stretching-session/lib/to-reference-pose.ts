@@ -1,6 +1,6 @@
 import type { Landmark2D, ReferenceKeyframe, ReferencePose } from '@repo/stretching-accuracy';
 
-import type { ReferenceKeyframeResponse, ReferencePoseResponse } from '../api/types';
+import type { ReferencePoseResponse } from '../api/dto/stretching-session.dto';
 
 type TargetKeypoint = Readonly<[number, number, number]>;
 
@@ -13,7 +13,9 @@ const toLandmark = (keypoint: TargetKeypoint): Landmark2D => {
   return { x, y, z };
 };
 
-const toReferenceKeyframe = (keyframe: ReferenceKeyframeResponse): ReferenceKeyframe => {
+const toReferenceKeyframe = (
+  keyframe: ReferencePoseResponse['keyframes'][number],
+): ReferenceKeyframe => {
   return {
     phase: keyframe.phase,
     timestampRatio: keyframe.timestampRatio,

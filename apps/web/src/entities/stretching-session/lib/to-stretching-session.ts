@@ -1,12 +1,12 @@
-import type { ExerciseSessionData, RoutineStepResponse } from '../api/types';
-import type { ExerciseSession, ExerciseSessionStep } from '../model/types';
+import type { RoutineStepResponse, StretchingSessionData } from '../api/dto/stretching-session.dto';
+import type { StretchingSessionStepType, StretchingSessionType } from '../model/types';
 import { toReferencePose } from './to-reference-pose';
 
 /**
  * @description API 응답 형태의 RoutineStepResponse 를 정확도 엔진의 input 형식으로 변환
  */
 
-const toExerciseSessionStep = (step: RoutineStepResponse): ExerciseSessionStep => {
+const toStretchingSessionStep = (step: RoutineStepResponse): StretchingSessionStepType => {
   return {
     routineStepId: step.routineStepId,
     stepOrder: step.stepOrder,
@@ -26,11 +26,11 @@ const toExerciseSessionStep = (step: RoutineStepResponse): ExerciseSessionStep =
   };
 };
 
-export function toExerciseSession(data: ExerciseSessionData): ExerciseSession {
+export function toStretchingSession(data: StretchingSessionData): StretchingSessionType {
   return {
     routineId: data.routineId,
     routineOrder: data.routineOrder,
     createdAt: data.createdAt,
-    routineSteps: data.routineSteps.map(toExerciseSessionStep),
+    routineSteps: data.routineSteps.map(toStretchingSessionStep),
   };
 }

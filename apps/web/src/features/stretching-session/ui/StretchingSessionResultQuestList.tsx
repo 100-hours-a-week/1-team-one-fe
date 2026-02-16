@@ -1,10 +1,10 @@
 import { Card } from '@repo/ui/card';
 
-import type { CompleteExerciseSessionResponseData } from '@/src/features/exercise-session';
+import type { CompleteStretchingSessionResponseDataType } from '@/src/entities/stretching-session';
 
 type StretchingSessionResultQuestListProps = {
   title: string;
-  quests: CompleteExerciseSessionResponseData['quests'];
+  quests: CompleteStretchingSessionResponseDataType['quests'];
 };
 
 export function StretchingSessionResultQuestList({
