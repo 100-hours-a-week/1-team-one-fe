@@ -8,24 +8,24 @@ interface ReferenceKeyframeResponse {
   keypoints: ReadonlyArray<TargetKeypoint>;
 }
 
-interface ReferencePoseResponse {
+export interface ReferencePoseResponse {
   targetKeypoints: ReadonlyArray<number>;
   keyframes: ReadonlyArray<ReferenceKeyframeResponse>;
   totalDuration: number;
   fpsHint?: number;
 }
 
-interface ExercisePoseResponse {
+interface StretchingPoseResponse {
   referencePose: ReferencePoseResponse;
 }
 
-interface ExerciseResponse {
+interface StretchingExerciseResponse {
   exerciseId: number;
   type: string;
   name: string;
   content: string;
   effect: string;
-  pose: ExercisePoseResponse;
+  pose: StretchingPoseResponse;
 }
 
 export interface RoutineStepResponse {
@@ -34,58 +34,58 @@ export interface RoutineStepResponse {
   targetReps: number | null;
   durationTime: number;
   limitTime: number;
-  exercise: ExerciseResponse;
+  exercise: StretchingExerciseResponse;
 }
 
-interface ExerciseSessionData {
+export interface StretchingSessionData {
   routineId: number;
   routineOrder: number;
   createdAt: string;
   routineSteps: ReadonlyArray<RoutineStepResponse>;
 }
 
-export type ExerciseSessionResponseDTO = ApiResponse<ExerciseSessionData>;
+export type StretchingSessionResponseDTO = ApiResponse<StretchingSessionData>;
 
-// valid exercise sessions
-type ValidExerciseSessionItemType = {
+// valid stretching sessions
+export type ValidStretchingSessionItemType = {
   sessionId: number;
   routineId: number;
   createdAt: string;
 };
 
-type ValidExerciseSessionsData = {
-  sessions: ReadonlyArray<ValidExerciseSessionItemType> | null;
+type ValidStretchingSessionsData = {
+  sessions: ReadonlyArray<ValidStretchingSessionItemType> | null;
 };
 
-export type ValidExerciseSessionsResponseDTO = ApiResponse<ValidExerciseSessionsData>;
+export type ValidStretchingSessionsResponseDTO = ApiResponse<ValidStretchingSessionsData>;
 
-// complete exercise session
-type ExerciseResultStatusType = 'COMPLETED' | 'FAILED';
+// complete stretching session
+export type StretchingResultStatusType = 'COMPLETED' | 'FAILED';
 
-type ExercisePoseRecordFrameType = {
+export type StretchingPoseRecordFrameType = {
   frameId: number;
   time: string;
   keypoints: ReadonlyArray<ReadonlyArray<number>>;
 };
 
-type ExerciseResultItemType = {
+export type StretchingResultItemType = {
   routineStepId: number;
-  status: ExerciseResultStatusType;
+  status: StretchingResultStatusType;
   accuracy: number;
   startAt: string;
   endAt: string;
-  pose_record: ReadonlyArray<ExercisePoseRecordFrameType>;
+  pose_record: ReadonlyArray<StretchingPoseRecordFrameType>;
 };
 
-export type CompleteExerciseSessionRequestDTO = {
+export type CompleteStretchingSessionRequestDTO = {
   startAt: string;
   endAt: string;
-  exerciseResult: ReadonlyArray<ExerciseResultItemType>;
+  exerciseResult: ReadonlyArray<StretchingResultItemType>;
 };
 
 //TODO: dto 만 export 하게 수정을 고려해보기
 
-export type CompleteExerciseSessionResponseDataType = {
+export type CompleteStretchingSessionResponseDataType = {
   sessionId: number;
   isCompleted: boolean;
   earnedExp: number;
@@ -104,5 +104,5 @@ export type CompleteExerciseSessionResponseDataType = {
   }>;
 };
 
-export type CompleteExerciseSessionResponseDTO =
-  ApiResponse<CompleteExerciseSessionResponseDataType>;
+export type CompleteStretchingSessionResponseDTO =
+  ApiResponse<CompleteStretchingSessionResponseDataType>;
