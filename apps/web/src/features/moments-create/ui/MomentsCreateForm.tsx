@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@repo/ui/button';
 import { toast } from '@repo/ui/toast';
+import { useEffect } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
 
 import { ImageUploadField } from '@/src/shared/ui/image-upload';
@@ -10,7 +10,12 @@ import { TextareaField } from '@/src/shared/ui/textarea';
 import { MOMENTS_CREATE_MESSAGES } from '../config/messages';
 import { type MomentsCreateFormValues, momentsCreateSchema } from '../model/moments-create-schema';
 
-export function MomentsCreateForm() {
+interface MomentsCreateFormProps {
+  id?: string;
+  onFormStateChange?: (state: { isValid: boolean; isSubmitting: boolean }) => void;
+}
+
+export function MomentsCreateForm({ id, onFormStateChange }: MomentsCreateFormProps) {
   const { control, handleSubmit, formState } = useForm<MomentsCreateFormValues>({
     mode: 'onChange',
     criteriaMode: 'firstError',
@@ -22,6 +27,10 @@ export function MomentsCreateForm() {
       images: [],
     },
   });
+
+  useEffect(() => {
+    onFormStateChange?.({ isValid: formState.isValid, isSubmitting: formState.isSubmitting });
+  }, [formState.isValid, formState.isSubmitting, onFormStateChange]);
 
   function handleFormSubmit(values: MomentsCreateFormValues) {
     // TODO: API 연동
@@ -39,6 +48,7 @@ export function MomentsCreateForm() {
 
   return (
     <form
+      id={id}
       onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
       className="flex w-full flex-col gap-4"
     >
@@ -93,14 +103,6 @@ export function MomentsCreateForm() {
           <ImageUploadField images={field.value} onImagesChange={field.onChange} />
         )}
       />
-
-      <Button
-        type="submit"
-        disabled={!formState.isValid || formState.isSubmitting}
-        isLoading={formState.isSubmitting}
-      >
-        {MOMENTS_CREATE_MESSAGES.BUTTON.SUBMIT}
-      </Button>
     </form>
   );
 }
