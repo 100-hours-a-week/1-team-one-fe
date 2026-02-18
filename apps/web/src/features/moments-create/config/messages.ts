@@ -22,5 +22,8 @@ export const MOMENTS_CREATE_MESSAGES = {
   },
   TOAST: {
     VALIDATION_ERROR: '입력 내용을 확인해주세요.',
+    CREATE_SUCCESS: '게시글이 저장되었습니다.',
+    CREATE_ERROR: '게시글 저장에 실패했습니다. 다시 시도해주세요.',
+    IMAGE_UPLOAD_ERROR: '이미지 업로드에 실패했습니다. 다시 시도해주세요.',
   },
 } as const;
