@@ -79,7 +79,7 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
   }, [shouldShowPwaSheet]);
 
   return (
-    <main className="h-dvh">
+    <main className="h-full">
       {children}
       {shouldRenderGlobalPushSheet && (
         <PushPermissionBottomSheet

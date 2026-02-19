@@ -34,19 +34,19 @@ export function MobileShell({ children, showFooter = true, headerConfig }: Mobil
     ));
 
   return (
-    <div className="bg-bg flex justify-center">
-      <div className="relative flex h-full w-full max-w-md flex-col">
+    <div className="bg-bg flex h-dvh justify-center">
+      <div className="relative flex w-full max-w-md flex-col">
         {resolvedHeader}
 
         <HeaderActionContext.Provider value={{ setAction: setContextAction }}>
-          <main
+          <div
             className="flex-1"
             style={{
               paddingBottom: showFooter ? 'calc(4rem + env(safe-area-inset-bottom))' : undefined,
             }}
           >
             {children}
-          </main>
+          </div>
         </HeaderActionContext.Provider>
 
         {showFooter && <FooterNav />}
