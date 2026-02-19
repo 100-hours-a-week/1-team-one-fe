@@ -8,7 +8,7 @@ import { ImageUploadField } from '@/src/shared/ui/image-upload';
 import { TagInputField } from '@/src/shared/ui/tag-input';
 import { TextareaField } from '@/src/shared/ui/textarea';
 
-import { useCreatePostMutation } from '../api/use-create-post-mutation';
+import { useCreatePostMutation } from '../api/useCreatePostMutation';
 import { MOMENTS_CREATE_MESSAGES } from '../config/messages';
 import { type MomentsCreateFormValues, momentsCreateSchema } from '../model/moments-create-schema';
 

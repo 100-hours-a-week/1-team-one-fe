@@ -45,6 +45,5 @@ export function useCreatePostMutation(options?: CreatePostMutationOptions) {
     mutationKey: MOMENTS_CREATE_QUERY_KEYS.create(),
     mutationFn: createPostWithImages,
     ...options,
-    meta: { ...options?.meta, disableToast: true },
   });
 }
