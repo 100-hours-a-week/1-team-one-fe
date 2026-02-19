@@ -2,6 +2,7 @@ import {
   Textarea,
   TextareaHelperText,
   TextareaLabel,
+  type TextareaStyleVariant,
   type TextareaVariant,
 } from '@repo/ui/textarea';
 import { type ChangeEvent, type FocusEvent } from 'react';
@@ -27,6 +28,7 @@ export interface TextareaFieldProps {
   helperText?: string;
 
   variant?: TextareaVariant;
+  styleVariant?: TextareaStyleVariant;
 
   'aria-describedby'?: string;
   'aria-invalid'?: boolean;
@@ -47,6 +49,7 @@ export function TextareaField({
   errorMessage,
   helperText,
   variant = 'default',
+  styleVariant = 'default',
   'aria-describedby': ariaDescribedBy,
   'aria-invalid': ariaInvalid,
 }: TextareaFieldProps) {
@@ -72,6 +75,7 @@ export function TextareaField({
         disabled={disabled}
         error={error}
         variant={variant}
+        styleVariant={styleVariant}
         aria-describedby={ariaDescribedBy ?? helperId}
         aria-invalid={ariaInvalid ?? error}
       />
