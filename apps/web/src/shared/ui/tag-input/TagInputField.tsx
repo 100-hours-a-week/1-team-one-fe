@@ -42,6 +42,7 @@ export interface TagInputFieldProps {
   errorMessage?: string;
   helperText?: string;
   maxTags?: number;
+  variant?: 'default' | 'borderless';
 }
 
 export function TagInputField({
@@ -54,6 +55,7 @@ export function TagInputField({
   errorMessage,
   helperText,
   maxTags = TAG_VALIDATION.MAX_TAGS,
+  variant = 'default',
 }: TagInputFieldProps) {
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -110,6 +112,7 @@ export function TagInputField({
         disabled={disabled}
         placeholder={placeholder}
         error={error ?? false}
+        variant={variant}
         inputRef={inputRef}
       />
 
