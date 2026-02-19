@@ -40,11 +40,7 @@ export function MomentsCreateForm({ id, onFormStateChange, onSuccess }: MomentsC
   async function handleFormSubmit(values: MomentsCreateFormValues) {
     const data = await mutateAsync(values, {
       onSuccess: (result) => {
-        toast({ title: MOMENTS_CREATE_MESSAGES.TOAST.CREATE_SUCCESS, variant: 'success' });
         onSuccess?.(result);
-      },
-      onError: () => {
-        toast({ title: MOMENTS_CREATE_MESSAGES.TOAST.CREATE_ERROR, variant: 'error' });
       },
     });
 
