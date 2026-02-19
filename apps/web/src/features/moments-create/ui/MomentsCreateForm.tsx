@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { FormField } from '@repo/ui/form-field';
 import { toast } from '@repo/ui/toast';
 import { useEffect } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
 
 import type { PostCreateDataType } from '@/src/entities/post';
+import { Divider } from '@/src/shared/ui/divider';
 import { ImageUploadField } from '@/src/shared/ui/image-upload';
 import { TagInputField } from '@/src/shared/ui/tag-input';
 import { TextareaField } from '@/src/shared/ui/textarea';
@@ -60,22 +62,24 @@ export function MomentsCreateForm({ id, onFormStateChange, onSuccess }: MomentsC
     <form
       id={id}
       onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
-      className="flex w-full flex-col gap-4"
+      className="flex w-full flex-col"
     >
       <Controller
         name="title"
         control={control}
         render={({ field }) => (
-          <TextareaField
+          <FormField
             name={field.name}
             value={field.value}
             onChange={field.onChange}
             onBlur={field.onBlur}
             placeholder={MOMENTS_CREATE_MESSAGES.TITLE.PLACEHOLDER}
             maxLength={50}
+            variant="borderless"
           />
         )}
       />
+      <Divider />
 
       <Controller
         name="content"
@@ -88,29 +92,33 @@ export function MomentsCreateForm({ id, onFormStateChange, onSuccess }: MomentsC
             onBlur={field.onBlur}
             placeholder={MOMENTS_CREATE_MESSAGES.CONTENT.PLACEHOLDER}
             variant="with-count"
+            styleVariant="borderless"
             maxLength={500}
+            rows={4}
+            className="min-h-96"
           />
         )}
       />
+      <Divider />
 
       <Controller
         name="tags"
         control={control}
         render={({ field }) => (
-          <TagInputField
-            tags={field.value}
-            onTagsChange={field.onChange}
-            label={MOMENTS_CREATE_MESSAGES.TAGS.LABEL}
-            helperText={MOMENTS_CREATE_MESSAGES.TAGS.HELPER}
-          />
+          <TagInputField tags={field.value} onTagsChange={field.onChange} variant="borderless" />
         )}
       />
+      <Divider />
 
       <Controller
         name="images"
         control={control}
         render={({ field }) => (
-          <ImageUploadField images={field.value} onImagesChange={field.onChange} />
+          <ImageUploadField
+            images={field.value}
+            onImagesChange={field.onChange}
+            variant="borderless"
+          />
         )}
       />
     </form>

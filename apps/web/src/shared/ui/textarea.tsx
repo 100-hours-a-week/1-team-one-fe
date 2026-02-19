@@ -32,6 +32,8 @@ export interface TextareaFieldProps {
 
   'aria-describedby'?: string;
   'aria-invalid'?: boolean;
+
+  className?: string;
 }
 
 export function TextareaField({
@@ -52,6 +54,7 @@ export function TextareaField({
   styleVariant = 'default',
   'aria-describedby': ariaDescribedBy,
   'aria-invalid': ariaInvalid,
+  className,
 }: TextareaFieldProps) {
   const helperId = id ? `${id}-helper` : undefined;
 
@@ -78,6 +81,7 @@ export function TextareaField({
         styleVariant={styleVariant}
         aria-describedby={ariaDescribedBy ?? helperId}
         aria-invalid={ariaInvalid ?? error}
+        className={className}
       />
 
       <TextareaHelperText
