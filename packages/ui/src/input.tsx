@@ -292,8 +292,23 @@ export interface InputHelperTextProps
     VariantProps<typeof inputHelperTextVariants> {}
 
 function InputHelperText({ className, type, children, ...props }: InputHelperTextProps) {
+  const { variant } = useInputContext();
+  const hasContent = children && children !== '\u00A0';
+
+  //borderless 이면 render 하지 않음 (helpertext 사용 안함)
+  if (variant === 'borderless' && !hasContent) {
+    return null;
+  }
+
   return (
-    <p className={cn(inputHelperTextVariants({ type, className }))} {...props}>
+    <p
+      className={cn(
+        inputHelperTextVariants({ type }),
+        variant === 'default' && 'min-h-5',
+        className,
+      )}
+      {...props}
+    >
       {children}
     </p>
   );

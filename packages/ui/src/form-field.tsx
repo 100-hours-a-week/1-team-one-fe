@@ -200,7 +200,6 @@ export function FormField({
                     : 'default'
               : 'default'
         }
-        className="min-h-5"
         aria-hidden={isHelperEmpty}
       >
         {showErrorMessage

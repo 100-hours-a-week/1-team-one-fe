@@ -83,7 +83,7 @@ export function TextareaField({
       <TextareaHelperText
         id={helperId}
         type={showErrorMessage ? 'error' : 'default'}
-        className="min-h-5"
+        variant={styleVariant}
         aria-hidden={isHelperEmpty}
       >
         {showErrorMessage ? errorMessage : showHelperText ? helperText : '\u00A0'}

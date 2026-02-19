@@ -85,16 +85,33 @@ export function TextareaLabel({ className, children, ...props }: TextareaLabelPr
 export interface TextareaHelperTextProps
   extends
     React.HTMLAttributes<HTMLParagraphElement>,
-    VariantProps<typeof textareaHelperTextVariants> {}
+    VariantProps<typeof textareaHelperTextVariants> {
+  variant?: TextareaStyleVariant;
+}
 
 export function TextareaHelperText({
   className,
   type,
+  variant = 'default',
   children,
   ...props
 }: TextareaHelperTextProps) {
+  const hasContent = children && children !== '\u00A0';
+
+  //borderless 이면 render 하지 않음 (helpertext 사용 안함)
+  if (variant === 'borderless' && !hasContent) {
+    return null;
+  }
+
   return (
-    <p className={cn(textareaHelperTextVariants({ type }), className)} {...props}>
+    <p
+      className={cn(
+        textareaHelperTextVariants({ type }),
+        variant === 'default' && 'min-h-5',
+        className,
+      )}
+      {...props}
+    >
       {children}
     </p>
   );
