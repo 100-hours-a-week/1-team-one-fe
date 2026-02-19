@@ -57,9 +57,16 @@ export interface ImageAddButtonProps {
   disabled?: boolean;
   count: number;
   maxCount: number;
+  variant?: 'default' | 'borderless';
 }
 
-export function ImageAddButton({ onClick, disabled, count, maxCount }: ImageAddButtonProps) {
+export function ImageAddButton({
+  onClick,
+  disabled,
+  count,
+  maxCount,
+  variant = 'default',
+}: ImageAddButtonProps) {
   return (
     <button
       type="button"
@@ -67,11 +74,15 @@ export function ImageAddButton({ onClick, disabled, count, maxCount }: ImageAddB
       disabled={disabled}
       aria-label="이미지 추가"
       className={cn(
-        'border-border flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 border',
+        'flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1',
         'text-text-subtle transition-colors',
-        'hover:border-border-strong hover:text-text',
         'focus-visible:ring-focus-ring focus-visible:ring-2 focus-visible:outline-none',
         'disabled:pointer-events-none disabled:opacity-(--disabled-opacity)',
+        variant === 'default' && [
+          'border-border border',
+          'hover:border-border-strong hover:text-text',
+        ],
+        variant === 'borderless' && ['bg-neutral-50', 'hover:text-text hover:bg-neutral-100'],
       )}
     >
       <span className="text-xl leading-none">+</span>

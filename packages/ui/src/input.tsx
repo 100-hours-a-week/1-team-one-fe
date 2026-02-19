@@ -7,6 +7,7 @@ interface InputContextValue {
   error?: boolean;
   disabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'borderless';
   isFocused: boolean;
   setIsFocused: (focused: boolean) => void;
 }
@@ -25,17 +26,13 @@ function useInputContext() {
  * Input Control variants
  */
 const inputControlVariants = cva(
-  [
-    'flex items-center gap-2',
-    'w-full',
-    'rounded-md',
-    'border',
-    'bg-[var(--color-surface)]',
-    'transition-colors',
-    'duration-[var(--transition-base)]',
-  ],
+  ['flex items-center gap-2', 'w-full', 'transition-colors', 'duration-(--transition-base)'],
   {
     variants: {
+      variant: {
+        default: ['rounded-md', 'border', 'bg-surface'],
+        borderless: ['bg-transparent', 'border-0'],
+      },
       error: {
         true: [
           'border-error-500',
@@ -63,7 +60,20 @@ const inputControlVariants = cva(
         lg: 'h-12 px-4 text-base',
       },
     },
+    compoundVariants: [
+      {
+        variant: 'borderless',
+        error: true,
+        class: ['border-0', 'focus-within:ring-0', 'focus-within:ring-offset-0'],
+      },
+      {
+        variant: 'borderless',
+        error: false,
+        class: ['border-0', 'focus-within:ring-0', 'focus-within:ring-offset-0'],
+      },
+    ],
     defaultVariants: {
+      variant: 'default',
       error: false,
       disabled: false,
       size: 'md',
@@ -121,13 +131,20 @@ export interface InputRootProps {
   error?: boolean;
   disabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'borderless';
 }
 
-function InputRoot({ children, error, disabled, size = 'md' }: InputRootProps) {
+function InputRoot({
+  children,
+  error,
+  disabled,
+  size = 'md',
+  variant = 'default',
+}: InputRootProps) {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <InputContext.Provider value={{ error, disabled, size, isFocused, setIsFocused }}>
+    <InputContext.Provider value={{ error, disabled, size, variant, isFocused, setIsFocused }}>
       <div className="w-full">{children}</div>
     </InputContext.Provider>
   );
@@ -163,10 +180,13 @@ function InputLabel({ className, children, ...props }: InputLabelProps) {
 export interface InputControlProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 function InputControl({ className, children, ...props }: InputControlProps) {
-  const { error, disabled, size } = useInputContext();
+  const { error, disabled, size, variant } = useInputContext();
 
   return (
-    <div className={cn(inputControlVariants({ error, disabled, size, className }))} {...props}>
+    <div
+      className={cn(inputControlVariants({ variant, error, disabled, size, className }))}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -272,8 +292,23 @@ export interface InputHelperTextProps
     VariantProps<typeof inputHelperTextVariants> {}
 
 function InputHelperText({ className, type, children, ...props }: InputHelperTextProps) {
+  const { variant } = useInputContext();
+  const hasContent = children && children !== '\u00A0';
+
+  //borderless 이면 render 하지 않음 (helpertext 사용 안함)
+  if (variant === 'borderless' && !hasContent) {
+    return null;
+  }
+
   return (
-    <p className={cn(inputHelperTextVariants({ type, className }))} {...props}>
+    <p
+      className={cn(
+        inputHelperTextVariants({ type }),
+        variant === 'default' && 'min-h-5',
+        className,
+      )}
+      {...props}
+    >
       {children}
     </p>
   );

@@ -4,19 +4,16 @@ import { X } from 'lucide-react';
 import { cn } from './lib/utils';
 
 const tagInputControlVariants = cva(
-  [
-    'flex flex-wrap items-center gap-1.5',
-    'w-full',
-    'min-h-10 px-3 py-2',
-    'rounded-md',
-    'bg-surface',
-    'transition-colors',
-  ],
+  ['flex flex-wrap items-center gap-1.5', 'w-full', 'min-h-10 px-3 py-2', 'transition-colors'],
   {
     variants: {
+      variant: {
+        default: ['rounded-md', 'bg-surface', 'border'],
+        borderless: ['bg-transparent', 'border-0'],
+      },
       error: {
         true: [
-          'border border-error-500',
+          'border-error-500',
           'focus-within:border-error-500',
           'focus-within:ring-2',
           'focus-within:ring-error-500',
@@ -29,7 +26,20 @@ const tagInputControlVariants = cva(
         false: '',
       },
     },
+    compoundVariants: [
+      {
+        variant: 'borderless',
+        error: true,
+        class: ['border-0', 'focus-within:ring-0', 'focus-within:ring-offset-0'],
+      },
+      {
+        variant: 'borderless',
+        error: false,
+        class: ['border-0', 'focus-within:ring-0', 'focus-within:ring-offset-0'],
+      },
+    ],
     defaultVariants: {
+      variant: 'default',
       error: false,
       disabled: false,
     },
@@ -87,6 +97,7 @@ export interface TagInputProps {
   disabled?: boolean;
   placeholder?: string;
   error?: boolean;
+  variant?: 'default' | 'borderless';
   inputRef?: Ref<HTMLInputElement>;
 }
 
@@ -100,6 +111,7 @@ export function TagInput({
   disabled,
   placeholder,
   error,
+  variant = 'default',
   inputRef,
 }: TagInputProps) {
   const isMaxReached = tags.length >= maxTags;
@@ -107,6 +119,7 @@ export function TagInput({
   return (
     <div
       className={tagInputControlVariants({
+        variant,
         error: error ?? false,
         disabled: disabled ?? false,
       })}

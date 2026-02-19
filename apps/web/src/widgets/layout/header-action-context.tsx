@@ -14,5 +14,6 @@ export function useSetHeaderAction(factory: () => ReactNode | null, deps: Depend
   useEffect(() => {
     setAction(factory());
     return () => setAction(null);
-  }, [deps, setAction, factory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...deps, setAction]);
 }

@@ -7,19 +7,19 @@ import { cn } from './lib/utils';
 const textareaControlVariants = cva(
   [
     'w-full',
-    'rounded-md',
-    'bg-(--color-surface)',
+    'bg-transparent',
     'transition-colors',
     'duration-(--transition-base)',
-    // 'overflow-hidden',
     'resize-none px-3 py-2',
-    'text-base text-(--color-fg)',
-    'placeholder:text-(--color-fg-subtle)',
     'outline-none',
     'disabled:cursor-not-allowed',
   ],
   {
     variants: {
+      variant: {
+        default: ['rounded-md', 'border'],
+        borderless: ['border-0'],
+      },
       error: {
         true: [
           'border-error-500',
@@ -35,7 +35,20 @@ const textareaControlVariants = cva(
         false: '',
       },
     },
+    compoundVariants: [
+      {
+        variant: 'borderless',
+        error: true,
+        class: ['border-0', 'focus-within:ring-0', 'focus-within:ring-offset-0'],
+      },
+      {
+        variant: 'borderless',
+        error: false,
+        class: ['border-0', 'focus-within:ring-0', 'focus-within:ring-offset-0'],
+      },
+    ],
     defaultVariants: {
+      variant: 'default',
       error: false,
       disabled: false,
     },
@@ -72,31 +85,51 @@ export function TextareaLabel({ className, children, ...props }: TextareaLabelPr
 export interface TextareaHelperTextProps
   extends
     React.HTMLAttributes<HTMLParagraphElement>,
-    VariantProps<typeof textareaHelperTextVariants> {}
+    VariantProps<typeof textareaHelperTextVariants> {
+  variant?: TextareaStyleVariant;
+}
 
 export function TextareaHelperText({
   className,
   type,
+  variant = 'default',
   children,
   ...props
 }: TextareaHelperTextProps) {
+  const hasContent = children && children !== '\u00A0';
+
+  //borderless 이면 render 하지 않음 (helpertext 사용 안함)
+  if (variant === 'borderless' && !hasContent) {
+    return null;
+  }
+
   return (
-    <p className={cn(textareaHelperTextVariants({ type }), className)} {...props}>
+    <p
+      className={cn(
+        textareaHelperTextVariants({ type }),
+        variant === 'default' && 'min-h-5',
+        className,
+      )}
+      {...props}
+    >
       {children}
     </p>
   );
 }
 
 export type TextareaVariant = 'default' | 'with-count'; //작성길이/제한길이
+export type TextareaStyleVariant = 'default' | 'borderless';
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   variant?: TextareaVariant;
+  styleVariant?: TextareaStyleVariant;
   error?: boolean;
   maxLength?: number;
 }
 
 export function Textarea({
   variant = 'default',
+  styleVariant = 'default',
   error = false,
   disabled,
   maxLength,
@@ -114,7 +147,10 @@ export function Textarea({
         disabled={disabled}
         maxLength={maxLength}
         value={value}
-        className={cn(textareaControlVariants({ error, disabled: disabled ?? false }), className)}
+        className={cn(
+          textareaControlVariants({ variant: styleVariant, error, disabled: disabled ?? false }),
+          className,
+        )}
         {...props}
       />
       {showCount && (

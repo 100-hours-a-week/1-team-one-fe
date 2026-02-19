@@ -2,6 +2,7 @@ import {
   Textarea,
   TextareaHelperText,
   TextareaLabel,
+  type TextareaStyleVariant,
   type TextareaVariant,
 } from '@repo/ui/textarea';
 import { type ChangeEvent, type FocusEvent } from 'react';
@@ -27,9 +28,12 @@ export interface TextareaFieldProps {
   helperText?: string;
 
   variant?: TextareaVariant;
+  styleVariant?: TextareaStyleVariant;
 
   'aria-describedby'?: string;
   'aria-invalid'?: boolean;
+
+  className?: string;
 }
 
 export function TextareaField({
@@ -47,8 +51,10 @@ export function TextareaField({
   errorMessage,
   helperText,
   variant = 'default',
+  styleVariant = 'default',
   'aria-describedby': ariaDescribedBy,
   'aria-invalid': ariaInvalid,
+  className,
 }: TextareaFieldProps) {
   const helperId = id ? `${id}-helper` : undefined;
 
@@ -72,14 +78,16 @@ export function TextareaField({
         disabled={disabled}
         error={error}
         variant={variant}
+        styleVariant={styleVariant}
         aria-describedby={ariaDescribedBy ?? helperId}
         aria-invalid={ariaInvalid ?? error}
+        className={className}
       />
 
       <TextareaHelperText
         id={helperId}
         type={showErrorMessage ? 'error' : 'default'}
-        className="min-h-5"
+        variant={styleVariant}
         aria-hidden={isHelperEmpty}
       >
         {showErrorMessage ? errorMessage : showHelperText ? helperText : '\u00A0'}

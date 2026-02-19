@@ -85,6 +85,7 @@ export interface ImageUploadFieldProps {
   onImagesChange: (images: File[]) => void;
   maxImages?: number;
   disabled?: boolean;
+  variant?: 'default' | 'borderless';
 }
 
 export function ImageUploadField({
@@ -92,6 +93,7 @@ export function ImageUploadField({
   onImagesChange,
   maxImages = IMAGE_UPLOAD_VALIDATION.MAX_IMAGES,
   disabled,
+  variant = 'default',
 }: ImageUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -176,7 +178,12 @@ export function ImageUploadField({
         <SortableContext items={ids} strategy={horizontalListSortingStrategy}>
           <ImageUploadContainer>
             {canAdd && (
-              <ImageAddButton onClick={handleAddClick} count={images.length} maxCount={maxImages} />
+              <ImageAddButton
+                onClick={handleAddClick}
+                count={images.length}
+                maxCount={maxImages}
+                variant={variant}
+              />
             )}
             {images.map((_, index) => (
               <SortableImageItem
