@@ -1,12 +1,15 @@
 import { Button } from '@repo/ui/button';
+import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 
+import { PostCreateDataType } from '@/src/entities/post';
 import { MOMENTS_CREATE_MESSAGES, MomentsCreateForm } from '@/src/features/moments-create';
 import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
 
 const FORM_ID = 'moments-create-form';
 
 export function MomentsNewPage() {
+  const router = useRouter();
   const [isValid, setIsValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,5 +41,18 @@ export function MomentsNewPage() {
     [],
   );
 
-  return <MomentsCreateForm id={FORM_ID} onFormStateChange={handleFormStateChange} />;
+  const handleOnSuccess = useCallback(
+    (data: PostCreateDataType) => {
+      router.replace(`/moments/post/${data.postId}`);
+    },
+    [router],
+  );
+
+  return (
+    <MomentsCreateForm
+      id={FORM_ID}
+      onFormStateChange={handleFormStateChange}
+      onSuccess={handleOnSuccess}
+    />
+  );
 }
