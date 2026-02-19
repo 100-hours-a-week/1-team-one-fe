@@ -3,6 +3,7 @@ import { TagInput } from '@repo/ui/tag-input';
 import { toast } from '@repo/ui/toast';
 import { type KeyboardEvent, useRef, useState } from 'react';
 
+import { FormHelperText } from '../form-helper-text';
 import { TAG_INPUT_MESSAGES } from './config/messages';
 import { ALLOWED_CHARS, TAG_VALIDATION, VALID_TAG } from './config/validation';
 
@@ -116,13 +117,13 @@ export function TagInputField({
         inputRef={inputRef}
       />
 
-      <Input.HelperText
+      <FormHelperText
         type={showErrorMessage ? 'error' : 'default'}
-        className="min-h-5"
+        variant={variant}
         aria-hidden={isHelperEmpty}
       >
         {showErrorMessage ? errorMessage : showHelperText ? helperText : '\u00A0'}
-      </Input.HelperText>
+      </FormHelperText>
     </div>
   );
 }
