@@ -3,19 +3,22 @@ import { toast } from '@repo/ui/toast';
 import { useEffect } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
 
+import type { PostCreateDataType } from '@/src/entities/post';
 import { ImageUploadField } from '@/src/shared/ui/image-upload';
 import { TagInputField } from '@/src/shared/ui/tag-input';
 import { TextareaField } from '@/src/shared/ui/textarea';
 
+import { useCreatePostMutation } from '../api/use-create-post-mutation';
 import { MOMENTS_CREATE_MESSAGES } from '../config/messages';
 import { type MomentsCreateFormValues, momentsCreateSchema } from '../model/moments-create-schema';
 
 interface MomentsCreateFormProps {
   id?: string;
   onFormStateChange?: (state: { isValid: boolean; isSubmitting: boolean }) => void;
+  onSuccess?: (data: PostCreateDataType) => void;
 }
 
-export function MomentsCreateForm({ id, onFormStateChange }: MomentsCreateFormProps) {
+export function MomentsCreateForm({ id, onFormStateChange, onSuccess }: MomentsCreateFormProps) {
   const { control, handleSubmit, formState } = useForm<MomentsCreateFormValues>({
     mode: 'onChange',
     criteriaMode: 'firstError',
@@ -28,13 +31,24 @@ export function MomentsCreateForm({ id, onFormStateChange }: MomentsCreateFormPr
     },
   });
 
+  const { mutateAsync } = useCreatePostMutation();
+
   useEffect(() => {
     onFormStateChange?.({ isValid: formState.isValid, isSubmitting: formState.isSubmitting });
   }, [formState.isValid, formState.isSubmitting, onFormStateChange]);
 
-  function handleFormSubmit(values: MomentsCreateFormValues) {
-    // TODO: API 연동
-    console.log(values);
+  async function handleFormSubmit(values: MomentsCreateFormValues) {
+    const data = await mutateAsync(values, {
+      onSuccess: (result) => {
+        toast({ title: MOMENTS_CREATE_MESSAGES.TOAST.CREATE_SUCCESS, variant: 'success' });
+        onSuccess?.(result);
+      },
+      onError: () => {
+        toast({ title: MOMENTS_CREATE_MESSAGES.TOAST.CREATE_ERROR, variant: 'error' });
+      },
+    });
+
+    return data;
   }
 
   function handleInvalid(errors: FieldErrors<MomentsCreateFormValues>) {
