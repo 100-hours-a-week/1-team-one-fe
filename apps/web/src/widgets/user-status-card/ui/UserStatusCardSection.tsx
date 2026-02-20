@@ -2,6 +2,8 @@ import { UserStatusCard } from '@repo/ui/user-status-card';
 
 import { useUserProfileQuery } from '@/src/features/user-profile';
 import StreakImoji from '@/src/shared/assets/streak-imoji.svg';
+import { buildImageUrl } from '@/src/shared/lib/image';
+
 const TOTAL_EXP = 1000 as const;
 
 export interface UserStatusCardSectionProps {
@@ -20,7 +22,7 @@ export function UserStatusCardSection({ isVisible = true }: UserStatusCardSectio
   }
 
   const nickname = data.profile.nickname;
-  const avatarSrc = `${process.env.NEXT_PUBLIC_GCS_BASE_URL}/${data.profile.imagePath}`;
+  const avatarSrc = buildImageUrl(data.profile.imagePath);
   const { level, streak, exp } = data.character;
 
   return (
