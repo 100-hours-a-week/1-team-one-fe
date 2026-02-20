@@ -1,10 +1,12 @@
 export type { PostCreateDataType, PostCreateRequestDTO } from './api/dto/post-create.dto';
+export type { PostDeleteDataType, PostDeleteRequestDTO } from './api/dto/post-delete.dto';
 export type { PostAuthor, PostDetailData, PostTag } from './api/dto/post-detail.dto';
 export type {
   PostImageUploadUrlDataType,
   PostImageUploadUrlRequestDTO,
 } from './api/dto/post-image-upload.dto';
 export { createPostFn } from './api/post-create';
+export { deletePostFn } from './api/post-delete';
 export { fetchPostDetailFn } from './api/post-detail';
 export {
   POST_IMAGE_UPLOAD_ERROR_CODE,
