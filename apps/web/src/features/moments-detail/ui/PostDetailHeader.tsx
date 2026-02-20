@@ -1,7 +1,7 @@
 import { Avatar } from '@repo/ui/avatar';
 import { StreakBadge } from '@repo/ui/streak-badge';
 
-import type { PostAuthor } from '@/src/entities/post';
+import type { PostAuthorType } from '@/src/entities/post';
 import StreakImoji from '@/src/shared/assets/streak-imoji.svg';
 import {
   formatNotificationDateLabel,
@@ -10,7 +10,7 @@ import {
 import { buildImageUrl } from '@/src/shared/lib/image';
 
 interface PostDetailHeaderProps {
-  author: PostAuthor;
+  author: PostAuthorType;
   createdAt: string;
 }
 
