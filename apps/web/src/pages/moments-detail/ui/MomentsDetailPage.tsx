@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 
@@ -6,7 +5,6 @@ import { useDeletePostMutation } from '@/src/features/moments-detail/api/useDele
 import { usePostDetailQuery } from '@/src/features/moments-detail/api/usePostDetailQuery';
 import { PostDetailMenu } from '@/src/features/moments-detail/ui/PostDetailMenu';
 import { PostDetailView } from '@/src/features/moments-detail/ui/PostDetailView';
-import { MOMENTS_LIST_QUERY_KEYS } from '@/src/features/moments-list/config/query-keys';
 import { isApiError } from '@/src/shared/api';
 import { LoadableBoundary } from '@/src/shared/ui/boundary/LoadableBoundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen/ErrorScreen';
@@ -16,7 +14,7 @@ import { MomentsDetailPageSkeleton } from './MomentsDetailPage.skeleton';
 
 export function MomentsDetailPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
+
   const postId = Number(router.query.postId);
   const isPostIdValid = !Number.isNaN(postId) && postId > 0;
 
@@ -26,7 +24,7 @@ export function MomentsDetailPage() {
 
   const { mutate: deletePost, isPending: isDeleting } = useDeletePostMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: MOMENTS_LIST_QUERY_KEYS.root() });
+      //TODO: moments list api 추가 후 invalidate
       router.replace('/moments');
     },
   });
