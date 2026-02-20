@@ -21,7 +21,6 @@ export interface ImageGalleryItemProps {
   isThumbnail?: boolean;
   onClick?: () => void;
   variant?: 'thumbnail' | 'carousel';
-  urlPrefix?: string;
 }
 
 export function ImageGalleryItem({
@@ -30,10 +29,8 @@ export function ImageGalleryItem({
   isThumbnail,
   onClick,
   variant = 'thumbnail',
-  urlPrefix,
 }: ImageGalleryItemProps) {
   const styles = VARIANT_STYLES[variant];
-  const imageUrl = urlPrefix ? `${urlPrefix}/${src}` : src;
 
   return (
     <button
@@ -47,7 +44,7 @@ export function ImageGalleryItem({
         'focus-visible:ring-focus-ring aspect-square h-auto focus-visible:ring-2 focus-visible:outline-none',
       )}
     >
-      <img src={imageUrl} alt={alt} className={'h-full w-full object-cover'} />
+      <img src={src} alt={alt} className={'h-full w-full object-cover'} />
 
       {isThumbnail && (
         <span className={cn('absolute bg-black/60 text-white', styles.badge)}>대표</span>
@@ -61,7 +58,6 @@ export interface ImageGalleryProps {
   onImageClick?: (index: number) => void;
   className?: string;
   variant?: 'thumbnail' | 'carousel';
-  imageUrlPrefix?: string;
 }
 
 export function ImageGallery({
@@ -69,7 +65,6 @@ export function ImageGallery({
   onImageClick,
   className,
   variant = 'thumbnail',
-  imageUrlPrefix,
 }: ImageGalleryProps) {
   if (images.length === 0) {
     return null;
@@ -89,7 +84,6 @@ export function ImageGallery({
               isThumbnail={index === 0}
               onClick={() => onImageClick?.(index)}
               variant={variant}
-              urlPrefix={imageUrlPrefix}
             />
           ))}
         </div>
