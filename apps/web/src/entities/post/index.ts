@@ -5,6 +5,7 @@ export type {
   PostImageUploadUrlDataType,
   PostImageUploadUrlRequestDTO,
 } from './api/dto/post-image-upload.dto';
+export type { PostLikeDataType, PostLikeRequestDTO } from './api/dto/post-like.dto';
 export type {
   PostListItemType,
   PostListPagingType,
@@ -18,4 +19,5 @@ export {
   requestPostImageUploadUrlFn,
   uploadPostImageToPresignedPutFn,
 } from './api/post-image-upload';
+export { togglePostLikeFn } from './api/post-like';
 export { fetchPostListPageFn } from './api/post-list';
