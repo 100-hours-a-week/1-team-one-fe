@@ -7,6 +7,7 @@ import {
   formatNotificationDateLabel,
   formatNotificationTimeLabel,
 } from '@/src/shared/lib/date/notification-date';
+import { buildImageUrl } from '@/src/shared/lib/image';
 
 interface PostDetailHeaderProps {
   author: PostAuthor;
@@ -18,10 +19,12 @@ export function PostDetailHeader({ author, createdAt }: PostDetailHeaderProps) {
   const timeLabel = formatNotificationTimeLabel(createdAt);
   const formattedDateTime = `${dateLabel} ${timeLabel}`;
 
+  const profileImageUrl = buildImageUrl(author.profileImageUrl);
+
   return (
     <div className="flex items-center gap-3 py-4">
       <Avatar
-        src={author.profileImageUrl}
+        src={profileImageUrl}
         name={author.nickname}
         size="md"
         badge={
