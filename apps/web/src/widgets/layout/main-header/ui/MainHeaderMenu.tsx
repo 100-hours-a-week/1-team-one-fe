@@ -7,23 +7,31 @@ import {
   ConfirmDialogHeader,
   ConfirmDialogTitle,
 } from '@repo/ui/confirm-dialog';
-import {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuRoot,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@repo/ui/dropdown-menu';
+import { DropdownMenuItem, DropdownMenuSeparator } from '@repo/ui/dropdown-menu';
 import { useQueryClient } from '@tanstack/react-query';
 import { Menu } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
 import { useLogoutMutation } from '@/src/features/auth/logout';
 import { ROUTES } from '@/src/shared/routes/routes';
+import { IconDropdownMenu } from '@/src/shared/ui/icon-dropdown-menu';
 import { DndBottomSheet } from '@/src/widgets/dnd-bottom-sheet';
 
 import { MAIN_HEADER_MESSAGES } from '../config/messages';
+
+type MainHeaderMenuItem =
+  | {
+      key: string;
+      type: 'action';
+      content: ReactNode;
+      onSelect: () => void;
+      className?: string;
+    }
+  | {
+      key: string;
+      type: 'separator';
+    };
 
 export function MainHeaderMenu() {
   const router = useRouter();
@@ -50,33 +58,48 @@ export function MainHeaderMenu() {
     }
   };
 
+  const menuItems: MainHeaderMenuItem[] = [
+    {
+      key: 'dnd',
+      type: 'action',
+      className: 'flex flex-col items-start gap-1',
+      content: <span className="text-sm font-medium">{MAIN_HEADER_MESSAGES.MENU_DND_LABEL}</span>,
+      onSelect: () => setIsDndSheetOpen(true),
+    },
+    {
+      key: 'separator',
+      type: 'separator',
+    },
+    {
+      key: 'logout',
+      type: 'action',
+      content: MAIN_HEADER_MESSAGES.MENU_LOGOUT_LABEL,
+      onSelect: () => setIsLogoutOpen(true),
+    },
+  ];
+
   return (
     <>
-      <DropdownMenuRoot>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="hover:bg-bg-subtle/60 inline-flex h-9 w-9 items-center justify-center rounded-full transition active:scale-[0.98]"
-            aria-label={MAIN_HEADER_MESSAGES.MENU_LABEL}
-          >
-            <span className="relative inline-flex">
-              <Menu className="text-text h-5 w-5" />
-            </span>
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            className="flex flex-col items-start gap-1"
-            onSelect={() => setIsDndSheetOpen(true)}
-          >
-            <span className="text-sm font-medium">{MAIN_HEADER_MESSAGES.MENU_DND_LABEL}</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator className="bg-border my-1 h-px" />
-          <DropdownMenuItem onSelect={() => setIsLogoutOpen(true)}>
-            {MAIN_HEADER_MESSAGES.MENU_LOGOUT_LABEL}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuRoot>
+      <IconDropdownMenu
+        ariaLabel={MAIN_HEADER_MESSAGES.MENU_LABEL}
+        icon={
+          <span className="relative inline-flex">
+            <Menu className="text-text h-5 w-5" />
+          </span>
+        }
+      >
+        {menuItems.map((item) => {
+          if (item.type === 'separator') {
+            return <DropdownMenuSeparator key={item.key} className="bg-border my-1 h-px" />;
+          }
+
+          return (
+            <DropdownMenuItem key={item.key} className={item.className} onSelect={item.onSelect}>
+              {item.content}
+            </DropdownMenuItem>
+          );
+        })}
+      </IconDropdownMenu>
 
       <DndBottomSheet open={isDndSheetOpen} onOpenChange={setIsDndSheetOpen} />
 
