@@ -1,6 +1,6 @@
 import { getHttpClient } from '@/src/shared/api';
 
-import type { PostListResponse, PostListResponseData } from './dto/post-list.dto';
+import { PostListResponseDataType, PostListResponseDTO } from './dto/post-list.dto';
 
 export type PostListParams = {
   limit?: number;
@@ -9,6 +9,11 @@ export type PostListParams = {
   tags?: string[];
 };
 
+/**
+ * axios 의 기본 params 직렬화 위한 함수
+ * ?tag=a&tag=b 로 배열을 항상 고정하기 위함.
+ * undefined, null, ' ' 처리 포함
+ *  */
 function createQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
 
@@ -34,13 +39,15 @@ function createQueryString(params: Record<string, unknown>): string {
   return searchParams.toString();
 }
 
-export async function fetchPostListPageFn(params: PostListParams): Promise<PostListResponseData> {
+export async function fetchPostListPageFn(
+  params: PostListParams,
+): Promise<PostListResponseDataType> {
   const client = getHttpClient({ requiresAuth: true });
-  const response = await client.get<PostListResponse>('/posts', {
+  const response = await client.get<PostListResponseDTO>('/posts', {
     params: {
       limit: params.limit,
       cursor: params.cursor ?? undefined,
-      'author-id': params.authorId ?? undefined,
+      'author-id': params.authorId ?? undefined, //특정 작성자의 게시글만 조회할 때 사용
       tag: params.tags,
     },
     paramsSerializer: createQueryString,
