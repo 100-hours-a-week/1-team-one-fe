@@ -1,9 +1,9 @@
 import { Chip } from '@repo/ui/chip';
 
-import type { PostTag } from '@/src/entities/post';
+import type { PostTagType } from '@/src/entities/post';
 
 interface PostDetailTagsProps {
-  tags: PostTag[];
+  tags: PostTagType[];
 }
 
 export function PostDetailTags({ tags }: PostDetailTagsProps) {
