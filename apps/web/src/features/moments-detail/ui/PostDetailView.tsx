@@ -2,7 +2,7 @@ import { ImageGallery } from '@repo/ui/image-gallery';
 import { ImageLightbox } from '@repo/ui/image-lightbox';
 import { useState } from 'react';
 
-import type { PostDetailData } from '@/src/entities/post';
+import type { PostDetailDataType } from '@/src/entities/post';
 import { buildImageUrls } from '@/src/shared/lib/image';
 import { Divider } from '@/src/shared/ui/divider';
 
@@ -10,7 +10,7 @@ import { PostDetailHeader } from './PostDetailHeader';
 import { PostDetailTags } from './PostDetailTags';
 
 interface PostDetailViewProps {
-  data: PostDetailData;
+  data: PostDetailDataType;
 }
 
 export function PostDetailView({ data }: PostDetailViewProps) {

@@ -1,6 +1,6 @@
 import type { ApiResponse } from '@/src/shared/api';
 
-export interface PostAuthor {
+export interface PostAuthorType {
   userId: number;
   profileImageUrl: string;
   nickname: string;
@@ -8,26 +8,26 @@ export interface PostAuthor {
   streak: number;
 }
 
-export interface PostTag {
+export interface PostTagType {
   tagId: number;
   name: string;
 }
 
-export interface PostDetailData {
+export interface PostDetailDataType {
   postId: number;
   isAuthor: boolean;
-  author: PostAuthor;
+  author: PostAuthorType;
   title: string;
   content: string;
   images: string[];
-  tags: PostTag[];
+  tags: PostTagType[];
   likeCount: number;
   createdAt: string;
   isLiked: boolean;
 }
 
-export interface PostDetailResponseData {
-  post: PostDetailData;
+export interface PostDetailResponseDataType {
+  post: PostDetailDataType;
 }
 
-export type PostDetailResponse = ApiResponse<PostDetailResponseData>;
+export type PostDetailResponseDTO = ApiResponse<PostDetailResponseDataType>;

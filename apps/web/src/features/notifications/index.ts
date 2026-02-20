@@ -10,6 +10,5 @@ export type {
   NotificationsReadRequest,
   UnreadNotificationsCount,
 } from './model/types';
-export { InfiniteScrollTrigger } from './ui/InfiniteScrollTrigger';
 export { NotificationItem } from './ui/NotificationItem';
 export { NotificationList } from './ui/NotificationList';

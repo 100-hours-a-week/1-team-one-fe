@@ -10,6 +10,9 @@ import {
 import { NOTIFICATIONS_CONFIG } from '@/src/features/notifications/config/constants';
 import { NOTIFICATIONS_MESSAGES } from '@/src/features/notifications/config/messages';
 import { NOTIFICATIONS_QUERY_KEYS } from '@/src/features/notifications/config/query-keys';
+import { LoadableBoundary } from '@/src/shared/ui/boundary';
+
+import { AppNotificationsPageSkeleton } from './AppNotificationsPage.skeleton';
 
 export function AppNotificationsPage() {
   const queryClient = useQueryClient();
@@ -22,6 +25,9 @@ export function AppNotificationsPage() {
     () => data?.pages?.flatMap((page) => page.notifications) ?? [],
     [data],
   );
+  const hasData = Boolean(data);
+  const resolvedNotifications = hasData ? notifications : undefined;
+  const isEmpty = hasData && notifications.length === 0;
 
   const { mutate } = useNotificationsReadMutation({
     onSuccess: () => {
@@ -48,16 +54,32 @@ export function AppNotificationsPage() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-1 flex-col gap-4 px-4 pt-4 pb-6">
-        <NotificationList
-          items={notifications}
-          isLoading={isLoading}
-          error={error}
-          isFetchingNextPage={isFetchingNextPage}
-          hasNextPage={Boolean(hasNextPage)}
-          onFetchNext={() => void fetchNextPage()}
-        />
-      </div>
+      <LoadableBoundary
+        isLoading={isLoading}
+        error={error}
+        data={resolvedNotifications}
+        isEmpty={isEmpty}
+        renderLoading={() => <AppNotificationsPageSkeleton />}
+        renderError={() => null}
+        renderEmpty={() => (
+          <div className="flex flex-1 flex-col gap-4 px-4 pt-4 pb-6">
+            <div className="text-text-muted flex justify-center py-8 text-sm">
+              {NOTIFICATIONS_MESSAGES.LIST.EMPTY}
+            </div>
+          </div>
+        )}
+      >
+        {(items) => (
+          <div className="flex flex-1 flex-col gap-4 px-4 pt-4 pb-6">
+            <NotificationList
+              items={items}
+              isFetchingNextPage={isFetchingNextPage}
+              hasNextPage={Boolean(hasNextPage)}
+              onFetchNext={() => void fetchNextPage()}
+            />
+          </div>
+        )}
+      </LoadableBoundary>
       <button
         type="button"
         aria-label={NOTIFICATIONS_MESSAGES.ACTIONS.SCROLL_TOP}
