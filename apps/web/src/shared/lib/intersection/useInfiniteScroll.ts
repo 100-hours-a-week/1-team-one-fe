@@ -1,23 +1,25 @@
-import { cn } from '@repo/ui/lib/utils';
 import { useEffect, useRef } from 'react';
 
-type InfiniteScrollTriggerProps = {
+type UseInfiniteScrollParams = {
   onIntersect: () => void;
   isActive: boolean;
   rootMargin?: string;
-  className?: string;
 };
 
-export function InfiniteScrollTrigger({
+export function useInfiniteScroll({
   onIntersect,
   isActive,
   rootMargin = '0px',
-  className,
-}: InfiniteScrollTriggerProps) {
-  const triggerRef = useRef<HTMLDivElement | null>(null);
+}: UseInfiniteScrollParams) {
+  const targetRef = useRef<HTMLDivElement | null>(null);
+  const onIntersectRef = useRef(onIntersect);
 
   useEffect(() => {
-    const target = triggerRef.current;
+    onIntersectRef.current = onIntersect;
+  }, [onIntersect]);
+
+  useEffect(() => {
+    const target = targetRef.current;
     if (!target) return;
     if (!isActive) return;
 
@@ -25,14 +27,14 @@ export function InfiniteScrollTrigger({
       (entries) => {
         const entry = entries[0];
         if (!entry?.isIntersecting) return;
-        onIntersect();
+        onIntersectRef.current();
       },
       { rootMargin },
     );
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [isActive, onIntersect, rootMargin]);
+  }, [isActive, rootMargin]);
 
-  return <div ref={triggerRef} className={cn('h-6 w-full', className)} />;
+  return targetRef;
 }
