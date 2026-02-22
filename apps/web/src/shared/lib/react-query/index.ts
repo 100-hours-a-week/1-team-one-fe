@@ -2,6 +2,7 @@
 export type {
   InfiniteOptimisticConfig,
   InfiniteOptimisticContext,
+  LikeableDataType,
   OptimisticUpdater,
   SingleOptimisticConfig,
   SingleOptimisticContext,
@@ -9,6 +10,7 @@ export type {
 export {
   createInfiniteItemUpdater,
   createInfiniteOptimisticHandlers,
+  createLikeUpdater,
   createSingleOptimisticHandlers,
   isInfiniteOptimisticContext,
   isSingleOptimisticContext,
