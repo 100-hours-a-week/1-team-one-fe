@@ -10,6 +10,7 @@ import { isApiError } from '@/src/shared/api';
 import { LoadableBoundary } from '@/src/shared/ui/boundary/LoadableBoundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen/ErrorScreen';
 import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
+import { MomentsDetailLikeSection } from '@/src/widgets/moments-detail-like';
 
 import { MomentsDetailPageSkeleton } from './MomentsDetailPage.skeleton';
 
@@ -70,7 +71,19 @@ export function MomentsDetailPage() {
         return <ErrorScreen variant={variant} />;
       }}
     >
-      {(postData) => <PostDetailView data={postData} isLoggedIn={isLoggedIn} />}
+      {(postData) => (
+        <PostDetailView
+          data={postData}
+          footer={
+            <MomentsDetailLikeSection
+              postId={postData.postId}
+              likeCount={postData.likeCount}
+              isLiked={postData.isLiked}
+              isLoggedIn={isLoggedIn}
+            />
+          }
+        />
+      )}
     </LoadableBoundary>
   );
 }
