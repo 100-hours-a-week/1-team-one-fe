@@ -1,26 +1,57 @@
 import { ImageGallery } from '@repo/ui/image-gallery';
 import { ImageLightbox } from '@repo/ui/image-lightbox';
-import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
 
-import type { PostDetailDataType } from '@/src/entities/post';
+import type { PostDetailDataType, PostLikeDataType } from '@/src/entities/post';
+import { createLikeUpdater, useLikePostMutation } from '@/src/features/moments-like';
 import { buildImageUrls } from '@/src/shared/lib/image';
+import { createSingleOptimisticHandlers } from '@/src/shared/lib/react-query';
 import { Divider } from '@/src/shared/ui/divider';
+import { MomentsLikeButton } from '@/src/widgets/moments-like-button';
 import { PostAuthorInfo } from '@/src/widgets/post-author-info';
 
+import { MOMENTS_DETAIL_QUERY_KEYS } from '../config/query-keys';
 import { PostDetailTags } from './PostDetailTags';
 
 interface PostDetailViewProps {
   data: PostDetailDataType;
+  isLoggedIn: boolean;
 }
 
-export function PostDetailView({ data }: PostDetailViewProps) {
+export function PostDetailView({ data, isLoggedIn }: PostDetailViewProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const queryClient = useQueryClient();
+
+  const optimisticHandlers = createSingleOptimisticHandlers({
+    queryClient,
+    queryKey: MOMENTS_DETAIL_QUERY_KEYS.detail(data.postId),
+    updater: createLikeUpdater<PostDetailDataType>(),
+    onSuccessCallback: (responseData, variables) => {
+      const serverData = responseData as PostLikeDataType;
+      const queryKey = MOMENTS_DETAIL_QUERY_KEYS.detail((variables as { postId: number }).postId);
+      queryClient.setQueryData<PostDetailDataType>(queryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          isLiked: serverData.isLiked,
+          likeCount: serverData.isLiked ? old.likeCount : Math.max(0, old.likeCount),
+        };
+      });
+    },
+  });
+
+  const { mutate: likePost } = useLikePostMutation(optimisticHandlers);
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);
     setLightboxOpen(true);
   };
+
+  const handleLike = useCallback(() => {
+    likePost({ postId: data.postId, isLiked: data.isLiked });
+  }, [likePost, data.postId, data.isLiked]);
 
   const imageUrls = buildImageUrls(data.images);
 
@@ -55,7 +86,14 @@ export function PostDetailView({ data }: PostDetailViewProps) {
       )}
 
       {/* 좋아요 */}
-      <div className="text-text-subtle py-4 text-sm">좋아요 {data.likeCount}개</div>
+      <div className="flex items-center py-4">
+        <MomentsLikeButton
+          likeCount={data.likeCount}
+          isLiked={data.isLiked}
+          isLoggedIn={isLoggedIn}
+          onLike={handleLike}
+        />
+      </div>
     </article>
   );
 }
