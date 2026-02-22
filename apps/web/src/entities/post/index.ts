@@ -11,6 +11,7 @@ export type {
   PostListPagingType,
   PostListResponseDataType,
 } from './api/dto/post-list.dto';
+export type { PostUpdateDataType, PostUpdateRequestDTO } from './api/dto/post-update.dto';
 export { createPostFn } from './api/post-create';
 export { deletePostFn } from './api/post-delete';
 export { fetchPostDetailFn } from './api/post-detail';
@@ -21,3 +22,4 @@ export {
 } from './api/post-image-upload';
 export { togglePostLikeFn } from './api/post-like';
 export { fetchPostListPageFn } from './api/post-list';
+export { updatePostFn } from './api/post-update';
