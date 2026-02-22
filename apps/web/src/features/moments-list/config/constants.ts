@@ -1,0 +1,5 @@
+export const MOMENTS_LIST_CONFIG = {
+  PAGE_LIMIT: 10,
+  INFINITE_SCROLL_ROOT_MARGIN: '200px',
+  TAG_PREFIX: '#',
+} as const;

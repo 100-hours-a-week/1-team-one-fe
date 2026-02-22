@@ -5,8 +5,8 @@ import { useState } from 'react';
 import type { PostDetailDataType } from '@/src/entities/post';
 import { buildImageUrls } from '@/src/shared/lib/image';
 import { Divider } from '@/src/shared/ui/divider';
+import { PostAuthorInfo } from '@/src/widgets/post-author-info';
 
-import { PostDetailHeader } from './PostDetailHeader';
 import { PostDetailTags } from './PostDetailTags';
 
 interface PostDetailViewProps {
@@ -26,7 +26,7 @@ export function PostDetailView({ data }: PostDetailViewProps) {
 
   return (
     <article className="mx-auto flex w-full max-w-3xl flex-col px-4 py-6">
-      <PostDetailHeader author={data.author} createdAt={data.createdAt} />
+      <PostAuthorInfo author={data.author} createdAt={data.createdAt} />
       <h1 className="px-2 py-4 text-2xl font-bold">{data.title}</h1>
       <Divider />
 
