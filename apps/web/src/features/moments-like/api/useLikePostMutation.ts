@@ -1,9 +1,9 @@
-import { useMutation, type UseMutationOptions, useQueryClient } from '@tanstack/react-query';
+import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 
 import { type PostLikeDataType, togglePostLikeFn } from '@/src/entities/post';
 import type { ApiError } from '@/src/shared/api';
 
-import { MOMENTS_LIST_QUERY_KEYS } from '../../moments-list/config/query-keys';
+import { useLikePostMutationOptions } from '../model/useLikePostMutationOptions';
 
 interface LikePostMutationVariables {
   postId: number;
@@ -16,18 +16,14 @@ export type LikePostMutationOptions = Omit<
 >;
 
 export function useLikePostMutation(options?: LikePostMutationOptions) {
-  const queryClient = useQueryClient();
+  const optimisticOptions = useLikePostMutationOptions();
 
   return useMutation({
     mutationFn: async ({ postId, isLiked }: LikePostMutationVariables) => {
       const liked = !isLiked;
       return togglePostLikeFn(postId, { liked });
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: MOMENTS_LIST_QUERY_KEYS.root(),
-      });
-    },
+    ...optimisticOptions,
     ...options,
   });
 }
