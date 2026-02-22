@@ -65,7 +65,7 @@ export function createInfiniteOptimisticHandlers<TPageData, TVariables, TError =
  * @param updateItem 아이템 업데이트 함수
  * @returns InfiniteData updater 함수
  */
-export function createInfiniteItemUpdater<TPageData extends Record<string, unknown>, TItem, TKey>(
+export function createInfiniteItemUpdater<TPageData extends object, TItem, TKey>(
   getItems: (page: TPageData) => TItem[],
   getItemId: (item: TItem) => TKey,
   updateItem: (item: TItem) => TItem,
@@ -84,7 +84,9 @@ export function createInfiniteItemUpdater<TPageData extends Record<string, unkno
           getItemId(item) === targetId ? updateItem(item) : item,
         );
         //페이지 객체를 복사하고 아이템 배열만 업데이트
-        const itemsKey = Object.keys(page).find((key) => Array.isArray(page[key]));
+        const itemsKey = Object.keys(page).find((key) =>
+          Array.isArray((page as Record<string, unknown>)[key]),
+        );
         if (!itemsKey) return page;
         return { ...page, [itemsKey]: updatedItems } as TPageData;
       }),
