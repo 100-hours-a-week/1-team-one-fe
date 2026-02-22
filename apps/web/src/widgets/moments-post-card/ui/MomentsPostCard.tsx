@@ -49,7 +49,7 @@ export function MomentsPostCardItem({ post, isLoggedIn }: MomentsPostCardItemPro
         </Link>
       </CardContent>
 
-      <CardFooter className="flex flex-col gap-3 px-4 pb-4">
+      <CardFooter className="flex flex-col items-start gap-3 px-4 pb-4">
         {post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {post.tags.map((tag) => (
