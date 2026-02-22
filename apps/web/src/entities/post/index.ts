@@ -18,6 +18,7 @@ export { fetchPostDetailFn } from './api/post-detail';
 export {
   POST_IMAGE_UPLOAD_ERROR_CODE,
   requestPostImageUploadUrlFn,
+  resolvePostImagePaths,
   uploadPostImageToPresignedPutFn,
 } from './api/post-image-upload';
 export { togglePostLikeFn } from './api/post-like';
