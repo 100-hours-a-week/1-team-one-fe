@@ -2,9 +2,10 @@ import { Button } from '@repo/ui/button';
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 
-import { PostCreateDataType } from '@/src/entities/post';
-import { MOMENTS_CREATE_MESSAGES, MomentsCreateForm } from '@/src/features/moments-create';
+import { MOMENTS_CREATE_MESSAGES, useCreatePostMutation } from '@/src/features/moments-create';
+import type { MomentsPostFormValues } from '@/src/shared/types';
 import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
+import { MomentsPostForm } from '@/src/widgets/moments-post-form';
 
 const FORM_ID = 'moments-create-form';
 
@@ -12,6 +13,7 @@ export function MomentsNewPage() {
   const router = useRouter();
   const [isValid, setIsValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutateAsync: createPost } = useCreatePostMutation();
 
   useSetHeaderAction(
     () => (
@@ -41,18 +43,20 @@ export function MomentsNewPage() {
     [],
   );
 
-  const handleOnSuccess = useCallback(
-    (data: PostCreateDataType) => {
+  const handleSubmit = useCallback(
+    async (values: MomentsPostFormValues) => {
+      const data = await createPost(values);
       router.replace(`/moments/post/${data.postId}`);
     },
-    [router],
+    [createPost, router],
   );
 
   return (
-    <MomentsCreateForm
+    <MomentsPostForm
       id={FORM_ID}
+      defaultValues={{ title: '', content: '', tags: [], images: [] }}
       onFormStateChange={handleFormStateChange}
-      onSuccess={handleOnSuccess}
+      onSubmit={handleSubmit}
     />
   );
 }
