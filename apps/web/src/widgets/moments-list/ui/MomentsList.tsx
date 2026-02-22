@@ -1,3 +1,5 @@
+import type { QueryKey } from '@tanstack/react-query';
+
 import type { PostListItemType } from '@/src/entities/post';
 import { MOMENTS_LIST_CONFIG, MOMENTS_LIST_MESSAGES } from '@/src/features/moments-list';
 import { InfiniteScrollTrigger } from '@/src/shared/ui/infinite-scroll-trigger';
@@ -9,6 +11,7 @@ type MomentsListProps = {
   hasNextPage: boolean;
   onFetchNext: () => void;
   isLoggedIn: boolean;
+  listQueryKey: QueryKey;
 };
 
 export function MomentsList({
@@ -17,11 +20,17 @@ export function MomentsList({
   hasNextPage,
   onFetchNext,
   isLoggedIn,
+  listQueryKey,
 }: MomentsListProps) {
   return (
     <div className="flex flex-col gap-4">
       {items.map((post) => (
-        <MomentsPostCardItem key={post.postId} post={post} isLoggedIn={isLoggedIn} />
+        <MomentsPostCardItem
+          key={post.postId}
+          post={post}
+          isLoggedIn={isLoggedIn}
+          listQueryKey={listQueryKey}
+        />
       ))}
       {isFetchingNextPage && (
         <div className="text-text-muted flex justify-center text-sm">

@@ -1,6 +1,6 @@
 import { ImageGallery } from '@repo/ui/image-gallery';
 import { ImageLightbox } from '@repo/ui/image-lightbox';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
 import type { PostDetailDataType } from '@/src/entities/post';
 import { buildImageUrls } from '@/src/shared/lib/image';
@@ -11,9 +11,10 @@ import { PostDetailTags } from './PostDetailTags';
 
 interface PostDetailViewProps {
   data: PostDetailDataType;
+  footer?: ReactNode;
 }
 
-export function PostDetailView({ data }: PostDetailViewProps) {
+export function PostDetailView({ data, footer }: PostDetailViewProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
@@ -54,8 +55,7 @@ export function PostDetailView({ data }: PostDetailViewProps) {
         </>
       )}
 
-      {/* 좋아요 */}
-      <div className="text-text-subtle py-4 text-sm">좋아요 {data.likeCount}개</div>
+      {footer ? <div className="flex items-center py-4">{footer}</div> : null}
     </article>
   );
 }

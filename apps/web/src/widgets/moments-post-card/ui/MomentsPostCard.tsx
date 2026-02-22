@@ -1,9 +1,10 @@
 import { Card, CardContent, CardFooter, CardHeader } from '@repo/ui/card';
 import { Chip } from '@repo/ui/chip';
+import type { QueryKey } from '@tanstack/react-query';
 import Link from 'next/link';
 
 import type { PostListItemType } from '@/src/entities/post';
-import { useLikePostMutation } from '@/src/features/moments-like';
+import { useLikePostMutation, useLikePostMutationOptions } from '@/src/features/moments-like';
 import { MOMENTS_LIST_CONFIG } from '@/src/features/moments-list';
 import { buildImageUrl } from '@/src/shared/lib/image';
 import { buildMomentsDetailPath } from '@/src/shared/routes';
@@ -13,12 +14,14 @@ import { PostAuthorInfo } from '@/src/widgets/post-author-info';
 interface MomentsPostCardItemProps {
   post: PostListItemType;
   isLoggedIn: boolean;
+  listQueryKey: QueryKey;
 }
 
-export function MomentsPostCardItem({ post, isLoggedIn }: MomentsPostCardItemProps) {
+export function MomentsPostCardItem({ post, isLoggedIn, listQueryKey }: MomentsPostCardItemProps) {
   const detailHref = buildMomentsDetailPath(post.postId);
   const resolvedImageUrl = buildImageUrl(post.imageUrl);
-  const { mutate: likePost } = useLikePostMutation();
+  const optimisticHandlers = useLikePostMutationOptions({ queryKey: listQueryKey });
+  const { mutate: likePost } = useLikePostMutation(optimisticHandlers);
 
   const handleLike = () => {
     likePost({ postId: post.postId, isLiked: post.isLiked });
