@@ -13,7 +13,7 @@ import type { ComponentType } from 'react';
 import { isApiError } from '@/src/shared/api';
 import { HTTP_STATUS } from '@/src/shared/config/http-status';
 import { TOAST_MESSAGES } from '@/src/shared/config/toast-messages';
-import { shouldThrowQueryError } from '@/src/shared/lib/query/should-throw-query-error';
+import { shouldThrowQueryError } from '@/src/shared/lib/react-query';
 
 //401은 제외, 404/5xx는 errorBoundary로 위임, 그 외는 토스트로 처리
 const shouldShowQueryToast = (error: unknown, query?: Query<unknown, unknown>): boolean => {
