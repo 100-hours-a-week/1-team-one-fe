@@ -142,17 +142,18 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
    *   - 'move'  DataWindow(10): 최근 컨텍스트 (~1초)
    *   - predict() = ridge(50 clicks + 10 moves)
    *
-   * Vanilla WebGazer 패턴 재현:
-   *   'click' (400ms 간격): 보간 trail + keyFrame → click DataWindow(50) 채움
-   *   'move'  (100ms 간격): 보간 trail → move DataWindow(10) 채움 (최근 1초 컨텍스트)
+   * click DataWindow(50)을 정확히 채우기 위한 간격:
+   *   follow phase 총 시간 / 50 = interval
+   *   keyFrames가 변경되어도 항상 50개를 정확히 채움
    */
-  const CALIBRATE_CLICK_INTERVAL_MS = 400;
+  const CLICK_DATA_WINDOW_SIZE = 50;
+  const followTotalMs = reference.keyFrames
+    .filter((kf) => kf.phase.startsWith('follow'))
+    .reduce((sum, kf) => sum + kf.holdMs, 0);
+  const CALIBRATE_CLICK_INTERVAL_MS = Math.floor(followTotalMs / CLICK_DATA_WINDOW_SIZE);
   const CALIBRATE_MOVE_INTERVAL_MS = 100;
   let lastClickCalibrateAt = 0;
   let lastMoveCalibrateAt = 0;
-
-  /** 타겟 advance 감지용 — 각 keyFrame 정확 좌표에서 클릭 기록 */
-  let prevResultTargetIndex = 0;
 
   const emitLog = (type: string, detail?: Readonly<Record<string, unknown>>): void => {
     onLog?.({ type, detail });
@@ -226,6 +227,14 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
         if (timestampMs - lastClickCalibrateAt >= CALIBRATE_CLICK_INTERVAL_MS) {
           lastClickCalibrateAt = timestampMs;
           tracker.calibrate(pixelX, pixelY, 'click');
+          emitLog('calibrate_click', {
+            phase: currentTarget.phase,
+            targetIdx: currentTargetIndex,
+            holdMs,
+            interpolated: { x: interpolated.x.toFixed(3), y: interpolated.y.toFixed(3) },
+            pixel: { x: Math.round(pixelX), y: Math.round(pixelY) },
+            rawGaze: { x: Math.round(prediction.x), y: Math.round(prediction.y) },
+          });
         }
 
         // 'move' (100ms): move DataWindow(10) — 최근 ~1초 컨텍스트
@@ -242,29 +251,10 @@ export function createEyeSession(options: CreateEyeSessionOptions): EyeSession {
         holdMs,
       });
 
-      // ── keyFrame 정확 좌표 클릭 (target advance 감지, follow→* 전환만) ──
-      // follow phase가 완료되었을 때만 해당 keyFrame 정확 좌표에 클릭 기록.
-      // hold phase 완료 시에는 기록하지 않는다 (측정 구간이므로).
-      if (result.currentTargetIndex !== prevResultTargetIndex && tracker.calibrate) {
-        const completedTarget = resolvedReference.keyFrames[prevResultTargetIndex];
-        const wasFollowPhase = completedTarget?.phase.startsWith('follow');
-
-        if (completedTarget && wasFollowPhase) {
-          tracker.calibrate(completedTarget.x * vw, completedTarget.y * vh, 'click');
-          emitLog('calibrate_keyframe', {
-            type: 'complete',
-            targetIndex: prevResultTargetIndex,
-            phase: completedTarget.phase,
-            x: completedTarget.x,
-            y: completedTarget.y,
-          });
-        }
-
-        // 스로틀 리셋 → 새 follow 타겟의 연속 캘리브레이션이 즉시 시작
-        lastClickCalibrateAt = 0;
-        lastMoveCalibrateAt = 0;
-        prevResultTargetIndex = result.currentTargetIndex;
-      }
+      // ── target advance 감지 (로깅용) ──
+      // keyFrame 정확 좌표 별도 클릭 제거: 440ms 연속 trail click으로 50개를
+      // 정확히 채우기 위해, 추가 click으로 DataWindow(50)을 넘기지 않는다.
+      // 스로틀 리셋도 제거: 균등 간격 유지.
 
       // 30프레임마다 1회 로깅
       if ((gazeLogCounter - 1) % 30 === 0) {

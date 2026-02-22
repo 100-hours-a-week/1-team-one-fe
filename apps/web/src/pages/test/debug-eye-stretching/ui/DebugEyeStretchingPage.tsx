@@ -10,27 +10,30 @@ import { EyeStretchingOverlay } from '@/src/features/eye-stretching-session/ui/E
  */
 const MOCK_REFERENCE: EyeStretchingReference = {
   keyFrames: [
-    { phase: 'follow1', x: 0.5, y: 0.5, holdMs: 3000 },
-    { phase: 'follow2', x: 0.1, y: 0.1, holdMs: 1500 },
-    { phase: 'follow3', x: 0.5, y: 0.1, holdMs: 1500 },
-    { phase: 'follow4', x: 0.9, y: 0.1, holdMs: 1500 },
-    { phase: 'follow5', x: 0.9, y: 0.5, holdMs: 3000 },
-    { phase: 'follow6', x: 0.9, y: 0.9, holdMs: 3000 },
-    { phase: 'follow7', x: 0.5, y: 0.9, holdMs: 1500 },
-    { phase: 'follow8', x: 0.1, y: 0.9, holdMs: 1500 },
-    { phase: 'follow9', x: 0.1, y: 0.5, holdMs: 3000 },
-    { phase: 'follow10', x: 0.1, y: 0.1, holdMs: 3000 },
-    { phase: 'follow11', x: 0.5, y: 0.5, holdMs: 3000 },
-    { phase: 'follow12', x: 0.9, y: 0.9, holdMs: 3000 },
-    { phase: 'follow13', x: 0.1, y: 0.9, holdMs: 3000 },
-    { phase: 'follow14', x: 0.5, y: 0.5, holdMs: 3000 },
-    { phase: 'follow15', x: 0.9, y: 0.1, holdMs: 3000 },
+    { phase: 'follow1', x: 0.9, y: 0.5, holdMs: 1000 },
+    { phase: 'follow2', x: 0.5, y: 0.5, holdMs: 1000 },
+    { phase: 'follow3', x: 0.1, y: 0.5, holdMs: 1000 },
+    { phase: 'follow4', x: 0.1, y: 0.1, holdMs: 1500 },
+    { phase: 'follow5', x: 0.5, y: 0.1, holdMs: 1000 },
+    { phase: 'follow6', x: 0.9, y: 0.1, holdMs: 1000 },
+    { phase: 'follow7', x: 0.9, y: 0.5, holdMs: 1500 },
+    { phase: 'follow8', x: 0.9, y: 0.9, holdMs: 1500 },
+    { phase: 'follow9', x: 0.5, y: 0.9, holdMs: 1000 },
+    { phase: 'follow10', x: 0.1, y: 0.9, holdMs: 1000 },
+    { phase: 'follow11', x: 0.1, y: 0.5, holdMs: 1500 },
+    { phase: 'follow12', x: 0.1, y: 0.1, holdMs: 1500 },
+    { phase: 'follow13', x: 0.5, y: 0.5, holdMs: 1500 },
+    { phase: 'follow14', x: 0.9, y: 0.9, holdMs: 1500 },
+    { phase: 'follow15', x: 0.5, y: 0.9, holdMs: 1000 },
+    { phase: 'follow16', x: 0.1, y: 0.9, holdMs: 1000 },
+    { phase: 'follow17', x: 0.5, y: 0.5, holdMs: 1500 },
+    { phase: 'follow18', x: 0.9, y: 0.1, holdMs: 1500 },
     { phase: 'hold1', x: 1.0, y: 0.5, holdMs: 10000 },
     { phase: 'hold2', x: 0.0, y: 0.5, holdMs: 10000 },
     { phase: 'hold3', x: 0.5, y: 0.0, holdMs: 10000 },
     { phase: 'hold4', x: 0.5, y: 1.0, holdMs: 10000 },
   ],
-  totalDurationMs: 67000,
+  totalDurationMs: 62500,
 };
 
 const MOCK_LIMIT_TIME_SECONDS = 60;
@@ -57,7 +60,10 @@ export function DebugEyeStretchingPage() {
 
   const currentTarget = MOCK_REFERENCE.keyFrames[currentTargetIndex];
   const targetHoldSeconds = currentTarget ? currentTarget.holdMs / 1000 : 0;
-  const calibrationRemainingSeconds = Math.max(0, Math.ceil(targetHoldSeconds - holdSeconds));
+  const phaseRemainingSeconds = Math.max(0, Math.ceil(targetHoldSeconds - holdSeconds));
+  const totalFollowCount = MOCK_REFERENCE.keyFrames.filter((kf) =>
+    kf.phase.startsWith('follow'),
+  ).length;
 
   if (isLoading) {
     return (
@@ -95,10 +101,10 @@ export function DebugEyeStretchingPage() {
           <EyeStretchingOverlay
             progressRatio={progressRatio}
             score={score}
-            holdSeconds={holdSeconds}
             timeRemainingSeconds={timeRemainingSeconds}
             phase={phase}
-            calibrationRemainingSeconds={calibrationRemainingSeconds}
+            phaseRemainingSeconds={phaseRemainingSeconds}
+            totalFollowCount={totalFollowCount}
           />
 
           {currentTarget && (
@@ -106,7 +112,7 @@ export function DebugEyeStretchingPage() {
               phase={phase}
               targetX={guideX}
               targetY={guideY}
-              calibrationRemainingSeconds={calibrationRemainingSeconds}
+              calibrationRemainingSeconds={phase === 'follow1' ? phaseRemainingSeconds : 0}
             />
           )}
 

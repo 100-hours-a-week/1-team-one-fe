@@ -9,8 +9,12 @@ export const EYE_MATCH_THRESHOLD = 60;
  */
 export const GAZE_TOLERANCE = 0.25;
 
-/** 점수 EMA alpha (낮을수록 더 안정적) */
-export const SCORE_SMOOTHING_FACTOR = 0.3;
+/**
+ * 점수 EMA alpha (낮을수록 더 안정적)
+ * 0.3: 기본값 (빠른 반응, 급락 가능)
+ * 0.15: 점수 급락 억제, 안정적 holdMs 누적
+ */
+export const SCORE_SMOOTHING_FACTOR = 0.15;
 
 /**
  * 시선 좌표 EMA alpha (낮을수록 더 안정적)
@@ -18,8 +22,9 @@ export const SCORE_SMOOTHING_FACTOR = 0.3;
  * WebGazer raw 예측이 프레임 간 ±30% 요동하므로
  * 0.4(민감)→0.15(안정) 로 낮춰 노이즈를 억제한다.
  * α=0.15 시뮬레이션: raw x 207~488 → smoothed 0.75~0.86 (안정적)
+ * α=0.08: 더 강한 스무딩, 시선 좌표 급변동 억제
  */
-export const GAZE_SMOOTHING_FACTOR = 0.15;
+export const GAZE_SMOOTHING_FACTOR = 0.08;
 
 /**
  * 스코어링용 타겟 좌표 클램프 범위

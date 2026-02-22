@@ -94,7 +94,8 @@ export function EyeStretchingSessionView({
   // 현재 target 정보
   const currentTarget = reference.keyFrames[currentTargetIndex];
   const targetHoldSeconds = currentTarget ? currentTarget.holdMs / 1000 : 0;
-  const calibrationRemainingSeconds = Math.max(0, Math.ceil(targetHoldSeconds - holdSeconds));
+  const phaseRemainingSeconds = Math.max(0, Math.ceil(targetHoldSeconds - holdSeconds));
+  const totalFollowCount = reference.keyFrames.filter((kf) => kf.phase.startsWith('follow')).length;
 
   // 로딩 상태
   if (isLoading) {
@@ -134,10 +135,10 @@ export function EyeStretchingSessionView({
           <EyeStretchingOverlay
             progressRatio={progressRatio}
             score={score}
-            holdSeconds={holdSeconds}
             timeRemainingSeconds={timeRemainingSeconds}
             phase={phase}
-            calibrationRemainingSeconds={calibrationRemainingSeconds}
+            phaseRemainingSeconds={phaseRemainingSeconds}
+            totalFollowCount={totalFollowCount}
           />
 
           {currentTarget && (
@@ -145,7 +146,7 @@ export function EyeStretchingSessionView({
               phase={phase}
               targetX={guideX}
               targetY={guideY}
-              calibrationRemainingSeconds={calibrationRemainingSeconds}
+              calibrationRemainingSeconds={phase === 'follow1' ? phaseRemainingSeconds : 0}
             />
           )}
 

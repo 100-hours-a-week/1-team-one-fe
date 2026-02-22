@@ -8,21 +8,15 @@ type EyeStretchingOverlayProps = {
   progressRatio: number;
   /** 정확도 점수 (0~100) */
   score: number;
-  /** 현재 target 유지 시간 (초) */
-  holdSeconds: number;
   /** 남은 제한 시간 (초) */
   timeRemainingSeconds: number;
   /** 현재 phase */
   phase: EyePhase;
-  /** 캘리브레이션 카운트다운 남은 초 */
-  calibrationRemainingSeconds: number;
+  /** 현재 phase 남은 초 */
+  phaseRemainingSeconds: number;
+  /** follow phase 전체 개수 */
+  totalFollowCount: number;
 };
-
-function getPhaseLabel(phase: EyePhase): string {
-  if (phase.startsWith('follow')) return `캘리브레이션 ${phase.replace('follow', '')}/3`;
-  if (phase.startsWith('hold')) return '시선 유지';
-  return '완료';
-}
 
 /** EYE_MATCH_THRESHOLD 기반 tone 판정 (stretching-session 패턴 동일) */
 function getScoreTone(score: number): 'danger' | 'warn' | 'brand' {
@@ -34,12 +28,13 @@ function getScoreTone(score: number): 'danger' | 'warn' | 'brand' {
 export function EyeStretchingOverlay({
   progressRatio,
   score,
-  holdSeconds,
   timeRemainingSeconds,
   phase,
-  calibrationRemainingSeconds,
+  phaseRemainingSeconds,
+  totalFollowCount,
 }: EyeStretchingOverlayProps) {
   const isFollowPhase = phase.startsWith('follow');
+  const followIndex = isFollowPhase ? Number(phase.replace('follow', '')) : 0;
   const scoreTone = getScoreTone(score);
 
   const scoreTextClassName =
@@ -64,15 +59,22 @@ export function EyeStretchingOverlay({
           </span>
         </div>
 
-        {/* 중앙: 캘리브레이션 카운트다운 또는 유지 시간 */}
+        {/* 중앙: 캘리브레이션 진행률 또는 시선 유지 카운트다운 */}
         <div className="flex flex-col items-center gap-1">
-          <span className="text-text-muted text-xs">{getPhaseLabel(phase)}</span>
           {isFollowPhase ? (
-            <span className="text-brand-600 text-lg font-semibold">
-              {calibrationRemainingSeconds}초
-            </span>
+            <>
+              <span className="text-text-muted text-xs">
+                캘리브레이션 ({followIndex}/{totalFollowCount})
+              </span>
+              <span className="text-brand-600 text-lg font-semibold">
+                {phaseRemainingSeconds}초
+              </span>
+            </>
           ) : (
-            <span className="text-text text-lg font-semibold">{holdSeconds}초</span>
+            <>
+              <span className="text-text-muted text-xs">시선 유지</span>
+              <span className="text-text text-lg font-semibold">{phaseRemainingSeconds}초</span>
+            </>
           )}
         </div>
 

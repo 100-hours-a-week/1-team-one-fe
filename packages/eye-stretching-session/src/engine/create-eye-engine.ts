@@ -37,6 +37,10 @@ import {
   SCORING_TARGET_MIN,
 } from '../constants';
 
+/** 스코어링용 좌표 클램프 (타겟·시선 모두 동일 범위로 제한) */
+const clampForScoring = (v: number): number =>
+  Math.max(SCORING_TARGET_MIN, Math.min(SCORING_TARGET_MAX, v));
+
 /**
  * 눈운동 스트레칭 평가 엔진 생성
  *
@@ -70,15 +74,21 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
    *   - distance 0   → 100점
    *   - distance 0.05 → ~60점 (threshold 근처)
    *   - distance 0.1  → ~37점
+   *
+   * @param axis - 평가 축 제한
+   *   'both': x, y 모두 (follow phase 기본)
+   *   'x':    x축만 (hold 좌/우)
+   *   'y':    y축만 (hold 상/하)
    */
   const calculateGazeScore = (
     gazeX: number,
     gazeY: number,
     targetX: number,
     targetY: number,
+    axis: 'both' | 'x' | 'y' = 'both',
   ): number => {
-    const dx = gazeX - targetX;
-    const dy = gazeY - targetY;
+    const dx = axis !== 'y' ? gazeX - targetX : 0;
+    const dy = axis !== 'x' ? gazeY - targetY : 0;
     const distance = Math.sqrt(dx * dx + dy * dy);
     return Math.exp(-distance / GAZE_TOLERANCE) * 100;
   };
@@ -122,10 +132,29 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
     const interpolated = interpolateFollowTarget(keyFrames, currentIdx, holdMs);
 
     // WebGazer 실측 정확도 범위로 클램프 (뷰포트 극단은 예측 불가)
-    const scoringX = Math.max(SCORING_TARGET_MIN, Math.min(SCORING_TARGET_MAX, interpolated.x));
-    const scoringY = Math.max(SCORING_TARGET_MIN, Math.min(SCORING_TARGET_MAX, interpolated.y));
+    const scoringX = clampForScoring(interpolated.x);
+    const scoringY = clampForScoring(interpolated.y);
 
-    const rawScore = calculateGazeScore(smoothedGaze.x, smoothedGaze.y, scoringX, scoringY);
+    // hold phase: 해당 방향의 축만 평가
+    //   좌/우 (x=0.0|1.0, y=0.5) → x축만
+    //   상/하 (x=0.5, y=0.0|1.0) → y축만
+    const isHoldPhase = currentTarget.phase.startsWith('hold');
+    let scoringAxis: 'both' | 'x' | 'y' = 'both';
+    if (isHoldPhase) {
+      scoringAxis = currentTarget.y === 0.5 ? 'x' : 'y';
+    }
+
+    // 시선 좌표도 동일 범위로 클램프 (타겟과 동일한 기준으로 비교)
+    const clampedGazeX = clampForScoring(smoothedGaze.x);
+    const clampedGazeY = clampForScoring(smoothedGaze.y);
+
+    const rawScore = calculateGazeScore(
+      clampedGazeX,
+      clampedGazeY,
+      scoringX,
+      scoringY,
+      scoringAxis,
+    );
     const finalScore = smoothScore(rawScore);
 
     // ─────────────────────────────────────────────────────────────────
@@ -173,7 +202,10 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
       progressRatio,
       meta: {
         smoothedGaze,
-        distance: Math.sqrt((smoothedGaze.x - scoringX) ** 2 + (smoothedGaze.y - scoringY) ** 2),
+        distance: Math.sqrt(
+          (scoringAxis !== 'y' ? (clampedGazeX - scoringX) ** 2 : 0) +
+            (scoringAxis !== 'x' ? (clampedGazeY - scoringY) ** 2 : 0),
+        ),
         interpolatedTarget: interpolated,
       },
     };

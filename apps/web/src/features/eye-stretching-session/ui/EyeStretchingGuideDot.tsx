@@ -80,10 +80,13 @@ export function EyeStretchingGuideDot({
       {(edge === 'left' || edge === 'up') && <EdgeArrow direction={edge} />}
 
       <div className="flex flex-col items-center">
-        {isFollow && (
+        {isFollow && calibrationRemainingSeconds > 0 && (
           <span className="text-brand-600 mb-2 text-lg font-semibold">
             {calibrationRemainingSeconds}초
           </span>
+        )}
+        {isFollow && calibrationRemainingSeconds <= 0 && (
+          <span className="text-brand-600 mb-2 text-sm font-medium">저를 따라오세요!</span>
         )}
         <div className="relative">
           <span className="bg-brand-400 absolute inset-0 h-5 w-5 animate-ping rounded-full opacity-40" />
