@@ -47,7 +47,9 @@ jobs:
               - ".npmrc"
 
               # CI/CD 워크플로우
-              - ".github/workflows/frontend-ci-cd.yml"
+              - ".github/workflows/frontend-ci-cd-v2.yml"
+              - ".github/workflows/deploy-dev.yml"
+              - ".github/workflows/deploy-asg-rolling.yml"
 
   # 2. CI: 빌드 및 도커 이미지 푸시 (Dev/Staging 용)
   # PR이 열리거나 업데이트될 때 실행됨
