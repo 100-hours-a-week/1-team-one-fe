@@ -16,7 +16,8 @@ export { createWebGazerTracker } from './trackers/webgazer-tracker';
 export type { WebGazerInstance, WebGazerTrackerOptions } from './trackers/webgazer-tracker';
 
 // utils
-export { createGazeSmoother, interpolateFollowTarget } from './utils';
+export { createGazeSmoother, interpolateFollowTarget, createBlinkDetector } from './utils';
+export type { BlinkDetector, BlinkDetectorOptions, EyePatches } from './utils';
 
 // types
 export type {

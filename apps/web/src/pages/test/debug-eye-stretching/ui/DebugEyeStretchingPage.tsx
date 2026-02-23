@@ -1,5 +1,6 @@
 import type { EyeStretchingReference } from '@repo/eye-stretching-session';
 import { useEyeStretchingSession } from '@repo/eye-stretching-session/hook';
+import { useEffect } from 'react';
 
 import { EyeStretchingGazeDot } from '@/src/features/eye-stretching-session/ui/EyeStretchingGazeDot';
 import { EyeStretchingGuideDot } from '@/src/features/eye-stretching-session/ui/EyeStretchingGuideDot';
@@ -28,21 +29,23 @@ const MOCK_REFERENCE: EyeStretchingReference = {
     { phase: 'follow16', x: 0.1, y: 0.9, holdMs: 1000 },
     { phase: 'follow17', x: 0.5, y: 0.5, holdMs: 1500 },
     { phase: 'follow18', x: 0.9, y: 0.1, holdMs: 1500 },
+    { phase: 'close1', x: 0.5, y: 0.5, holdMs: 10000 },
     { phase: 'hold1', x: 1.0, y: 0.5, holdMs: 10000 },
     { phase: 'hold2', x: 0.0, y: 0.5, holdMs: 10000 },
     { phase: 'hold3', x: 0.5, y: 0.0, holdMs: 10000 },
     { phase: 'hold4', x: 0.5, y: 1.0, holdMs: 10000 },
   ],
-  totalDurationMs: 62500,
+  totalDurationMs: 72500,
 };
 
-const MOCK_LIMIT_TIME_SECONDS = 60;
+const MOCK_LIMIT_TIME_SECONDS = (MOCK_REFERENCE.totalDurationMs + 2500) / 1000;
 
 export function DebugEyeStretchingPage() {
   const {
     isLoading,
     isTrackerReady,
     isSessionComplete,
+    isBlinking,
     phase,
     currentTargetIndex,
     score,
@@ -57,6 +60,18 @@ export function DebugEyeStretchingPage() {
   } = useEyeStretchingSession(MOCK_REFERENCE, {
     limitTimeSeconds: MOCK_LIMIT_TIME_SECONDS,
   });
+
+  // isBlinking 변경 시 콘솔 로그
+  useEffect(() => {
+    console.debug('[blink-debug] isBlinking →', isBlinking, { phase, holdSeconds });
+  }, [isBlinking]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // close phase 진입 로그
+  useEffect(() => {
+    if (phase.startsWith('close')) {
+      console.debug('[blink-debug] entered close phase:', phase);
+    }
+  }, [phase]);
 
   const currentTarget = MOCK_REFERENCE.keyFrames[currentTargetIndex];
   const targetHoldSeconds = currentTarget ? currentTarget.holdMs / 1000 : 0;
@@ -117,6 +132,17 @@ export function DebugEyeStretchingPage() {
           )}
 
           <EyeStretchingGazeDot gazeX={gazeX} gazeY={gazeY} />
+
+          {phase.startsWith('close') && (
+            <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 rounded-xl bg-black/60 px-6 py-3 text-center">
+              <p className="text-sm font-medium text-white/60">눈 감기</p>
+              <p
+                className={`mt-0.5 text-2xl font-bold ${isBlinking ? 'text-brand-400' : 'text-white'}`}
+              >
+                {isBlinking ? '감지됨' : '눈을 감으세요'}
+              </p>
+            </div>
+          )}
         </>
       )}
     </div>

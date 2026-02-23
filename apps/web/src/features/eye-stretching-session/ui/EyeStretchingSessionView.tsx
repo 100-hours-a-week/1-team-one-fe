@@ -31,6 +31,7 @@ export function EyeStretchingSessionView({
     isLoading,
     isTrackerReady,
     isSessionComplete,
+    isBlinking,
     phase,
     currentTargetIndex,
     score,
@@ -151,6 +152,17 @@ export function EyeStretchingSessionView({
           )}
 
           <EyeStretchingGazeDot gazeX={gazeX} gazeY={gazeY} />
+
+          {phase.startsWith('close') && (
+            <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 rounded-xl bg-black/60 px-6 py-3 text-center">
+              <p className="text-sm font-medium text-white/60">눈 감기</p>
+              <p
+                className={`mt-0.5 text-2xl font-bold ${isBlinking ? 'text-brand-400' : 'text-white'}`}
+              >
+                {isBlinking ? '감지됨' : '눈을 감으세요'}
+              </p>
+            </div>
+          )}
         </>
       )}
     </div>

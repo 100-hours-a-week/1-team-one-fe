@@ -14,6 +14,8 @@
  */
 
 import type { EyeTracker, GazePrediction } from '../session/create-eye-session';
+import { createBlinkDetector } from '../utils/blink-detector';
+import type { BlinkDetectorOptions, EyePatches } from '../utils/blink-detector';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WebGazer 최소 인터페이스 (npm 패키지 또는 전역 객체 모두 호환)
@@ -33,6 +35,8 @@ export type WebGazerInstance = {
   removeMouseEventListeners: () => WebGazerInstance;
   /** 내부 regression 모델 배열 반환 */
   getRegression: () => WebGazerRegressionModel[];
+  /** TFFacemesh 트래커 인스턴스 반환 (눈 패치 추출용) */
+  getTracker: () => WebGazerTracker;
   /** WebGazer 내부 설정 */
   params: {
     /** localStorage에 이전 세션 학습 데이터 저장/로드 여부 (기본: true) */
@@ -50,6 +54,19 @@ type WebGazerRegressionModel = {
   [key: string]: unknown;
 };
 
+/**
+ * TFFacemesh 트래커 최소 인터페이스
+ * getEyePatches()로 좌/우 눈 ImageData를 추출할 수 있다.
+ */
+type WebGazerTracker = {
+  getEyePatches: (
+    videoElement: HTMLVideoElement,
+    canvas: HTMLCanvasElement,
+    videoWidth: number,
+    videoHeight: number,
+  ) => Promise<EyePatches | null>;
+};
+
 export type WebGazerTrackerOptions = {
   /** 예측 포인트 표시 여부 (기본: false) */
   showPredictionPoints?: boolean;
@@ -59,6 +76,19 @@ export type WebGazerTrackerOptions = {
   showFaceOverlay?: boolean;
   /** 얼굴 피드백 박스 표시 여부 (기본: false) */
   showFaceFeedbackBox?: boolean;
+  /**
+   * blink 감지 콜백
+   * 제공 시 매 gaze 프레임마다 눈 패치 밝기를 분석하여 blink 상태를 전달한다.
+   */
+  onBlink?: (isBlinking: boolean) => void;
+  /** blink 감지기 파라미터 (기본값으로 충분한 경우 생략 가능) */
+  blinkDetectorOptions?: BlinkDetectorOptions;
+  /**
+   * blink 기준선 학습 제어 ref.
+   * current=true: rolling window 업데이트 (follow 단계)
+   * current=false: rolling window 고정 (hold/close 단계)
+   */
+  blinkLearningRef?: { current: boolean };
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -74,10 +104,19 @@ export function createWebGazerTracker(
     showVideo = false,
     showFaceOverlay = false,
     showFaceFeedbackBox = false,
+    onBlink,
+    blinkDetectorOptions,
+    blinkLearningRef,
   } = options ?? {};
 
   // seed click 재시도 타이머 (gaze 콜백이 최초 발생하면 즉시 해제)
   let seedTimer: ReturnType<typeof setInterval> | null = null;
+
+  // blink 감지기 (onBlink 콜백 제공 시에만 활성화)
+  const blinkDetector = onBlink ? createBlinkDetector(blinkDetectorOptions) : null;
+  // canvas는 lazily 생성 (document가 없는 환경 대비)
+  let blinkCanvas: HTMLCanvasElement | null = null;
+  let blinkCtx: CanvasRenderingContext2D | null = null;
 
   return {
     start: async () => {
@@ -133,11 +172,13 @@ export function createWebGazerTracker(
         clearInterval(seedTimer);
         seedTimer = null;
       }
+      blinkDetector?.reset();
       webgazer.end();
     },
 
     onGaze: (callback) => {
       let gazeCallCount = 0;
+      let blinkCallCount = 0;
       webgazer.setGazeListener((data) => {
         gazeCallCount += 1;
         if (gazeCallCount <= 5 || gazeCallCount % 100 === 0) {
@@ -156,6 +197,70 @@ export function createWebGazerTracker(
           seedTimer = null;
         }
         callback(data);
+
+        // blink 감지 (onBlink 콜백 제공 시에만 실행, fire-and-forget)
+        if (onBlink && blinkDetector) {
+          void (async () => {
+            blinkCallCount += 1;
+            try {
+              const video = document.getElementById('webgazerVideoFeed') as HTMLVideoElement | null;
+              if (!video || !video.videoWidth || !video.videoHeight) {
+                if (blinkCallCount <= 3)
+                  console.debug('[blink] no video element', {
+                    blinkCallCount,
+                    videoExists: !!video,
+                  });
+                return;
+              }
+
+              // canvas lazy 초기화
+              if (!blinkCanvas) {
+                blinkCanvas = document.createElement('canvas');
+                blinkCtx = null;
+              }
+              blinkCanvas.width = video.videoWidth;
+              blinkCanvas.height = video.videoHeight;
+              if (!blinkCtx) blinkCtx = blinkCanvas.getContext('2d');
+              if (!blinkCtx) {
+                if (blinkCallCount <= 3) console.debug('[blink] canvas 2d context null');
+                return;
+              }
+
+              blinkCtx.drawImage(video, 0, 0);
+
+              const tracker = webgazer.getTracker();
+              const patches = await tracker.getEyePatches(
+                video,
+                blinkCanvas,
+                video.videoWidth,
+                video.videoHeight,
+              );
+              if (!patches) {
+                if (blinkCallCount % 60 === 0)
+                  console.debug(`[blink] #${blinkCallCount} patches null`);
+                return;
+              }
+              if (!patches.left?.patch || !patches.right?.patch) {
+                if (blinkCallCount % 60 === 0)
+                  console.debug(`[blink] #${blinkCallCount} patches incomplete`, {
+                    left: !!patches.left?.patch,
+                    right: !!patches.right?.patch,
+                  });
+                return;
+              }
+
+              const learn = blinkLearningRef ? blinkLearningRef.current : true;
+              const isBlinking = blinkDetector.update(patches, learn);
+              if (blinkCallCount % 60 === 0)
+                console.debug(`[blink] #${blinkCallCount}`, { isBlinking, learn });
+              if (isBlinking !== null) {
+                onBlink(isBlinking);
+              }
+            } catch (err) {
+              console.warn(`[blink] #${blinkCallCount} detection error:`, err);
+            }
+          })();
+        }
       });
     },
 

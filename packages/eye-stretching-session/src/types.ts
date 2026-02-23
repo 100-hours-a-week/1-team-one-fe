@@ -53,11 +53,12 @@ export type EyeStretchingReference = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * 'follow1' ~ 'follow3': calibration 용 시선 위치 (모니터 내) - 3초
+ * 'follow1' ~ 'followN': calibration 용 시선 위치 (모니터 내) - 3초
  * 'hold1' ~ 'holdN': 실제 유지해야 할 시선 위치 (모니터 외) - 10초
+ * 'close1' ~ 'closeN': 눈 감기 유지 - holdMs 동안 blink 감지로 판정
  * 'end': 마지막 target의 holdMs 완료 시 엔진에서 파생되는 결과 - keyFrames에는 포함되지 않음
  */
-export type EyePhase = `follow${number}` | `hold${number}` | 'end';
+export type EyePhase = `follow${number}` | `hold${number}` | `close${number}` | 'end';
 
 export type EyeEvaluateInput = {
   /** 현재 시선 프레임 */
