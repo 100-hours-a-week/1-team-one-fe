@@ -35,17 +35,19 @@ export function MobileShell({ children, showFooter = true, headerConfig }: Mobil
 
   return (
     <div className="bg-bg flex h-dvh justify-center">
-      <div className="relative flex w-full max-w-md flex-col">
-        {resolvedHeader}
+      <div className="relative flex h-full w-full flex-col">
+        {resolvedHeader ? <div className="mx-auto w-full max-w-md">{resolvedHeader}</div> : null}
 
         <HeaderActionContext.Provider value={{ setAction: setContextAction }}>
-          <div
-            className="flex-1"
-            style={{
-              paddingBottom: showFooter ? 'calc(4rem + env(safe-area-inset-bottom))' : undefined,
-            }}
-          >
-            {children}
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div
+              className="mx-auto w-full max-w-md"
+              style={{
+                paddingBottom: showFooter ? 'calc(4rem + env(safe-area-inset-bottom))' : undefined,
+              }}
+            >
+              {children}
+            </div>
           </div>
         </HeaderActionContext.Provider>
 
