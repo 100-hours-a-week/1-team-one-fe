@@ -41,7 +41,7 @@ export function MobileShell({ children, showFooter = true, headerConfig }: Mobil
         <HeaderActionContext.Provider value={{ setAction: setContextAction }}>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <div
-              className="mx-auto w-full max-w-md"
+              className="mx-auto h-full w-full max-w-md"
               style={{
                 paddingBottom: showFooter ? 'calc(4rem + env(safe-area-inset-bottom))' : undefined,
               }}
