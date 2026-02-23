@@ -7,6 +7,7 @@ import { getCommonSentryServerOptions } from '@tooling/sentry-config';
 
 const env = process.env.NEXT_PUBLIC_ENV; // development | staging | production
 const isProd = env === 'production';
+const isLocal = env === 'local';
 
 //next.js 서버에서 발생하는 에러를 수집 - api 라우트, ssr, 등 ..
 Sentry.init({
@@ -14,6 +15,7 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: env,
   release: process.env.NEXT_PUBLIC_RELEASE,
+  enabled: !isLocal,
 
   tracesSampleRate: isProd ? 0.1 : 0.3,
 

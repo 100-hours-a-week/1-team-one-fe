@@ -1,0 +1,310 @@
+name: Deploy Frontend ASG via Rolling Update
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: '배포 환경 (staging/production)'
+      image_uri:
+        required: true
+        type: string
+        description: '배포할 Docker 이미지 URI'
+      asg_name:
+        required: true
+        type: string
+        description: 'Auto Scaling Group 이름'
+      lt_id:
+        required: true
+        type: string 
+        description: 'Launch Template ID'
+      pr_number:
+        required: true
+        type: string
+      pr_title:
+        required: true 
+        type: string
+      base_ref:
+        required: true
+        type: string
+      actor:
+        required: true
+        type: string
+      repository:
+        required: true
+        type: string
+      run_id:
+        required: true
+        type: string
+
+    secrets:
+      DISCORD_WEBHOOK_URL:
+        required: true
+      DISCORD_ROLE_FRONTEND:
+        required: true
+      DISCORD_ROLE_FRONTEND_ONCALL:
+        required: true
+      AWS_ROLE_ARN:
+        required: true
+      STG_ALB_DNS:
+        required: true
+      PROD_ALB_DNS:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+
+jobs:
+  deploy-asg:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }} 
+    
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 1. 시작 템플릿(Launch Template) 새 버전 생성
+      - name: Create New Launch Template Version
+        id: update-lt
+        run: |
+          echo "Fetching current User Data for LT ID: ${{ inputs.lt_id }}..."
+          
+          # 1. 최신 버전의 Launch Template 데이터 가져오기
+          CURRENT_LT=$(aws ec2 describe-launch-template-versions \
+            --launch-template-id ${{ inputs.lt_id }} \
+            --versions "\$Latest" \
+            --query 'LaunchTemplateVersions[0].LaunchTemplateData')
+
+          # 2. User Data 디코딩 (Base64 -> Text)
+          CURRENT_USER_DATA_BASE64=$(echo $CURRENT_LT | jq -r '.UserData')
+          CURRENT_USER_DATA=$(echo $CURRENT_USER_DATA_BASE64 | base64 --decode)
+
+          # 3. User Data 내의 이미지 URI 변경 (sed 사용)
+          NEW_IMAGE_URI="${{ inputs.image_uri }}"
+          APP_ENV="${{ inputs.environment }}"
+
+          echo "Injecting Environment: $APP_ENV"
+          echo "Deploying Image: $NEW_IMAGE_URI"
+
+          # IMAGE_URI와 APP_ENV 주입
+          NEW_USER_DATA=$(echo "$CURRENT_USER_DATA" | sed "s|export IMAGE_URI=.*|export IMAGE_URI=\"$NEW_IMAGE_URI\"|g")
+          NEW_USER_DATA=$(echo "$NEW_USER_DATA" | sed "s|export APP_ENV=.*|export APP_ENV=\"$APP_ENV\"|g")
+
+          # 4. 변경된 User Data 다시 인코딩 (Text -> Base64)
+          NEW_USER_DATA_BASE64=$(echo "$NEW_USER_DATA" | base64 -w 0)
+
+          echo "Creating new Launch Template version..."
+          
+          # 5. 새 버전 발행 (이미지 URI의 해시태그/버전을 Description으로 사용)
+          NEW_VERSION=$(aws ec2 create-launch-template-version \
+            --launch-template-id ${{ inputs.lt_id }} \
+            --source-version "\$Latest" \
+            --version-description "Deploy: $(echo ${{ inputs.image_uri }} | cut -d: -f2)" \
+            --launch-template-data "{\"UserData\":\"$NEW_USER_DATA_BASE64\"}" \
+            --query 'LaunchTemplateVersion.VersionNumber' \
+            --output text)
+
+          echo "Created Launch Template Version: $NEW_VERSION"
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      # 2. ASG 인스턴스 리프레시 시작 (Rolling Update)
+      - name: Start Instance Refresh
+        id: refresh
+        run: |
+          echo "Starting Instance Refresh for ASG: ${{ inputs.asg_name }}..."
+
+          # 기존 진행 중인 리프레시 취소
+          CURRENT_REFRESH_ID=$(aws autoscaling describe-instance-refreshes \
+            --auto-scaling-group-name ${{ inputs.asg_name }} \
+            --query 'InstanceRefreshes[?Status==`InProgress`].InstanceRefreshId' \
+            --output text)
+            
+          if [ ! -z "$CURRENT_REFRESH_ID" ] && [ "$CURRENT_REFRESH_ID" != "None" ]; then
+            echo "Found in-progress refresh ($CURRENT_REFRESH_ID). Cancelling it now..."
+            aws autoscaling cancel-instance-refresh --auto-scaling-group-name ${{ inputs.asg_name }}
+            echo "Waiting for cancellation..."
+            sleep 10
+          fi
+          
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            MIN_HEALTHY=50
+          else
+            MIN_HEALTHY=0
+          fi
+          
+          echo "Using MinHealthyPercentage: $MIN_HEALTHY"
+
+          # 리프레시 시작
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name ${{ inputs.asg_name }} \
+            --preferences "{\"MinHealthyPercentage\": $MIN_HEALTHY, \"InstanceWarmup\": 180, \"AutoRollback\": true}" \
+            --desired-configuration "{\"LaunchTemplate\":{\"LaunchTemplateId\":\"${{ inputs.lt_id }}\",\"Version\":\"${{ steps.update-lt.outputs.VERSION }}\"}}" \
+            --query 'InstanceRefreshId' \
+            --output text)
+
+          echo "Instance Refresh ID: $REFRESH_ID"
+          echo "REFRESH_ID=$REFRESH_ID" >> $GITHUB_OUTPUT
+
+      # 3. 배포 완료 대기 (Polling)
+      - name: Wait for Instance Refresh
+        id: wait-refresh
+        timeout-minutes: 10
+        run: |
+          echo "Waiting for Instance Refresh to complete..."
+          REFRESH_ID=${{ steps.refresh.outputs.REFRESH_ID }}
+          ASG_NAME=${{ inputs.asg_name }}
+          
+          while :; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name $ASG_NAME \
+              --instance-refresh-ids $REFRESH_ID \
+              --query 'InstanceRefreshes[0].Status' \
+              --output text)
+            
+            echo "Current Status: $STATUS"
+
+            if [[ "$STATUS" == "Successful" ]]; then
+              echo "Instance Refresh Completed Successfully!"
+              break
+            elif [[ "$STATUS" == "Failed" || "$STATUS" == "Cancelled" ]]; then
+              echo "Instance Refresh Failed!"
+              aws autoscaling describe-instance-refreshes --auto-scaling-group-name $ASG_NAME --instance-refresh-ids $REFRESH_ID
+              exit 1
+            elif [[ "$STATUS" == "RollbackSuccessful" ]]; then
+               echo "Deployment Failed but Auto-Rollback Succeeded!"
+               exit 1
+            elif [[ "$STATUS" == "RollbackFailed" ]]; then
+               echo "Deployment Failed AND Auto-Rollback Failed!"
+               exit 1
+            fi
+
+            echo "Waiting 10s..."
+            sleep 10
+          done
+
+      # 4. 성공 시 ASG 설정을 최신 버전으로 확정
+      - name: Update ASG Configuration to New Version
+        if: success()
+        run: |
+          echo "Updating ASG to use Version ${{ steps.update-lt.outputs.VERSION }}..."
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name ${{ inputs.asg_name }} \
+            --launch-template "LaunchTemplateId=${{ inputs.lt_id }},Version=${{ steps.update-lt.outputs.VERSION }}"
+
+      # 5. 프론트엔드 Health Check
+      - name: Final Health Check Verification
+        if: success()
+        run: |
+          echo "Checking actual service health..."
+
+          # [수정] 프론트엔드 헬스체크 API 경로로 변경 (/api/health)
+          if [[ "${{ inputs.environment }}" == "production" ]]; then
+            TARGET_URL="http://${{ secrets.PROD_ALB_DNS }}/"
+          else
+            TARGET_URL="http://${{ secrets.STG_ALB_DNS }}/"
+          fi
+          
+          for i in {1..5}; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL")
+            echo "Attempt $i: HTTP Status is $HTTP_STATUS"
+            
+            if [ "$HTTP_STATUS" == "200" ]; then
+              echo "App is UP and Healthy!"
+              exit 0
+            fi
+            
+            echo "App is not healthy yet. Waiting 30s..."
+            sleep 30
+          done
+          
+          echo "ASG said Success, but App is DEAD. Failing pipeline."
+          exit 1
+
+      # 6. 실행 중인 LT 버전 검증
+      - name: Verify Running Launch Template Version
+        if: success()
+        run: |
+          ASG_NAME=${{ inputs.asg_name }}
+          NEW_VERSION=${{ steps.update-lt.outputs.VERSION }}
+          
+          echo "Verifying running instances..."
+          RUNNING_VERSIONS=$(aws autoscaling describe-auto-scaling-groups \
+            --auto-scaling-group-names $ASG_NAME \
+            --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].LaunchTemplate.Version' \
+            --output text)
+          
+          echo "Detected Running Versions: $RUNNING_VERSIONS"
+          
+          for v in $RUNNING_VERSIONS; do
+            if [ "$v" != "$NEW_VERSION" ]; then
+              echo "Mismatch Detected! Instance is running version $v, but expected $NEW_VERSION"
+              exit 1
+            fi
+          done
+          echo "All instances are running the correct version."
+
+      # 7. 현재 시간 구하기 (KST)
+      - name: Get Current Time
+        if: always()
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: 'YYYY-MM-DD HH:mm:ss'
+          utcOffset: "+09:00"
+          timezone: 'Asia/Seoul'
+
+      # 8. 성공 알림
+      - name: Discord Notification - Success
+        if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_EMBEDS: |
+            [{
+              "title": "✅ ${{ inputs.environment }} FE 배포(CD) 성공",
+              "color": 5763719,
+              "fields": [
+                {"name": "Repository", "value": "${{ inputs.repository }}", "inline": false},
+                {"name": "Environment", "value": "${{ inputs.environment }}", "inline": true},
+                {"name": "Merge To", "value": "${{ inputs.base_ref }}", "inline": true},
+                {"name": "Commit/PR", "value": "${{ inputs.pr_title }}", "inline": false},
+                {"name": "Actions Log", "value": "[Link](${{ github.server_url }}/${{ inputs.repository }}/actions/runs/${{ inputs.run_id }})", "inline": true}
+              ],
+              "footer": {
+                "text": "${{ steps.current-time.outputs.formattedTime }} KST"
+              }
+            }]
+        uses: Ilshidur/action-discord@0.4.0
+        with:
+          args: 'v2 ${{ inputs.environment }} FE 배포 완료! <@&${{ secrets.DISCORD_ROLE_FRONTEND }}>'
+
+      # 9. 실패 알림
+      - name: Discord Notification - Failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_EMBEDS: |
+            [{
+              "title": "🚨 ${{ inputs.environment }} FE 배포(CD) 실패",
+              "color": 15548997,
+              "fields": [
+                  {"name": "Repository", "value": "${{ inputs.repository }}", "inline": false},
+                  {"name": "Environment", "value": "${{ inputs.environment }}", "inline": true},
+                  {"name": "Merge To", "value": "${{ inputs.base_ref }}", "inline": true},
+                  {"name": "Commit/PR", "value": "${{ inputs.pr_title }}", "inline": false},
+                  {"name": "Actions Log", "value": "[Link to Action](${{ github.server_url }}/${{ inputs.repository }}/actions/runs/${{ inputs.run_id }})", "inline": true}
+              ],
+              "footer": {
+                "text": "${{ steps.current-time.outputs.formattedTime }} KST"
+              }
+            }]
+        uses: Ilshidur/action-discord@0.4.0
+        with:
+          args: 'v2 ${{ inputs.environment }} FE 배포 실패! 로그 확인 필요. <@&${{ secrets.DISCORD_ROLE_FRONTEND_ONCALL }}>'

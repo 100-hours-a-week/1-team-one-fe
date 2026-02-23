@@ -1,19 +1,20 @@
 import { ImageGallery } from '@repo/ui/image-gallery';
 import { ImageLightbox } from '@repo/ui/image-lightbox';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
 import type { PostDetailDataType } from '@/src/entities/post';
 import { buildImageUrls } from '@/src/shared/lib/image';
 import { Divider } from '@/src/shared/ui/divider';
+import { PostAuthorInfo } from '@/src/widgets/post-author-info';
 
-import { PostDetailHeader } from './PostDetailHeader';
 import { PostDetailTags } from './PostDetailTags';
 
 interface PostDetailViewProps {
   data: PostDetailDataType;
+  footer?: ReactNode;
 }
 
-export function PostDetailView({ data }: PostDetailViewProps) {
+export function PostDetailView({ data, footer }: PostDetailViewProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
@@ -26,7 +27,7 @@ export function PostDetailView({ data }: PostDetailViewProps) {
 
   return (
     <article className="mx-auto flex w-full max-w-3xl flex-col px-4 py-6">
-      <PostDetailHeader author={data.author} createdAt={data.createdAt} />
+      <PostAuthorInfo author={data.author} createdAt={data.createdAt} />
       <h1 className="px-2 py-4 text-2xl font-bold">{data.title}</h1>
       <Divider />
 
@@ -54,8 +55,7 @@ export function PostDetailView({ data }: PostDetailViewProps) {
         </>
       )}
 
-      {/* 좋아요 */}
-      <div className="text-text-subtle py-4 text-sm">좋아요 {data.likeCount}개</div>
+      {footer ? <div className="flex items-center py-4">{footer}</div> : null}
     </article>
   );
 }

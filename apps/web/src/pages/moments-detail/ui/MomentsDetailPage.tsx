@@ -5,15 +5,19 @@ import { useDeletePostMutation } from '@/src/features/moments-detail/api/useDele
 import { usePostDetailQuery } from '@/src/features/moments-detail/api/usePostDetailQuery';
 import { PostDetailMenu } from '@/src/features/moments-detail/ui/PostDetailMenu';
 import { PostDetailView } from '@/src/features/moments-detail/ui/PostDetailView';
+import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
 import { isApiError } from '@/src/shared/api';
 import { LoadableBoundary } from '@/src/shared/ui/boundary/LoadableBoundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen/ErrorScreen';
 import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
+import { MomentsDetailLikeSection } from '@/src/widgets/moments-detail-like';
 
 import { MomentsDetailPageSkeleton } from './MomentsDetailPage.skeleton';
 
 export function MomentsDetailPage() {
   const router = useRouter();
+  const { data: onboardingStatus } = useOnboardingStatusQuery();
+  const isLoggedIn = onboardingStatus !== 'unauthorized';
 
   const postId = Number(router.query.postId);
   const isPostIdValid = !Number.isNaN(postId) && postId > 0;
@@ -67,7 +71,19 @@ export function MomentsDetailPage() {
         return <ErrorScreen variant={variant} />;
       }}
     >
-      {(postData) => <PostDetailView data={postData} />}
+      {(postData) => (
+        <PostDetailView
+          data={postData}
+          footer={
+            <MomentsDetailLikeSection
+              postId={postData.postId}
+              likeCount={postData.likeCount}
+              isLiked={postData.isLiked}
+              isLoggedIn={isLoggedIn}
+            />
+          }
+        />
+      )}
     </LoadableBoundary>
   );
 }

@@ -1,4 +1,5 @@
 import { getHttpClient } from '@/src/shared/api';
+import type { MomentsPostImageItem } from '@/src/shared/types';
 
 import type {
   PostImageUploadUrlDataType,
@@ -37,4 +38,21 @@ export async function uploadPostImageToPresignedPutFn(
     const text = await response.text().catch(() => '');
     throw new Error(`${POST_IMAGE_UPLOAD_ERROR_CODE}:${response.status}:${text}`);
   }
+}
+
+export async function resolvePostImagePaths(images: MomentsPostImageItem[]): Promise<string[]> {
+  return Promise.all(
+    images.map(async (image) => {
+      if (image.type === 'existing') {
+        return image.path;
+      }
+
+      const { uploadUrl, filePath } = await requestPostImageUploadUrlFn({
+        fileName: image.file.name,
+        contentType: image.file.type,
+      });
+      await uploadPostImageToPresignedPutFn(uploadUrl, image.file, image.file.type);
+      return filePath;
+    }),
+  );
 }

@@ -4,56 +4,48 @@ import { toast } from '@repo/ui/toast';
 import { useEffect } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
 
-import type { PostCreateDataType } from '@/src/entities/post';
+import type { MomentsPostFormValues } from '@/src/shared/types';
 import { Divider } from '@/src/shared/ui/divider';
-import { ImageUploadField } from '@/src/shared/ui/image-upload';
 import { TagInputField } from '@/src/shared/ui/tag-input';
 import { TextareaField } from '@/src/shared/ui/textarea';
 
-import { useCreatePostMutation } from '../api/useCreatePostMutation';
-import { MOMENTS_CREATE_MESSAGES } from '../config/messages';
-import { type MomentsCreateFormValues, momentsCreateSchema } from '../model/moments-create-schema';
+import { MOMENTS_POST_FORM_MESSAGES } from '../config/messages';
+import { momentsPostFormSchema } from '../model/moments-post-form-schema';
+import { MomentsPostImageField } from './MomentsPostImageField';
 
-interface MomentsCreateFormProps {
+interface MomentsPostFormProps {
   id?: string;
+  defaultValues: MomentsPostFormValues;
   onFormStateChange?: (state: { isValid: boolean; isSubmitting: boolean }) => void;
-  onSuccess?: (data: PostCreateDataType) => void;
+  onSubmit: (values: MomentsPostFormValues) => Promise<void>;
 }
 
-export function MomentsCreateForm({ id, onFormStateChange, onSuccess }: MomentsCreateFormProps) {
-  const { control, handleSubmit, formState } = useForm<MomentsCreateFormValues>({
+export function MomentsPostForm({
+  id,
+  defaultValues,
+  onFormStateChange,
+  onSubmit,
+}: MomentsPostFormProps) {
+  const { control, handleSubmit, formState } = useForm<MomentsPostFormValues>({
     mode: 'onChange',
     criteriaMode: 'firstError',
-    resolver: zodResolver(momentsCreateSchema),
-    defaultValues: {
-      title: '',
-      content: '',
-      tags: [],
-      images: [],
-    },
+    resolver: zodResolver(momentsPostFormSchema),
+    defaultValues,
   });
-
-  const { mutateAsync } = useCreatePostMutation();
 
   useEffect(() => {
     onFormStateChange?.({ isValid: formState.isValid, isSubmitting: formState.isSubmitting });
   }, [formState.isValid, formState.isSubmitting, onFormStateChange]);
 
-  async function handleFormSubmit(values: MomentsCreateFormValues) {
-    const data = await mutateAsync(values, {
-      onSuccess: (result) => {
-        onSuccess?.(result);
-      },
-    });
-
-    return data;
+  async function handleFormSubmit(values: MomentsPostFormValues) {
+    await onSubmit(values);
   }
 
-  function handleInvalid(errors: FieldErrors<MomentsCreateFormValues>) {
+  function handleInvalid(errors: FieldErrors<MomentsPostFormValues>) {
     const message =
       errors.title?.message ??
       errors.content?.message ??
-      MOMENTS_CREATE_MESSAGES.TOAST.VALIDATION_ERROR;
+      MOMENTS_POST_FORM_MESSAGES.TOAST.VALIDATION_ERROR;
 
     toast({ title: message, variant: 'error' });
   }
@@ -73,7 +65,7 @@ export function MomentsCreateForm({ id, onFormStateChange, onSuccess }: MomentsC
             value={field.value}
             onChange={field.onChange}
             onBlur={field.onBlur}
-            placeholder={MOMENTS_CREATE_MESSAGES.TITLE.PLACEHOLDER}
+            placeholder={MOMENTS_POST_FORM_MESSAGES.TITLE.PLACEHOLDER}
             maxLength={50}
             variant="borderless"
           />
@@ -90,7 +82,7 @@ export function MomentsCreateForm({ id, onFormStateChange, onSuccess }: MomentsC
             value={field.value}
             onChange={field.onChange}
             onBlur={field.onBlur}
-            placeholder={MOMENTS_CREATE_MESSAGES.CONTENT.PLACEHOLDER}
+            placeholder={MOMENTS_POST_FORM_MESSAGES.CONTENT.PLACEHOLDER}
             variant="with-count"
             styleVariant="borderless"
             maxLength={500}
@@ -114,7 +106,7 @@ export function MomentsCreateForm({ id, onFormStateChange, onSuccess }: MomentsC
         name="images"
         control={control}
         render={({ field }) => (
-          <ImageUploadField
+          <MomentsPostImageField
             images={field.value}
             onImagesChange={field.onChange}
             variant="borderless"
@@ -124,3 +116,5 @@ export function MomentsCreateForm({ id, onFormStateChange, onSuccess }: MomentsC
     </form>
   );
 }
+
+MomentsPostForm.displayName = 'MomentsPostForm';
