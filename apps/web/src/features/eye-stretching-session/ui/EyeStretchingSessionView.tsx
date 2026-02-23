@@ -9,7 +9,6 @@ import {
 } from '@/src/features/exercise-session';
 import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
 
-import { EyeStretchingGazeDot } from './EyeStretchingGazeDot';
 import { EyeStretchingGuideDot } from './EyeStretchingGuideDot';
 import { EyeStretchingOverlay } from './EyeStretchingOverlay';
 
@@ -38,8 +37,6 @@ export function EyeStretchingSessionView({
     holdSeconds,
     progressRatio,
     timeRemainingSeconds,
-    gazeX,
-    gazeY,
     guideX,
     guideY,
     error,
@@ -101,9 +98,12 @@ export function EyeStretchingSessionView({
   // 로딩 상태
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3">
         <span className="text-text-muted text-sm font-medium">
           시선 추적을 준비하고 있습니다...
+        </span>
+        <span className="text-text text-sm font-medium">
+          정확한 눈운동 가이드를 위해 안경을 벗어주세요!
         </span>
       </div>
     );
@@ -150,8 +150,6 @@ export function EyeStretchingSessionView({
               calibrationRemainingSeconds={phase === 'follow1' ? phaseRemainingSeconds : 0}
             />
           )}
-
-          <EyeStretchingGazeDot gazeX={gazeX} gazeY={gazeY} />
 
           {phase.startsWith('close') && (
             <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 rounded-xl bg-black/60 px-6 py-3 text-center">

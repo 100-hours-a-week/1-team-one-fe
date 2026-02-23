@@ -171,11 +171,17 @@ export function useEyeStretchingSession(
     setPhase(result.phase);
     setCurrentTargetIndex(result.currentTargetIndex);
     setProgressRatio(result.progressRatio);
-    setGazeX(frame.gaze.x);
-    setGazeY(frame.gaze.y);
+    // 엔진이 계산한 보정+클램프 후 시선 좌표 (스코어링에 실제 사용된 값)
+    const meta = result.meta as
+      | {
+          correctedGaze?: { x: number; y: number };
+          interpolatedTarget?: { x: number; y: number };
+        }
+      | undefined;
+    setGazeX(meta?.correctedGaze?.x ?? frame.gaze.x);
+    setGazeY(meta?.correctedGaze?.y ?? frame.gaze.y);
 
     // 엔진이 계산한 보간된 가이드 dot 위치 (follow: cursor trail, hold: 고정)
-    const meta = result.meta as { interpolatedTarget?: { x: number; y: number } } | undefined;
     if (meta?.interpolatedTarget) {
       setGuideX(meta.interpolatedTarget.x);
       setGuideY(meta.interpolatedTarget.y);

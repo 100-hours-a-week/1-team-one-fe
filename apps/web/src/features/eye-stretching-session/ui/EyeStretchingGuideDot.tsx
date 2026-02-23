@@ -49,6 +49,27 @@ function EdgeArrow({ direction }: { direction: EdgeDirection }) {
   );
 }
 
+function LargeDirectionArrow({ direction }: { direction: EdgeDirection }) {
+  return (
+    <svg
+      width="96"
+      height="96"
+      viewBox="0 0 24 24"
+      fill="none"
+      className="text-brand-500 animate-pulse drop-shadow-lg"
+      style={{ transform: `rotate(${ARROW_ROTATION[direction]}deg)` }}
+    >
+      <path
+        d="M5 12h14M12 5l7 7-7 7"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function EyeStretchingGuideDot({
   phase,
   targetX,
@@ -60,6 +81,27 @@ export function EyeStretchingGuideDot({
   if (!isFollow && !isHold) return null;
 
   const edge = getEdgeDirection(targetX, targetY);
+
+  // hold phase: 화면 중앙에 커다란 화살표만 표시
+  if (isHold && edge) {
+    return (
+      <div
+        className="pointer-events-none absolute z-20 flex flex-col items-center gap-4"
+        style={{
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        <LargeDirectionArrow direction={edge} />
+        <p className="rounded-lg bg-black/60 px-4 py-2 text-center text-sm font-medium text-white">
+          화살표 방향으로 시선을 최대한 이동해주세요!
+        </p>
+      </div>
+    );
+  }
+
+  // follow phase: 기존 dot + edge arrow 표시
   const isVerticalEdge = edge === 'up' || edge === 'down';
 
   // 화면 가장자리 타겟은 살짝 안쪽으로 클램프하여 dot이 보이도록

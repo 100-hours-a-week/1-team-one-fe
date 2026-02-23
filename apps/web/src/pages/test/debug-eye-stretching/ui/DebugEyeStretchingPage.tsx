@@ -38,7 +38,7 @@ const MOCK_REFERENCE: EyeStretchingReference = {
   totalDurationMs: 72500,
 };
 
-const MOCK_LIMIT_TIME_SECONDS = (MOCK_REFERENCE.totalDurationMs + 2500) / 1000;
+const MOCK_LIMIT_TIME_SECONDS = (MOCK_REFERENCE.totalDurationMs + 6500) / 1000;
 
 export function DebugEyeStretchingPage() {
   const {
@@ -82,9 +82,12 @@ export function DebugEyeStretchingPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
+      <div className="flex h-screen w-full flex-col items-center justify-center gap-3">
         <span className="text-text-muted text-sm font-medium">
           시선 추적을 준비하고 있습니다...
+        </span>
+        <span className="text-text text-sm font-medium">
+          정확한 눈운동 가이드를 위해 안경을 벗어주세요!
         </span>
       </div>
     );

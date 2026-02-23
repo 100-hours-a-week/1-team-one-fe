@@ -17,14 +17,12 @@ export const GAZE_TOLERANCE = 0.25;
 export const SCORE_SMOOTHING_FACTOR = 0.15;
 
 /**
- * 시선 좌표 EMA alpha (낮을수록 더 안정적)
+ * 시선 좌표 EMA alpha (높을수록 더 빠르게 반응)
  *
- * WebGazer raw 예측이 프레임 간 ±30% 요동하므로
- * 0.4(민감)→0.15(안정) 로 낮춰 노이즈를 억제한다.
- * α=0.15 시뮬레이션: raw x 207~488 → smoothed 0.75~0.86 (안정적)
- * α=0.08: 더 강한 스무딩, 시선 좌표 급변동 억제
+ * α=0.3: 현재 프레임 30% 반영 — 노이즈 억제와 반응성의 균형점
+ * α=0.08: 과거 과도한 스무딩 — 시선이 매우 느리게 이동하는 문제 있음
  */
-export const GAZE_SMOOTHING_FACTOR = 0.08;
+export const GAZE_SMOOTHING_FACTOR = 0.3;
 
 /**
  * 스코어링용 타겟 좌표 클램프 범위
@@ -42,17 +40,36 @@ export const SCORING_TARGET_MAX = 0.85;
  * 아래를 볼 때 눈꺼풀이 처지면서 눈 모양이 달라져 WebGazer가 y를 과소예측함.
  * (예: 화면 하단 y=1.0을 보는데 예측값은 y≈0.20)
  *
- * target.y > 0.5 인 phase에서 smoothedGaze.y에 이 값을 더한 뒤 클램프 없이
- * 거리 계산에 사용한다. 실제로 아래를 보지 않으면 보정 후 y가 1.0을 초과하여
- * 목표(0.85)와의 거리가 커지므로 false positive를 방지한다.
+ * 선형 점감 방식으로 적용:
+ *   보정량 = DOWN_GAZE_Y_CORRECTION × max(0, (0.5 − gaze.y) / 0.5)
+ *   gaze.y = 0.0 → 최대 보정 (1.0 배율)
+ *   gaze.y = 0.5 → 보정 0 (연속 전환, 순간이동 없음)
+ *   gaze.y > 0.5 → 보정 없음 (올바른 반구)
  */
-export const DOWN_GAZE_Y_CORRECTION = 0.6;
+export const DOWN_GAZE_Y_CORRECTION = 0.7;
 
 /**
  * 아래 보기 phase 시선 스무딩 alpha
  *
- * 기본 GAZE_SMOOTHING_FACTOR(0.08)는 노이즈 억제에 집중하지만
  * 눈꺼풀 처짐이 있는 아래 보기에서는 유효 신호 자체가 약하므로
- * 더 반응성 있는 스무딩으로 현재 프레임 신호를 빠르게 반영한다.
+ * 기본보다 더 반응성 있는 스무딩으로 현재 프레임 신호를 빠르게 반영한다.
  */
-export const DOWN_GAZE_SMOOTHING_FACTOR = 0.2;
+export const DOWN_GAZE_SMOOTHING_FACTOR = 0.4;
+
+/**
+ * 위 보기 phase 시선 y 보정값 (정규화 좌표 기준)
+ *
+ * 위를 볼 때 WebGazer가 y를 과대예측(실제보다 낮은 값)하는 경향이 있음.
+ * 선형 점감: gaze.y = 1.0 → 최대 보정, gaze.y = 0.5 → 보정 0 (연속 전환)
+ * 아래 보기 보정(0.6)보다 약하게 설정.
+ */
+export const UP_GAZE_Y_CORRECTION = 0.3;
+
+/**
+ * 좌/우 보기 phase 시선 x 보정값 (정규화 좌표 기준)
+ *
+ * 좌우 극단을 볼 때 WebGazer가 x를 과소예측(중심 쪽으로 당겨지는)하는 경향이 있음.
+ * 선형 점감: 반대 극단 → 최대 보정, 중심(0.5) → 보정 0 (연속 전환)
+ * 아래 보기 보정(0.6)보다 약하게 설정.
+ */
+export const SIDE_GAZE_X_CORRECTION = 0.3;

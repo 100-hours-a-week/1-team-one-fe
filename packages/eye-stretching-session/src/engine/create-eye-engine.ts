@@ -32,6 +32,8 @@ import { interpolateFollowTarget } from '../utils/interpolate-target';
 import {
   DOWN_GAZE_SMOOTHING_FACTOR,
   DOWN_GAZE_Y_CORRECTION,
+  UP_GAZE_Y_CORRECTION,
+  SIDE_GAZE_X_CORRECTION,
   GAZE_SMOOTHING_FACTOR,
   GAZE_TOLERANCE,
   SCORE_SMOOTHING_FACTOR,
@@ -121,8 +123,11 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
     const currentIdx = Math.min(currentTargetIndex, keyFrames.length - 1);
     const currentTarget = keyFrames[currentIdx]!;
 
-    // 아래 보기 phase 여부: phase 이름이 아닌 target.y 기준으로 판단
+    // 시선 방향 phase 판단: phase 이름이 아닌 target.(x,y) 기준
     const isDownwardPhase = currentTarget.y > 0.5;
+    const isUpwardPhase = currentTarget.y < 0.5;
+    const isRightPhase = currentTarget.x > 0.5;
+    const isLeftPhase = currentTarget.x < 0.5;
 
     // ─────────────────────────────────────────────────────────────────
     // 2. 시선 좌표 스무딩
@@ -154,19 +159,25 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
       scoringAxis = currentTarget.y === 0.5 ? 'x' : 'y';
     }
 
-    // 시선 x: 클램프 적용
-    const clampedGazeX = clampForScoring(smoothedGaze.x);
+    // 시선 보정: hold phase에서만 적용 (follow는 캘리브레이션 단계 — 보정 불필요)
+    //   선형 점감: 중심(0.5)에서 보정량 0, 반대 극단에서 최대 보정 (연속 전환)
+    //   보정량 = CORRECTION × max(0, (0.5 − gaze) / 0.5)  [right/down]
+    //   보정량 = CORRECTION × max(0, (gaze − 0.5) / 0.5)  [left/up]
+    const correctedGazeX =
+      isHoldPhase && isRightPhase
+        ? smoothedGaze.x + SIDE_GAZE_X_CORRECTION * Math.max(0, (0.5 - smoothedGaze.x) / 0.5)
+        : isHoldPhase && isLeftPhase
+          ? smoothedGaze.x - SIDE_GAZE_X_CORRECTION * Math.max(0, (smoothedGaze.x - 0.5) / 0.5)
+          : smoothedGaze.x;
+    const clampedGazeX = clampForScoring(correctedGazeX);
 
-    // 시선 y: 아래 보기 phase에서 눈꺼풀 처짐으로 인한 y 과소예측 보정
-    //   조건: isDownwardPhase && smoothedGaze.y < 0.5
-    //   - gaze.y가 이미 화면 하단(≥0.5)이면 WebGazer가 올바르게 예측한 것 → 보정 불필요
-    //   - gaze.y가 화면 상단(<0.5)이면 눈꺼풀 처짐으로 인한 역방향 오인 → 보정 적용
-    //   보정 후 클램프: 보정값이 0.85(SCORING_TARGET_MAX)를 초과하면 0.85로 클램프하여
-    //   목표(0.85)와 거리 0 → score 100으로 처리 (보정이 충분함을 의미)
-    const clampedGazeY =
-      isDownwardPhase && smoothedGaze.y < 0.5
-        ? clampForScoring(smoothedGaze.y + DOWN_GAZE_Y_CORRECTION)
-        : clampForScoring(smoothedGaze.y);
+    const correctedGazeY =
+      isHoldPhase && isDownwardPhase
+        ? smoothedGaze.y + DOWN_GAZE_Y_CORRECTION * Math.max(0, (0.5 - smoothedGaze.y) / 0.5)
+        : isHoldPhase && isUpwardPhase
+          ? smoothedGaze.y - UP_GAZE_Y_CORRECTION * Math.max(0, (smoothedGaze.y - 0.5) / 0.5)
+          : smoothedGaze.y;
+    const clampedGazeY = clampForScoring(correctedGazeY);
 
     const rawScore = calculateGazeScore(
       clampedGazeX,
@@ -222,6 +233,7 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
       progressRatio,
       meta: {
         smoothedGaze,
+        correctedGaze: { x: clampedGazeX, y: clampedGazeY },
         distance: Math.sqrt(
           (scoringAxis !== 'y' ? (clampedGazeX - scoringX) ** 2 : 0) +
             (scoringAxis !== 'x' ? (clampedGazeY - scoringY) ** 2 : 0),
