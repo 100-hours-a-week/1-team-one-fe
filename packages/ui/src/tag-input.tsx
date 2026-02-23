@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type Ref } from 'react';
+import { type KeyboardEvent, type ReactNode, type Ref } from 'react';
 import { cva } from 'class-variance-authority';
 import { X } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -99,6 +99,7 @@ export interface TagInputProps {
   error?: boolean;
   variant?: 'default' | 'borderless';
   inputRef?: Ref<HTMLInputElement>;
+  action?: ReactNode;
 }
 
 export function TagInput({
@@ -113,6 +114,7 @@ export function TagInput({
   error,
   variant = 'default',
   inputRef,
+  action,
 }: TagInputProps) {
   const isMaxReached = tags.length >= maxTags;
 
@@ -156,6 +158,8 @@ export function TagInput({
           />
         </div>
       )}
+
+      {action ? <div className="ml-auto flex items-center">{action}</div> : null}
     </div>
   );
 }
