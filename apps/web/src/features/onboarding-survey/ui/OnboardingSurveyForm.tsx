@@ -14,7 +14,7 @@ import { useSubmitSurveyMutation } from '../api/submit-survey-mutation';
 import { useSurveyQuery } from '../api/survey-query';
 import type { SurveySubmissionData } from '../api/types';
 import { SURVEY_MESSAGES } from '../config/messages';
-import { useSurveyForm } from '../lib/use-survey-form';
+import { useSurveyForm } from '../lib/useSurveyForm';
 import { OnboardingSurveyFormSkeleton } from './OnboardingSurveyForm.skeleton';
 
 export interface OnboardingSurveyFormProps {

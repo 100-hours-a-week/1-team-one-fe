@@ -36,6 +36,7 @@ export interface AvatarProps extends AvatarBaseProps, VariantProps<typeof avatar
   name?: string;
   fallbackText?: string;
   fallbackDelayMs?: number;
+  badge?: React.ReactNode;
 }
 
 const getInitials = (name?: string, fallbackText?: string) => {
@@ -58,6 +59,7 @@ export function Avatar({
   fallbackText,
   fallbackDelayMs = 0,
   size,
+  badge,
   className,
   ...props
 }: AvatarProps) {
@@ -65,19 +67,23 @@ export function Avatar({
   const initials = getInitials(name, fallbackText);
 
   return (
-    <AvatarPrimitive.Root className={cn(avatarVariants({ size }), className)} {...props}>
-      <AvatarPrimitive.Image
-        src={src ?? undefined}
-        alt={ariaLabel}
-        className="h-full w-full object-cover"
-      />
-      <AvatarPrimitive.Fallback
-        delayMs={fallbackDelayMs}
-        className="flex h-full w-full items-center justify-center font-semibold"
-      >
-        {initials}
-      </AvatarPrimitive.Fallback>
-    </AvatarPrimitive.Root>
+    <div className="relative inline-flex">
+      <AvatarPrimitive.Root className={cn(avatarVariants({ size }), className)} {...props}>
+        <AvatarPrimitive.Image
+          src={src ?? undefined}
+          alt={ariaLabel}
+          className="h-full w-full object-cover"
+        />
+        <AvatarPrimitive.Fallback
+          delayMs={fallbackDelayMs}
+          className="flex h-full w-full items-center justify-center font-semibold"
+        >
+          {initials}
+        </AvatarPrimitive.Fallback>
+      </AvatarPrimitive.Root>
+
+      {badge && <div className="absolute -right-0.5 -bottom-0.5">{badge}</div>}
+    </div>
   );
 }
 

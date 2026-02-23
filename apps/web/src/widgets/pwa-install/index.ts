@@ -1,5 +1,5 @@
-export type { PwaInstallStatus } from './model/use-pwa-install';
-export { usePwaInstall } from './model/use-pwa-install';
+export type { PwaInstallStatus } from './model/usePwaInstall';
+export { usePwaInstall } from './model/usePwaInstall';
 export { InstallGuideHero } from './ui/InstallGuideHero';
 export { InstallSteps } from './ui/InstallSteps';
 export { PwaInstallBottomSheet } from './ui/PwaInstallBottomSheet';

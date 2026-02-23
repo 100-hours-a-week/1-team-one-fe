@@ -1,0 +1,13 @@
+{
+  "name": "@tooling/sentry-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "peerDependencies": {
+    "@sentry/nextjs": "^10.38.0"
+  }
+}

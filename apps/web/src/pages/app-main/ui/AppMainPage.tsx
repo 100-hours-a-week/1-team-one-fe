@@ -2,12 +2,12 @@ import { ActivityCalendar } from '@repo/ui/activity-calendar';
 import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 
-import { useValidExerciseSessionsQuery } from '@/src/features/exercise-session';
 import { transformGrassData, useGrassStatsQuery } from '@/src/features/grass-stats';
+import { useValidStretchingSessionsQuery } from '@/src/features/stretching-session';
 import { useUserProfileQuery } from '@/src/features/user-profile';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen';
-import { LinkCard } from '@/src/shared/ui/LinkCard';
+import { LinkCard } from '@/src/shared/ui/link-card';
 import { UserStatusCardSection } from '@/src/widgets/user-status-card';
 
 import { APP_MAIN_ACTION_CARDS } from '../config/action-cards';
@@ -20,7 +20,7 @@ export function AppMainPage() {
   const grassQuery = useGrassStatsQuery({
     view: 'WEEKLY',
   });
-  const validSessionsQuery = useValidExerciseSessionsQuery();
+  const validSessionsQuery = useValidStretchingSessionsQuery();
 
   //로딩 처리를 위한 쿼리 결합
   const isLoading = userQuery.isLoading || grassQuery.isLoading || validSessionsQuery.isLoading;

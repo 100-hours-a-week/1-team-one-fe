@@ -8,7 +8,7 @@ import {
   usePushPermissionSheet,
 } from '@/src/features/push-notifications';
 import { isIosUserAgent, isMobileUserAgent } from '@/src/shared/lib/device/user-agent';
-import { usePwaInstallState } from '@/src/shared/lib/pwa/use-pwa-install-state';
+import { usePwaInstallState } from '@/src/shared/lib/pwa/usePwaInstallState';
 import { ROUTE_GROUPS, ROUTES } from '@/src/shared/routes';
 import { PwaInstallBottomSheet } from '@/src/widgets/pwa-install';
 
@@ -79,7 +79,7 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
   }, [shouldShowPwaSheet]);
 
   return (
-    <main className="h-dvh">
+    <main className="h-full">
       {children}
       {shouldRenderGlobalPushSheet && (
         <PushPermissionBottomSheet

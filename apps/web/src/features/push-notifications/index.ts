@@ -6,5 +6,5 @@ export {
   refreshPushTokenOnLogin,
 } from './model/enable-push-notifications';
 export type { PushNotificationData, PushNotificationType } from './model/types';
-export { usePushPermissionSheet } from './model/use-push-permission-sheet';
+export { usePushPermissionSheet } from './model/usePushPermissionSheet';
 export { PushPermissionBottomSheet } from './ui/PushPermissionBottomSheet';

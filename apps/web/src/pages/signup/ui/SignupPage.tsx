@@ -3,7 +3,7 @@ import z from 'zod';
 
 import { SignupForm } from '@/src/features/auth/signup';
 import {
-  uploadToPresignedPut,
+  uploadToPresignedPutFn,
   useProfileImageUploadMutation,
   useSignupMutation,
 } from '@/src/features/auth/signup/api';
@@ -38,7 +38,7 @@ export function SignupPage() {
         });
       }
 
-      await uploadToPresignedPut(uploadInfo.uploadUrl, profileImage, contentType);
+      await uploadToPresignedPutFn(uploadInfo.uploadUrl, profileImage, contentType);
       imagePath = uploadInfo.filePath;
     }
 

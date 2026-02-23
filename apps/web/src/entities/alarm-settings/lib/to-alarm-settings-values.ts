@@ -1,7 +1,7 @@
 import { normalizeTimeString } from '@/src/shared/lib/date/normalize-time';
 
 import { WEEKDAY_VALUES } from '../config/constants';
-import type { AlarmSettings, AlarmSettingsFormValues, Weekday } from '../model/types';
+import type { AlarmSettingsFormValuesType, AlarmSettingsType, WeekdayType } from '../model/types';
 
 type WeekdayValue = (typeof WEEKDAY_VALUES)[number];
 
@@ -9,12 +9,12 @@ const isWeekdayValue = (value: string): value is WeekdayValue =>
   WEEKDAY_VALUES.includes(value as WeekdayValue);
 
 export function toAlarmSettingsValues(
-  alarmSettings: AlarmSettings | undefined,
-  fallback: AlarmSettingsFormValues,
-): AlarmSettingsFormValues {
+  alarmSettings: AlarmSettingsType | undefined,
+  fallback: AlarmSettingsFormValuesType,
+): AlarmSettingsFormValuesType {
   if (!alarmSettings) return fallback;
 
-  const weekdays: Weekday[] = alarmSettings.repeatDays?.filter(isWeekdayValue) ?? [];
+  const weekdays: WeekdayType[] = alarmSettings.repeatDays?.filter(isWeekdayValue) ?? [];
 
   return {
     intervalMinutes:

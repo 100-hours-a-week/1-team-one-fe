@@ -1,40 +1,23 @@
-import type { ApiResponse } from '@/src/shared/api';
-
 import { WEEKDAY_VALUES } from '../config/constants';
 
-export type Weekday = (typeof WEEKDAY_VALUES)[number];
+export type WeekdayType = (typeof WEEKDAY_VALUES)[number];
 
-export interface AlarmSettings {
+export interface AlarmSettingsType {
   interval: number;
   activeStartAt: string;
   activeEndAt: string;
   focusStartAt: string;
   focusEndAt: string;
-  repeatDays: Weekday[];
+  repeatDays: WeekdayType[];
   dnd: boolean;
   dndFinishedAt: string | null;
 }
 
-export interface AlarmSettingsRequest {
-  interval: number;
-  activeStartAt: string;
-  activeEndAt: string;
-  focusStartAt: string;
-  focusEndAt: string;
-  repeatDays: Weekday[];
-}
-
-export interface AlarmSettingsFormValues {
+export interface AlarmSettingsFormValuesType {
   intervalMinutes: number;
   activeStart: string;
   activeEnd: string;
   focusStart: string;
   focusEnd: string;
-  weekdays: Weekday[];
+  weekdays: WeekdayType[];
 }
-
-export interface AlarmSettingsData {
-  alarmSettings: AlarmSettings;
-}
-
-export type AlarmSettingsResponse = ApiResponse<AlarmSettingsData>;

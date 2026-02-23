@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ROUTES } from '@/src/shared/routes';
 
 import { PWA_INSTALL_MESSAGES } from '../config/messages';
-import type { PwaInstallStatus } from '../model/use-pwa-install';
+import type { PwaInstallStatus } from '../model/usePwaInstall';
 
 interface PwaInstallCtaProps {
   status: PwaInstallStatus;

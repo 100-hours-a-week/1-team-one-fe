@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { ChartPie, CircleEllipsis, Home, Settings, Users } from 'lucide-react';
 
-import { APP_ROUTES } from '@/src/shared/routes';
+import { APP_ROUTES, PUBLIC_ROUTES } from '@/src/shared/routes';
 
 export interface NavigationItem {
   id: string;
@@ -34,7 +34,7 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'community',
     label: '운동모먼트',
-    href: '/app/ready?page=community',
+    href: PUBLIC_ROUTES.MOMENTS,
     icon: Users,
   },
   {

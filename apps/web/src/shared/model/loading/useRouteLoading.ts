@@ -5,7 +5,7 @@
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-import { GlobalLoadingController } from './GlobalLoadingController';
+import { GlobalLoadingController } from './global-loading-controller';
 
 const ROUTE_LOADING_KEY = 'route-transition';
 

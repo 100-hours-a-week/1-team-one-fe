@@ -4,14 +4,14 @@ import { InputImage } from '@repo/ui/input-image';
 import { Controller, useForm, type UseFormSetError } from 'react-hook-form';
 
 import { type ApiError, isApiError } from '@/src/shared/api';
-import { useClearFieldErrorsOnChange } from '@/src/shared/lib/form/use-clear-field-errors-on-change';
+import { useClearFieldErrorsOnChange } from '@/src/shared/lib/form/useClearFieldErrorsOnChange';
 
 import { EmailField, NicknameField, PasswordField } from '../../ui';
 import { PROFILE_IMAGE_UPLOAD_ERROR_CODE } from '../api';
 import { FORM_MESSAGES } from '../config/form-messages';
 import { VALIDATION_RULES } from '../config/validation';
-import { useEmailDuplication } from '../lib/use-email-duplication';
-import { useNicknameDuplication } from '../lib/use-nickname-duplication';
+import { useEmailDuplication } from '../lib/useEmailDuplication';
+import { useNicknameDuplication } from '../lib/useNicknameDuplication';
 import { type SignupFormValues, signupSchema } from '../model/signup-schema';
 
 export interface SignupFormProps {

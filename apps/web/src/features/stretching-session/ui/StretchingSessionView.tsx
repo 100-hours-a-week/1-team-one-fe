@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 
 import { STRETCHING_SESSION_CONFIG } from '../config/constants';
 import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
-import { StretchingSessionDebugOptions, useStretchingSession } from '../lib/use-stretching-session';
+import { StretchingSessionDebugOptions, useStretchingSession } from '../lib/useStretchingSession';
 import { StretchingSessionCompletionResult } from './StretchingSessionCompletionResult';
 import { StretchingSessionGuideCard } from './StretchingSessionGuideCard';
 import { StretchingSessionHomeButton } from './StretchingSessionHomeButton';
