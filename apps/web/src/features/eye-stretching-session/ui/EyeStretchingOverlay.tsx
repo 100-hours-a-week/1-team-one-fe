@@ -34,6 +34,7 @@ export function EyeStretchingOverlay({
   totalFollowCount,
 }: EyeStretchingOverlayProps) {
   const isFollowPhase = phase.startsWith('follow');
+  const isClosePhase = phase.startsWith('close');
   const followIndex = isFollowPhase ? Number(phase.replace('follow', '')) : 0;
   const scoreTone = getScoreTone(score);
 
@@ -69,6 +70,11 @@ export function EyeStretchingOverlay({
               <span className="text-brand-600 text-lg font-semibold">
                 {phaseRemainingSeconds}초
               </span>
+            </>
+          ) : isClosePhase ? (
+            <>
+              <span className="text-text-muted text-xs">눈 감기</span>
+              <span className="text-text text-lg font-semibold">{phaseRemainingSeconds}초</span>
             </>
           ) : (
             <>

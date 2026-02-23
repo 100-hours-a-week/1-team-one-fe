@@ -46,6 +46,8 @@ export type UseEyeStretchingSessionOptions = {
 export type UseEyeStretchingSessionResult = {
   /** WebGazer 로딩 중 */
   isLoading: boolean;
+  /** 현재 눈 감음 여부 (blinkPhases 미설정 시 항상 false) */
+  isBlinking: boolean;
   /** 시선 추적 활성화됨 */
   isTrackerReady: boolean;
   /** 세션 완료 (end phase 도달 또는 시간 만료) */
@@ -98,6 +100,15 @@ export function useEyeStretchingSession(
 ): UseEyeStretchingSessionResult {
   // ── refs (hot path, 렌더링 없이 매 프레임 갱신) ──────────────────────
   const holdMsRef = useRef(0);
+  const isBlinkingRef = useRef(false);
+  // follow 단계에서만 rolling window 학습 활성화 (true = learn, false = freeze)
+  const blinkLearningRef = useRef(true);
+  // 'close' 로 시작하는 phase는 자동으로 blink 판정 대상
+  const blinkPhasesRef = useRef(
+    new Set(
+      reference?.keyFrames.filter((kf) => kf.phase.startsWith('close')).map((kf) => kf.phase) ?? [],
+    ),
+  );
   const prevTargetIndexRef = useRef(0);
   const lastResultAtRef = useRef<number | null>(null);
   const sessionRef = useRef<EyeSession | null>(null);
@@ -123,15 +134,24 @@ export function useEyeStretchingSession(
   const [holdSeconds, setHoldSeconds] = useState(0);
   const [progressRatio, setProgressRatio] = useState(0);
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(options?.limitTimeSeconds ?? 0);
+  const [isBlinking, setIsBlinking] = useState(false);
   const [gazeX, setGazeX] = useState(0);
   const [gazeY, setGazeY] = useState(0);
   const [guideX, setGuideX] = useState(0.5);
   const [guideY, setGuideY] = useState(0.5);
   const [error, setError] = useState<Error | null>(null);
 
-  // ── reference ref 최신화 ─────────────────────────────────────────────
+  // ── reference / blinkPhases ref 최신화 ──────────────────────────────
   useEffect(() => {
     referenceRef.current = reference;
+  }, [reference]);
+
+  useEffect(() => {
+    blinkPhasesRef.current = new Set(
+      referenceRef.current?.keyFrames
+        .filter((kf) => kf.phase.startsWith('close'))
+        .map((kf) => kf.phase) ?? [],
+    );
   }, [reference]);
 
   // ── 엔진 결과 핸들러 ─────────────────────────────────────────────────
@@ -146,6 +166,8 @@ export function useEyeStretchingSession(
 
     // 3. phase / target / progressRatio / gaze / guide → UI
     phaseRef.current = result.phase;
+    // follow 단계에서만 blink rolling window 학습 허용
+    blinkLearningRef.current = result.phase.startsWith('follow');
     setPhase(result.phase);
     setCurrentTargetIndex(result.currentTargetIndex);
     setProgressRatio(result.progressRatio);
@@ -187,12 +209,17 @@ export function useEyeStretchingSession(
     }
 
     // 7. holdMs 누적
-    // follow phase: 캘리브레이션이므로 score 무관하게 항상 누적 (auto-advance)
-    // hold phase:   score threshold 기반 누적/리셋
+    // follow phase:  캘리브레이션이므로 score 무관하게 항상 누적 (auto-advance)
+    // blink phase:   isBlinking === true 일 때만 누적
+    // hold phase:    score threshold 기반 누적/리셋
     const isFollowPhase = result.phase.startsWith('follow');
+    const isBlinkPhase = blinkPhasesRef.current.has(result.phase);
 
-    if (!isFollowPhase && result.score < EYE_SESSION_CONFIG.SUCCESS_SCORE_THRESHOLD) {
-      // hold phase 실패 시 리셋
+    const failCondition = isBlinkPhase
+      ? !isBlinkingRef.current // blink phase: 눈 뜸 = 실패
+      : result.score < EYE_SESSION_CONFIG.SUCCESS_SCORE_THRESHOLD; // hold phase: score 미달 = 실패
+
+    if (!isFollowPhase && failCondition) {
       if (EYE_SESSION_CONFIG.RESET_HOLD_ON_FAILURE) {
         holdMsRef.current = 0;
         if (lastUiHoldSecondsRef.current !== 0) {
@@ -236,7 +263,16 @@ export function useEyeStretchingSession(
         if (cancelled) return;
 
         const webgazer = webgazerModule.default as WebGazerInstance;
-        const tracker = createWebGazerTracker(webgazer);
+        const tracker = createWebGazerTracker(webgazer, {
+          onBlink:
+            blinkPhasesRef.current.size > 0
+              ? (blinking) => {
+                  isBlinkingRef.current = blinking;
+                  setIsBlinking(blinking);
+                }
+              : undefined,
+          blinkLearningRef: blinkPhasesRef.current.size > 0 ? blinkLearningRef : undefined,
+        });
 
         // 2. 엔진 생성
         const engine = createEyeStretchingEngine();
@@ -358,6 +394,7 @@ export function useEyeStretchingSession(
     isLoading,
     isTrackerReady,
     isSessionComplete,
+    isBlinking,
     phase,
     currentTargetIndex,
     score,
