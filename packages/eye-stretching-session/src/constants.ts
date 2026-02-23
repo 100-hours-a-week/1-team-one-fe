@@ -35,3 +35,24 @@ export const GAZE_SMOOTHING_FACTOR = 0.08;
  */
 export const SCORING_TARGET_MIN = 0.15;
 export const SCORING_TARGET_MAX = 0.85;
+
+/**
+ * 아래 보기 phase 시선 y 보정값 (정규화 좌표 기준)
+ *
+ * 아래를 볼 때 눈꺼풀이 처지면서 눈 모양이 달라져 WebGazer가 y를 과소예측함.
+ * (예: 화면 하단 y=1.0을 보는데 예측값은 y≈0.20)
+ *
+ * target.y > 0.5 인 phase에서 smoothedGaze.y에 이 값을 더한 뒤 클램프 없이
+ * 거리 계산에 사용한다. 실제로 아래를 보지 않으면 보정 후 y가 1.0을 초과하여
+ * 목표(0.85)와의 거리가 커지므로 false positive를 방지한다.
+ */
+export const DOWN_GAZE_Y_CORRECTION = 0.6;
+
+/**
+ * 아래 보기 phase 시선 스무딩 alpha
+ *
+ * 기본 GAZE_SMOOTHING_FACTOR(0.08)는 노이즈 억제에 집중하지만
+ * 눈꺼풀 처짐이 있는 아래 보기에서는 유효 신호 자체가 약하므로
+ * 더 반응성 있는 스무딩으로 현재 프레임 신호를 빠르게 반영한다.
+ */
+export const DOWN_GAZE_SMOOTHING_FACTOR = 0.2;

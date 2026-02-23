@@ -29,11 +29,11 @@ const MOCK_REFERENCE: EyeStretchingReference = {
     { phase: 'follow16', x: 0.1, y: 0.9, holdMs: 1000 },
     { phase: 'follow17', x: 0.5, y: 0.5, holdMs: 1500 },
     { phase: 'follow18', x: 0.9, y: 0.1, holdMs: 1500 },
-    { phase: 'close1', x: 0.5, y: 0.5, holdMs: 10000 },
     { phase: 'hold1', x: 1.0, y: 0.5, holdMs: 10000 },
     { phase: 'hold2', x: 0.0, y: 0.5, holdMs: 10000 },
     { phase: 'hold3', x: 0.5, y: 0.0, holdMs: 10000 },
     { phase: 'hold4', x: 0.5, y: 1.0, holdMs: 10000 },
+    { phase: 'close1', x: 0.5, y: 0.5, holdMs: 10000 },
   ],
   totalDurationMs: 72500,
 };

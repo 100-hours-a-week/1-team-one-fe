@@ -30,6 +30,8 @@ import type { EyeStretchingEngine, EyeEvaluateInput, EyeSessionResult } from '..
 import { createGazeSmoother } from '../utils/gaze-smoothing';
 import { interpolateFollowTarget } from '../utils/interpolate-target';
 import {
+  DOWN_GAZE_SMOOTHING_FACTOR,
+  DOWN_GAZE_Y_CORRECTION,
   GAZE_SMOOTHING_FACTOR,
   GAZE_TOLERANCE,
   SCORE_SMOOTHING_FACTOR,
@@ -114,15 +116,23 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
     const keyFrames = reference.keyFrames;
 
     // ─────────────────────────────────────────────────────────────────
-    // 1. 시선 좌표 스무딩
-    // ─────────────────────────────────────────────────────────────────
-    const smoothedGaze = gazeSmoother.smooth(frame.gaze);
-
-    // ─────────────────────────────────────────────────────────────────
-    // 2. 현재 target 결정 (currentTargetIndex 기반)
+    // 1. 현재 target 결정 (currentTargetIndex 기반)
     // ─────────────────────────────────────────────────────────────────
     const currentIdx = Math.min(currentTargetIndex, keyFrames.length - 1);
     const currentTarget = keyFrames[currentIdx]!;
+
+    // 아래 보기 phase 여부: phase 이름이 아닌 target.y 기준으로 판단
+    const isDownwardPhase = currentTarget.y > 0.5;
+
+    // ─────────────────────────────────────────────────────────────────
+    // 2. 시선 좌표 스무딩
+    //    아래 보기 phase: 눈꺼풀 처짐으로 유효 신호가 약하므로
+    //    더 반응성 있는 alpha를 사용해 현재 프레임 신호를 빠르게 반영
+    // ─────────────────────────────────────────────────────────────────
+    const smoothedGaze = gazeSmoother.smooth(
+      frame.gaze,
+      isDownwardPhase ? DOWN_GAZE_SMOOTHING_FACTOR : undefined,
+    );
 
     // ─────────────────────────────────────────────────────────────────
     // 3. 시선-목표 거리 → score 계산
@@ -144,9 +154,19 @@ export function createEyeStretchingEngine(): EyeStretchingEngine {
       scoringAxis = currentTarget.y === 0.5 ? 'x' : 'y';
     }
 
-    // 시선 좌표도 동일 범위로 클램프 (타겟과 동일한 기준으로 비교)
+    // 시선 x: 클램프 적용
     const clampedGazeX = clampForScoring(smoothedGaze.x);
-    const clampedGazeY = clampForScoring(smoothedGaze.y);
+
+    // 시선 y: 아래 보기 phase에서 눈꺼풀 처짐으로 인한 y 과소예측 보정
+    //   조건: isDownwardPhase && smoothedGaze.y < 0.5
+    //   - gaze.y가 이미 화면 하단(≥0.5)이면 WebGazer가 올바르게 예측한 것 → 보정 불필요
+    //   - gaze.y가 화면 상단(<0.5)이면 눈꺼풀 처짐으로 인한 역방향 오인 → 보정 적용
+    //   보정 후 클램프: 보정값이 0.85(SCORING_TARGET_MAX)를 초과하면 0.85로 클램프하여
+    //   목표(0.85)와 거리 0 → score 100으로 처리 (보정이 충분함을 의미)
+    const clampedGazeY =
+      isDownwardPhase && smoothedGaze.y < 0.5
+        ? clampForScoring(smoothedGaze.y + DOWN_GAZE_Y_CORRECTION)
+        : clampForScoring(smoothedGaze.y);
 
     const rawScore = calculateGazeScore(
       clampedGazeX,
