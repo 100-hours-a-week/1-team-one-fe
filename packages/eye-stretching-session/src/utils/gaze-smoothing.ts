@@ -11,15 +11,17 @@ export function createGazeSmoother(alpha: number = 0.4) {
   const clampedAlpha = Math.min(1, Math.max(0, alpha));
   let prev: EyeGazePoint | null = null;
 
-  const smooth = (point: EyeGazePoint): EyeGazePoint => {
+  const smooth = (point: EyeGazePoint, alphaOverride?: number): EyeGazePoint => {
+    const a = alphaOverride !== undefined ? Math.min(1, Math.max(0, alphaOverride)) : clampedAlpha;
+
     if (prev === null) {
       prev = { ...point };
       return prev;
     }
 
     const smoothed: EyeGazePoint = {
-      x: clampedAlpha * point.x + (1 - clampedAlpha) * prev.x,
-      y: clampedAlpha * point.y + (1 - clampedAlpha) * prev.y,
+      x: a * point.x + (1 - a) * prev.x,
+      y: a * point.y + (1 - a) * prev.y,
     };
     prev = smoothed;
     return smoothed;
