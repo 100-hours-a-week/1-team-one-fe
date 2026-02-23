@@ -2,7 +2,7 @@ import type { ApiResponse } from '@/src/shared/api';
 
 type TargetKeypoint = Readonly<[number, number, number]>;
 
-interface ReferenceKeyframeResponse {
+export interface ReferenceKeyframeResponse {
   phase: string;
   timestampRatio: number;
   keypoints: ReadonlyArray<TargetKeypoint>;
@@ -15,8 +15,17 @@ export interface ReferencePoseResponse {
   fpsHint?: number;
 }
 
+export interface EyeKeyframeResponse {
+  phase: string;
+  x: number;
+  y: number;
+  holdMs: number;
+}
+
 interface StretchingPoseResponse {
-  referencePose: ReferencePoseResponse;
+  referencePose?: ReferencePoseResponse;
+  keyFrames?: ReadonlyArray<EyeKeyframeResponse>;
+  totalDurationMs?: number;
 }
 
 interface StretchingExerciseResponse {
