@@ -7,12 +7,14 @@ import { getCommonSentryClientOptions } from '@tooling/sentry-config';
 
 const env = process.env.NEXT_PUBLIC_ENV; // development | staging | production
 const isProd = env === 'production';
+const isLocal = env === 'local';
 
 Sentry.init({
   ...getCommonSentryClientOptions(),
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: env,
   release: process.env.NEXT_PUBLIC_RELEASE,
+  enabled: !isLocal,
 
   //성능 수집
   tracesSampleRate: env === 'production' ? 0.1 : 1.0,
