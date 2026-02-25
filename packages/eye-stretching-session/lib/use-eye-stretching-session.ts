@@ -41,7 +41,18 @@ import { EYE_SESSION_CONFIG } from '../config/constants';
 export type UseEyeStretchingSessionOptions = {
   /** 제한 시간 (초). 미설정 시 타이머 없음 */
   limitTimeSeconds?: number;
+  /** WebGazer 모델 요청을 로컬 호스팅으로 리다이렉트 */
+  webgazerModelRedirects?: WebGazerModelRedirects;
 };
+
+export type WebGazerModelRedirect = {
+  /** 원격 모델 base URL*/
+  from: string;
+  /** 로컬 호스팅 base URL*/
+  to: string;
+};
+
+export type WebGazerModelRedirects = ReadonlyArray<WebGazerModelRedirect>;
 
 export type UseEyeStretchingSessionResult = {
   /** WebGazer 로딩 중 */
@@ -79,6 +90,113 @@ export type UseEyeStretchingSessionResult = {
 // ═══════════════════════════════════════════════════════════════════════════
 // useEvent — 콜백 identity 안정화 (재생성 방지)
 // ═══════════════════════════════════════════════════════════════════════════
+
+type FetchFunction = typeof fetch;
+
+const FETCH_REDIRECT_STATE = {
+  originalFetch: null as FetchFunction | null,
+  activeRedirects: [] as WebGazerModelRedirect[],
+  refCount: 0,
+};
+
+const stripQueryAndHash = (value: string) => value.split('#')[0]?.split('?')[0] ?? value;
+
+const normalizeBaseUrl = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
+};
+
+const resolveRequestUrl = (input: RequestInfo | URL) => {
+  if (typeof input === 'string') return input;
+  if (input instanceof URL) return input.toString();
+  if (typeof Request !== 'undefined' && input instanceof Request) return input.url;
+  return null;
+};
+
+const resolveRedirectUrl = (
+  input: RequestInfo | URL,
+  redirects: ReadonlyArray<WebGazerModelRedirect>,
+) => {
+  const rawUrl = resolveRequestUrl(input);
+  if (!rawUrl) return null;
+
+  const normalized = stripQueryAndHash(rawUrl);
+  for (const redirect of redirects) {
+    if (!normalized.startsWith(redirect.from)) continue;
+    const relativePath = normalized.slice(redirect.from.length);
+    if (!relativePath) return redirect.to;
+    const cleanedPath = relativePath.startsWith('/') ? relativePath.slice(1) : relativePath;
+    return `${redirect.to}${cleanedPath}`;
+  }
+
+  return null;
+};
+
+const buildRequestInit = (input: Request, init?: RequestInit): RequestInit => {
+  if (init) return init;
+  const cloned = input.clone();
+  return {
+    method: cloned.method,
+    headers: cloned.headers,
+    body: cloned.body,
+    mode: cloned.mode,
+    credentials: cloned.credentials,
+    cache: cloned.cache,
+    redirect: cloned.redirect,
+    referrer: cloned.referrer,
+    referrerPolicy: cloned.referrerPolicy,
+    integrity: cloned.integrity,
+    keepalive: cloned.keepalive,
+    signal: cloned.signal,
+  };
+};
+
+const attachWebGazerModelFetchRedirects = (redirects?: WebGazerModelRedirects) => {
+  if (!redirects || redirects.length === 0) return () => {};
+  if (typeof window === 'undefined') return () => {};
+
+  const normalizedRedirects = redirects
+    .map((redirect) => {
+      const from = normalizeBaseUrl(redirect.from);
+      const to = normalizeBaseUrl(redirect.to);
+      if (!from || !to) return null;
+      return { from, to };
+    })
+    .filter((redirect): redirect is WebGazerModelRedirect => Boolean(redirect));
+
+  if (normalizedRedirects.length === 0) return () => {};
+
+  FETCH_REDIRECT_STATE.activeRedirects = normalizedRedirects;
+
+  if (!FETCH_REDIRECT_STATE.originalFetch) {
+    FETCH_REDIRECT_STATE.originalFetch = window.fetch.bind(window);
+  }
+
+  const originalFetch = FETCH_REDIRECT_STATE.originalFetch;
+  if (FETCH_REDIRECT_STATE.refCount === 0 && originalFetch) {
+    window.fetch = (input, init) => {
+      const redirectedUrl = resolveRedirectUrl(input, FETCH_REDIRECT_STATE.activeRedirects);
+      if (!redirectedUrl) return originalFetch(input, init);
+      if (typeof Request !== 'undefined' && input instanceof Request) {
+        return originalFetch(redirectedUrl, buildRequestInit(input, init));
+      }
+      return originalFetch(redirectedUrl, init);
+    };
+  }
+
+  FETCH_REDIRECT_STATE.refCount += 1;
+
+  return () => {
+    if (FETCH_REDIRECT_STATE.refCount <= 0) return;
+    FETCH_REDIRECT_STATE.refCount -= 1;
+    if (FETCH_REDIRECT_STATE.refCount > 0) return;
+    if (!FETCH_REDIRECT_STATE.originalFetch) return;
+    window.fetch = FETCH_REDIRECT_STATE.originalFetch;
+    FETCH_REDIRECT_STATE.originalFetch = null;
+    FETCH_REDIRECT_STATE.activeRedirects = [];
+  };
+};
 
 function useEvent<T extends (...args: never[]) => unknown>(handler: T): T {
   const handlerRef = useRef(handler);
@@ -258,11 +376,14 @@ export function useEyeStretchingSession(
     if (!reference) return;
 
     let cancelled = false;
+    let detachModelRedirects = () => {};
 
     const init = async () => {
       try {
         setIsLoading(true);
         setError(null);
+
+        detachModelRedirects = attachWebGazerModelFetchRedirects(options?.webgazerModelRedirects);
 
         // 1. WebGazer dynamic import (npm 패키지)
         const webgazerModule = await import('webgazer');
@@ -350,12 +471,13 @@ export function useEyeStretchingSession(
 
     return () => {
       cancelled = true;
+      detachModelRedirects();
       sessionRef.current?.destroy();
       sessionRef.current = null;
       engineRef.current = null;
       setIsTrackerReady(false);
     };
-  }, [reference, handleResult]);
+  }, [reference, handleResult, options?.webgazerModelRedirects]);
 
   // ── 세션 완료 시 stop ────────────────────────────────────────────────
   useEffect(() => {

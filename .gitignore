@@ -45,3 +45,4 @@ yarn-error.log*
 packages/stretching-accuracy/py-reference/
 packages/eye-stretching-session/gaze-into-the-abyss.md
 packages/eye-stretching-session/gaze-into-the-abyss
+apps/web/public/models/webgazer/

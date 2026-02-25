@@ -7,6 +7,7 @@ import {
   useCompleteExerciseSessionMutation,
   useExerciseSessionQuery,
 } from '@/src/features/exercise-session';
+import { WEBGAZER_MODEL_REDIRECTS } from '@/src/features/eye-stretching-session/config/webgazer-models';
 import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
 
 import { EyeStretchingGuideDot } from './EyeStretchingGuideDot';
@@ -40,7 +41,10 @@ export function EyeStretchingSessionView({
     guideX,
     guideY,
     error,
-  } = useEyeStretchingSession(reference, { limitTimeSeconds });
+  } = useEyeStretchingSession(reference, {
+    limitTimeSeconds,
+    webgazerModelRedirects: WEBGAZER_MODEL_REDIRECTS,
+  });
 
   const sessionStartedAtRef = useRef<Date | null>(null);
   const hasSubmittedResultRef = useRef(false);

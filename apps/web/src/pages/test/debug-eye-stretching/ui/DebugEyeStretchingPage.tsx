@@ -2,6 +2,7 @@ import type { EyeStretchingReference } from '@repo/eye-stretching-session';
 import { useEyeStretchingSession } from '@repo/eye-stretching-session/hook';
 import { useEffect } from 'react';
 
+import { WEBGAZER_MODEL_REDIRECTS } from '@/src/features/eye-stretching-session/config/webgazer-models';
 import { EyeStretchingGazeDot } from '@/src/features/eye-stretching-session/ui/EyeStretchingGazeDot';
 import { EyeStretchingGuideDot } from '@/src/features/eye-stretching-session/ui/EyeStretchingGuideDot';
 import { EyeStretchingOverlay } from '@/src/features/eye-stretching-session/ui/EyeStretchingOverlay';
@@ -59,6 +60,7 @@ export function DebugEyeStretchingPage() {
     error,
   } = useEyeStretchingSession(MOCK_REFERENCE, {
     limitTimeSeconds: MOCK_LIMIT_TIME_SECONDS,
+    webgazerModelRedirects: WEBGAZER_MODEL_REDIRECTS,
   });
 
   // isBlinking 변경 시 콘솔 로그
