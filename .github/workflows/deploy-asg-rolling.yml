@@ -47,10 +47,6 @@ on:
         required: true
       AWS_ROLE_ARN:
         required: true
-      STG_ALB_DNS:
-        required: true
-      PROD_ALB_DNS:
-        required: true
 
 permissions:
   id-token: write
@@ -205,11 +201,11 @@ jobs:
         run: |
           echo "Checking actual service health..."
 
-          # [수정] 프론트엔드 헬스체크 API 경로로 변경 (/api/health)
+          # 프론트엔드 헬스체크 API 경로로 변경
           if [[ "${{ inputs.environment }}" == "production" ]]; then
-            TARGET_URL="http://${{ secrets.PROD_ALB_DNS }}/"
+            TARGET_URL="http://raisedeveloper.com/"
           else
-            TARGET_URL="http://${{ secrets.STG_ALB_DNS }}/"
+            TARGET_URL="http://stage.raisedeveloper.com/"
           fi
           
           for i in {1..5}; do
