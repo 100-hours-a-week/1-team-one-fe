@@ -13,6 +13,7 @@ export const PUBLIC_ROUTES = {
   ONBOARDING_PWA_GUIDE: '/onboarding/pwa-guide',
 
   MOMENTS: '/moments',
+  MOMENTS_NEW: '/moments/new',
 } as const;
 
 export const APP_ROUTES = {
