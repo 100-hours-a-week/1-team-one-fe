@@ -22,6 +22,8 @@ export interface SingleOptimisticConfig<TData, TVariables, TError = unknown> {
   updater: OptimisticUpdater<TData, TVariables>;
   onErrorCallback?: (error: TError, variables: TVariables, context?: unknown) => void;
   onSuccessCallback?: (data: unknown, variables: TVariables, context?: unknown) => void;
+  onSettledCallback?: () => void;
+  invalidateOnSettled?: boolean;
 }
 
 export interface InfiniteOptimisticConfig<TData, TVariables, TError = unknown> {
