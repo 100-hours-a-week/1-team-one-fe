@@ -52,10 +52,10 @@ export function isDndInfinite(finishedAt: Date, now: Date = new Date()): boolean
 }
 
 export function isDndActive(dnd: boolean | undefined, finishedAt?: string | null): boolean {
-  if (!finishedAt) return false;
+  if (!finishedAt) return Boolean(dnd);
 
   const parsed = parseDndDate(finishedAt);
-  if (!isValid(parsed)) return false;
+  if (!isValid(parsed)) return Boolean(dnd);
   return isAfter(parsed, new Date());
 }
 
