@@ -52,6 +52,7 @@ export function useLikePostMutationOptions({ queryKey }: LikePostOptimisticOptio
     queryClient,
     queryKeys,
     updater: (data, variables) => optimisticDataUpdater(data, variables.postId),
+    invalidateOnSettled: false,
     onSuccessCallback: (responseData, variables) => {
       const serverData = responseData as PostLikeDataType;
       const updater = syncDataUpdater(serverData.isLiked);
