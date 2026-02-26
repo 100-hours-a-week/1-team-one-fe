@@ -11,7 +11,6 @@ import { format } from 'date-fns';
 import type { PointerEventHandler } from 'react';
 import { useId, useRef, useState } from 'react';
 
-import { useAlarmSettingsQuery } from '@/src/features/alarm-settings';
 import {
   DND_MESSAGES,
   DND_OPTION_IDS,
@@ -21,6 +20,7 @@ import {
   isDndActive,
   toDndPayloadUtc,
   useDndMutation,
+  useDndQuery,
 } from '@/src/features/dnd';
 
 import { useDndMutationOptions } from '../model/useDndMutationOptions';
@@ -36,7 +36,7 @@ interface DndBottomSheetProps {
 export function DndBottomSheet({ open, onOpenChange }: DndBottomSheetProps) {
   //TODO: 알람 설정 시 캐싱 정책 정리 필요
   //TODO: 알람 설정 시 optimistic update 적용 고려 - 지금 적용했지만 더 고민 필요
-  const { data: alarmSettings } = useAlarmSettingsQuery({
+  const { data: dndStatus } = useDndQuery({
     staleTime: 0,
     gcTime: 0,
     refetchOnMount: 'always',
@@ -47,8 +47,8 @@ export function DndBottomSheet({ open, onOpenChange }: DndBottomSheetProps) {
   const [isDragging, setIsDragging] = useState(false);
   const dragStartY = useRef<number | null>(null);
   const switchLabelId = useId();
-  const isDndOn = isDndActive(alarmSettings?.dnd, alarmSettings?.dndFinishedAt);
-  const dndStatusLabel = isDndOn ? formatDndUntilLabel(alarmSettings?.dndFinishedAt) : '';
+  const isDndOn = isDndActive(dndStatus?.dnd, dndStatus?.dndFinishedAt);
+  const dndStatusLabel = isDndOn ? formatDndUntilLabel(dndStatus?.dndFinishedAt) : '';
 
   const handleOptionClick = async (optionId: (typeof DND_OPTIONS)[number]['id']) => {
     if (isPending) return;
