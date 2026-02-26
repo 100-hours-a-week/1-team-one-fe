@@ -9,8 +9,6 @@ export interface AlarmSettingsType {
   focusStartAt: string;
   focusEndAt: string;
   repeatDays: WeekdayType[];
-  dnd: boolean;
-  dndFinishedAt: string | null;
 }
 
 export interface AlarmSettingsFormValuesType {
