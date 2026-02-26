@@ -2,12 +2,13 @@ import { Card, CardContent, CardFooter, CardHeader } from '@repo/ui/card';
 import { Chip } from '@repo/ui/chip';
 import type { QueryKey } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import type { PostListItemType } from '@/src/entities/post';
 import { useLikePostMutation, useLikePostMutationOptions } from '@/src/features/moments-like';
 import { MOMENTS_LIST_CONFIG } from '@/src/features/moments-list';
 import { buildImageUrl } from '@/src/shared/lib/image';
-import { buildMomentsDetailPath } from '@/src/shared/routes';
+import { buildMomentsDetailPath, buildMomentsUserFeedPath } from '@/src/shared/routes';
 import { MomentsLikeButton } from '@/src/widgets/moments-like-button';
 import { PostAuthorInfo } from '@/src/widgets/post-author-info';
 
@@ -18,6 +19,7 @@ interface MomentsPostCardItemProps {
 }
 
 export function MomentsPostCardItem({ post, isLoggedIn, listQueryKey }: MomentsPostCardItemProps) {
+  const router = useRouter();
   const detailHref = buildMomentsDetailPath(post.postId);
   const resolvedImageUrl = buildImageUrl(post.imageUrl);
   const optimisticHandlers = useLikePostMutationOptions({ queryKey: listQueryKey });
@@ -27,10 +29,18 @@ export function MomentsPostCardItem({ post, isLoggedIn, listQueryKey }: MomentsP
     likePost({ postId: post.postId, isLiked: post.isLiked });
   };
 
+  const handleAuthorClick = () => {
+    void router.push(buildMomentsUserFeedPath(post.author.userId));
+  };
+
   return (
     <Card padding="none" variant="elevated" className="flex flex-col gap-3 overflow-hidden">
       <CardHeader className="px-4 pt-4">
-        <PostAuthorInfo author={post.author} createdAt={post.createdAt} />
+        <PostAuthorInfo
+          author={post.author}
+          createdAt={post.createdAt}
+          onAuthorClick={handleAuthorClick}
+        />
       </CardHeader>
 
       <CardContent className="px-4 pb-4">

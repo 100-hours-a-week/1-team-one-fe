@@ -1,12 +1,12 @@
 import type { EyePhase, EyeStretchingReference, EyeTarget } from '@repo/eye-stretching-session';
 
-import type { EyeKeyframeResponse } from '../api/dto/stretching-session.dto';
+import type { EyeKeyframeResponseType } from '../api/dto/stretching-session.dto';
 
 /**
- * @description API 응답 형태의 EyeKeyframeResponse 를 눈운동 엔진의 input 형식으로 변환
+ * @description API 응답 형태의 EyeKeyframeResponseType 를 눈운동 엔진의 input 형식으로 변환
  */
 
-const toEyeTarget = (keyframe: EyeKeyframeResponse): EyeTarget => {
+const toEyeTarget = (keyframe: EyeKeyframeResponseType): EyeTarget => {
   return {
     phase: keyframe.phase as EyePhase,
     x: keyframe.x,
@@ -16,7 +16,7 @@ const toEyeTarget = (keyframe: EyeKeyframeResponse): EyeTarget => {
 };
 
 export function toEyeReference(
-  keyFrames: ReadonlyArray<EyeKeyframeResponse>,
+  keyFrames: ReadonlyArray<EyeKeyframeResponseType>,
   totalDurationMs: number,
 ): EyeStretchingReference {
   return {

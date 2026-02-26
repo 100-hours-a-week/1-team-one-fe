@@ -37,6 +37,10 @@ export function buildMomentsDetailPath(postId: number | string): string {
   return `/moments/post/${postId}`;
 }
 
+export function buildMomentsUserFeedPath(userId: number | string): string {
+  return `/moments/${userId}`;
+}
+
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 
 export const ROUTE_GROUPS = {
