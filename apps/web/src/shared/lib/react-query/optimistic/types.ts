@@ -32,6 +32,8 @@ export interface InfiniteOptimisticConfig<TData, TVariables, TError = unknown> {
   updater: OptimisticUpdater<TData, TVariables>;
   onErrorCallback?: (error: TError, variables: TVariables, context?: unknown) => void;
   onSuccessCallback?: (data: unknown, variables: TVariables, context?: unknown) => void;
+  onSettledCallback?: () => void;
+  invalidateOnSettled?: boolean;
 }
 
 //타임가드용 함수
