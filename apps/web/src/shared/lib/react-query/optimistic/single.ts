@@ -9,7 +9,15 @@ import { isSingleOptimisticContext } from './types';
 export function createSingleOptimisticHandlers<TData, TVariables, TError = unknown>(
   config: SingleOptimisticConfig<TData, TVariables, TError>,
 ) {
-  const { queryClient, queryKey, updater, onErrorCallback, onSuccessCallback } = config;
+  const {
+    queryClient,
+    queryKey,
+    updater,
+    onErrorCallback,
+    onSuccessCallback,
+    onSettledCallback,
+    invalidateOnSettled = true,
+  } = config;
 
   return {
     onMutate: async (variables: TVariables) => {
@@ -32,7 +40,10 @@ export function createSingleOptimisticHandlers<TData, TVariables, TError = unkno
     },
 
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey });
+      if (invalidateOnSettled) {
+        void queryClient.invalidateQueries({ queryKey });
+      }
+      onSettledCallback?.();
     },
   };
 }

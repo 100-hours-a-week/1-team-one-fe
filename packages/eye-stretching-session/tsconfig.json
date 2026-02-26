@@ -1,0 +1,10 @@
+{
+  "extends": "@tooling/typescript-config/base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "rootDir": ".",
+    "outDir": "dist"
+  },
+  "include": ["src", "lib"],
+  "exclude": ["node_modules", "dist"]
+}

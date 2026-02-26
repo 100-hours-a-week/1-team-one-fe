@@ -1,9 +1,9 @@
 import type { ApiResponse } from '@/src/shared/api';
 
 import type {
-  AvailabilityResult,
+  AvailabilityResultType,
   DuplicationErrorResponseDTO,
-  DuplicationField,
+  DuplicationFieldType,
   EmailAvailabilityDataType,
   NicknameAvailabilityDataType,
 } from '../dto/availability.dto';
@@ -31,8 +31,8 @@ const hasDuplicationErrors = (payload: unknown): payload is DuplicationErrorResp
 
 const getDuplicationError = (
   payload: DuplicationErrorResponseDTO,
-  field: DuplicationField,
-): AvailabilityResult['error'] | null => {
+  field: DuplicationFieldType,
+): AvailabilityResultType['error'] | null => {
   const match = payload.errors.find(
     (error) =>
       isRecord(error) &&
@@ -55,8 +55,8 @@ const getDuplicationError = (
  */
 export function normalizeAvailabilityResponse(args: {
   payload: unknown;
-  field: DuplicationField;
-}): AvailabilityResult | null {
+  field: DuplicationFieldType;
+}): AvailabilityResultType | null {
   const { payload, field } = args;
 
   if (hasAvailabilityData(payload)) {
@@ -83,8 +83,8 @@ export function normalizeAvailabilityResponse(args: {
  */
 export function normalizeAvailabilityResponseFromError(args: {
   error: unknown;
-  field: DuplicationField;
-}): AvailabilityResult | null {
+  field: DuplicationFieldType;
+}): AvailabilityResultType | null {
   const { error, field } = args;
   if (!isRecord(error)) return null;
 

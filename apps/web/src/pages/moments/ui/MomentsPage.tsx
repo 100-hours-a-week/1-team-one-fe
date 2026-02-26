@@ -8,7 +8,9 @@ import {
   usePostsInfiniteQuery,
 } from '@/src/features/moments-list';
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
+import { ROUTES } from '@/src/shared/routes';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
+import { MomentsCreateFab } from '@/src/widgets/moments-create-fab';
 import { MomentsList } from '@/src/widgets/moments-list';
 import { MomentsTagSearch } from '@/src/widgets/moments-tag-search';
 
@@ -67,44 +69,52 @@ export function MomentsPage() {
     [router],
   );
 
+  const handleLoginRequired = useCallback(() => {
+    void router.push(ROUTES.LOGIN);
+  }, [router]);
+
   return (
-    <div className="flex flex-col gap-4 px-4 pt-4 pb-6">
-      <div className="bg-bg sticky top-0 z-10">
-        <MomentsTagSearch defaultTags={searchTags} onSearch={handleSearch} />
-      </div>
-      <LoadableBoundary
-        isLoading={isLoading}
-        error={error}
-        data={posts}
-        isEmpty={isEmpty}
-        renderLoading={() => <MomentsPageSkeleton />}
-        renderError={() => null}
-        renderEmpty={() => (
-          <div className="text-text-muted flex flex-col items-center gap-1 py-10 text-sm">
-            <span>
-              {isSearching
-                ? MOMENTS_LIST_MESSAGES.LIST.EMPTY_SEARCH
-                : MOMENTS_LIST_MESSAGES.LIST.EMPTY}
-            </span>
-            {isSearching ? (
-              <span className="text-text-subtle">
-                {MOMENTS_LIST_MESSAGES.LIST.EMPTY_SEARCH_HELPER}
+    <>
+      <div className="flex flex-col gap-4 px-4 pt-4 pb-6">
+        <div className="bg-bg sticky top-0" style={{ zIndex: 'var(--z-sticky)' }}>
+          <MomentsTagSearch defaultTags={searchTags} onSearch={handleSearch} />
+        </div>
+        <LoadableBoundary
+          isLoading={isLoading}
+          error={error}
+          data={posts}
+          isEmpty={isEmpty}
+          renderLoading={() => <MomentsPageSkeleton />}
+          renderError={() => null}
+          renderEmpty={() => (
+            <div className="text-text-muted flex flex-col items-center gap-1 py-10 text-sm">
+              <span>
+                {isSearching
+                  ? MOMENTS_LIST_MESSAGES.LIST.EMPTY_SEARCH
+                  : MOMENTS_LIST_MESSAGES.LIST.EMPTY}
               </span>
-            ) : null}
-          </div>
-        )}
-      >
-        {(items) => (
-          <MomentsList
-            items={items}
-            isFetchingNextPage={isFetchingNextPage}
-            hasNextPage={Boolean(hasNextPage)}
-            onFetchNext={() => void fetchNextPage()}
-            isLoggedIn={isLoggedIn}
-            listQueryKey={listQueryKey}
-          />
-        )}
-      </LoadableBoundary>
-    </div>
+              {isSearching ? (
+                <span className="text-text-subtle">
+                  {MOMENTS_LIST_MESSAGES.LIST.EMPTY_SEARCH_HELPER}
+                </span>
+              ) : null}
+            </div>
+          )}
+        >
+          {(items) => (
+            <MomentsList
+              items={items}
+              isFetchingNextPage={isFetchingNextPage}
+              hasNextPage={Boolean(hasNextPage)}
+              onFetchNext={() => void fetchNextPage()}
+              isLoggedIn={isLoggedIn}
+              listQueryKey={listQueryKey}
+            />
+          )}
+        </LoadableBoundary>
+      </div>
+
+      <MomentsCreateFab isLoggedIn={isLoggedIn} onLoginRequired={handleLoginRequired} />
+    </>
   );
 }
