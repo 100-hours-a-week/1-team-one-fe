@@ -123,27 +123,27 @@ jobs:
           fi
 
       # Sentry Release 생성 (소스맵 업로드 준비)
-      # - name: Create Sentry Release
-      #   env:
-      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-      #   run: |
-      #     npm install -g @sentry/cli
-      #     sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
-      #     # 조직 레포에 권한이 없어서 CI가 터지는 것을 방지하기 위해서 || true 추가
-      #     sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
+      - name: Create Sentry Release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+        run: |
+          npm install -g @sentry/cli
+          sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
+          # 조직 레포에 권한이 없어서 CI가 터지는 것을 방지하기 위해서 || true 추가
+          sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
 
       # Next.js 빌드
       - name: Build Next.js application
         run: pnpm turbo build --filter=web
 
       # Sentry Finalize
-      # - name: Finalize Sentry Release
-      #   if: success()
-      #   env:
-      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-      #   run: sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
+      - name: Finalize Sentry Release
+        if: success()
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+        run: sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
 
       # 모노레포 경로 처리
       - name: Bundle Artifacts
@@ -379,19 +379,19 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # # Sentry Release (Prod)
-      # - name: Setup Node & Sentry
-      #   uses: actions/setup-node@v5
-      #   with: { node-version: "24.13.0" }
-      # - run: npm install -g @sentry/cli
-      # - name: Create Sentry Release
-      #   env:
-      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-      #     NEXT_PUBLIC_RELEASE: raisedev-web@prod-${{ env.DEPLOY_TAG }}
-      #   run: |
-      #     sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
-      #     sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
+      # Sentry Release (Prod)
+      - name: Setup Node & Sentry
+        uses: actions/setup-node@v5
+        with: { node-version: "24.13.0" }
+      - run: npm install -g @sentry/cli
+      - name: Create Sentry Release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          NEXT_PUBLIC_RELEASE: raisedev-web@prod-${{ env.DEPLOY_TAG }}
+        run: |
+          sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
+          sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
 
       # Production Build
       - name: Build for Production
@@ -439,12 +439,12 @@ jobs:
           echo "FINAL_IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$TAG" >> $GITHUB_OUTPUT
 
       # # 7. Sentry Finalize
-      # - name: Finalize Sentry Release
-      #   env:
-      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-      #     NEXT_PUBLIC_RELEASE: raisedev-web@prod-${{ env.DEPLOY_TAG }}
-      #   run: sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
+      - name: Finalize Sentry Release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          NEXT_PUBLIC_RELEASE: raisedev-web@prod-${{ env.DEPLOY_TAG }}
+        run: sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
 
     # 6. 실제 Prod 배포 (outputs 전달)
     outputs:
