@@ -2,20 +2,19 @@ import { useQueryClient } from '@tanstack/react-query';
 import { isAfter, isValid, parseISO } from 'date-fns';
 import { useCallback } from 'react';
 
-import type { AlarmSettingsType } from '@/src/entities/alarm-settings';
-import type { DndUpdateDataType, DndUpdateRequestDTO } from '@/src/entities/dnd';
-import { ALARM_SETTINGS_QUERY_KEYS } from '@/src/features/alarm-settings';
+import type { DndStatusType, DndUpdateDataType, DndUpdateRequestDTO } from '@/src/entities/dnd';
+import { DND_QUERY_KEYS } from '@/src/features/dnd';
 import type { ApiError } from '@/src/shared/api';
 
 type DndOptimisticContextType = {
-  previousAlarmSettings?: AlarmSettingsType;
+  previousDndStatus?: DndStatusType;
 };
 
 function getDndOptimisticContext(value: unknown): DndOptimisticContextType | undefined {
   if (typeof value !== 'object' || value === null) {
     return undefined;
   }
-  if (!('previousAlarmSettings' in value)) {
+  if (!('previousDndStatus' in value)) {
     return undefined;
   }
   return value as DndOptimisticContextType;
@@ -26,35 +25,30 @@ export function useDndMutationOptions() {
 
   const handleMutate = useCallback(
     async (variables: DndUpdateRequestDTO): Promise<DndOptimisticContextType> => {
-      await queryClient.cancelQueries({ queryKey: ALARM_SETTINGS_QUERY_KEYS.detail() });
+      await queryClient.cancelQueries({ queryKey: DND_QUERY_KEYS.detail() });
 
-      const previousAlarmSettings = queryClient.getQueryData<AlarmSettingsType>(
-        ALARM_SETTINGS_QUERY_KEYS.detail(),
-      );
+      const previousDndStatus = queryClient.getQueryData<DndStatusType>(DND_QUERY_KEYS.detail());
 
-      queryClient.setQueryData<AlarmSettingsType | undefined>(
-        ALARM_SETTINGS_QUERY_KEYS.detail(),
-        (prev) => {
-          if (!prev) return prev;
+      queryClient.setQueryData<DndStatusType | undefined>(DND_QUERY_KEYS.detail(), (prev) => {
+        if (!prev) return prev;
 
-          const parsed = parseISO(variables.dndFinishedAt);
-          if (!isValid(parsed)) {
-            return {
-              ...prev,
-              dndFinishedAt: variables.dndFinishedAt,
-            };
-          }
-
-          const isActive = isAfter(parsed, new Date());
+        const parsed = parseISO(variables.dndFinishedAt);
+        if (!isValid(parsed)) {
           return {
             ...prev,
-            dnd: isActive,
             dndFinishedAt: variables.dndFinishedAt,
           };
-        },
-      );
+        }
 
-      return { previousAlarmSettings };
+        const isActive = isAfter(parsed, new Date());
+        return {
+          ...prev,
+          dnd: isActive,
+          dndFinishedAt: variables.dndFinishedAt,
+        };
+      });
+
+      return { previousDndStatus };
     },
     [queryClient],
   );
@@ -67,46 +61,43 @@ export function useDndMutationOptions() {
       _context?: unknown,
     ) => {
       const context = getDndOptimisticContext(onMutateResult);
-      if (!context?.previousAlarmSettings) return;
-      queryClient.setQueryData(ALARM_SETTINGS_QUERY_KEYS.detail(), context.previousAlarmSettings);
+      if (!context?.previousDndStatus) return;
+      queryClient.setQueryData(DND_QUERY_KEYS.detail(), context.previousDndStatus);
     },
     [queryClient],
   );
 
   const handleSuccess = useCallback(
     (data: DndUpdateDataType | undefined, variables: DndUpdateRequestDTO) => {
-      queryClient.setQueryData<AlarmSettingsType | undefined>(
-        ALARM_SETTINGS_QUERY_KEYS.detail(),
-        (prev) => {
-          if (!prev) return prev;
+      queryClient.setQueryData<DndStatusType | undefined>(DND_QUERY_KEYS.detail(), (prev) => {
+        if (!prev) return prev;
 
-          const finishedAt = data?.dndFinishedAt ?? variables.dndFinishedAt;
-          if (!finishedAt) {
-            return prev;
-          }
+        const finishedAt = data?.dndFinishedAt ?? variables.dndFinishedAt;
+        if (!finishedAt) {
+          return prev;
+        }
 
-          const parsed = parseISO(finishedAt);
-          if (!isValid(parsed)) {
-            return {
-              ...prev,
-              dndFinishedAt: finishedAt,
-            };
-          }
-
-          const isActive = isAfter(parsed, new Date());
+        const parsed = parseISO(finishedAt);
+        if (!isValid(parsed)) {
           return {
             ...prev,
-            dnd: isActive,
             dndFinishedAt: finishedAt,
           };
-        },
-      );
+        }
+
+        const isActive = isAfter(parsed, new Date());
+        return {
+          ...prev,
+          dnd: isActive,
+          dndFinishedAt: finishedAt,
+        };
+      });
     },
     [queryClient],
   );
 
   const handleSettled = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: ALARM_SETTINGS_QUERY_KEYS.detail() });
+    void queryClient.invalidateQueries({ queryKey: DND_QUERY_KEYS.detail() });
   }, [queryClient]);
 
   return {
