@@ -1,4 +1,7 @@
-import type { RoutineStepResponse, StretchingSessionData } from '../api/dto/stretching-session.dto';
+import type {
+  RoutineStepResponseType,
+  StretchingSessionDataType,
+} from '../api/dto/stretching-session.dto';
 import type {
   StretchingSessionExercisePoseType,
   StretchingSessionStepType,
@@ -8,10 +11,12 @@ import { toEyeReference } from './to-eye-reference';
 import { toReferencePose } from './to-reference-pose';
 
 /**
- * @description API 응답 형태의 RoutineStepResponse 를 정확도 엔진의 input 형식으로 변환
+ * @description API 응답 형태의 RoutineStepResponseType 를 정확도 엔진의 input 형식으로 변환
  */
 
-const toStretchingSessionPose = (step: RoutineStepResponse): StretchingSessionExercisePoseType => {
+const toStretchingSessionPose = (
+  step: RoutineStepResponseType,
+): StretchingSessionExercisePoseType => {
   if (step.exercise.type === 'EYES') {
     return {
       eyeReference: toEyeReference(
@@ -26,7 +31,7 @@ const toStretchingSessionPose = (step: RoutineStepResponse): StretchingSessionEx
   };
 };
 
-const toStretchingSessionStep = (step: RoutineStepResponse): StretchingSessionStepType => {
+const toStretchingSessionStep = (step: RoutineStepResponseType): StretchingSessionStepType => {
   return {
     routineStepId: step.routineStepId,
     stepOrder: step.stepOrder,
@@ -44,7 +49,7 @@ const toStretchingSessionStep = (step: RoutineStepResponse): StretchingSessionSt
   };
 };
 
-export function toStretchingSession(data: StretchingSessionData): StretchingSessionType {
+export function toStretchingSession(data: StretchingSessionDataType): StretchingSessionType {
   return {
     routineId: data.routineId,
     routineOrder: data.routineOrder,
