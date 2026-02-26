@@ -12,17 +12,18 @@ import { buildImageUrl } from '@/src/shared/lib/image';
 interface PostAuthorInfoProps {
   author: PostAuthorType;
   createdAt: string;
+  onAuthorClick?: () => void;
 }
 
-export function PostAuthorInfo({ author, createdAt }: PostAuthorInfoProps) {
+export function PostAuthorInfo({ author, createdAt, onAuthorClick }: PostAuthorInfoProps) {
   const dateLabel = formatNotificationDateLabel(createdAt);
   const timeLabel = formatNotificationTimeLabel(createdAt);
   const formattedDateTime = `${dateLabel} ${timeLabel}`;
 
   const profileImageUrl = buildImageUrl(author.profileImageUrl);
 
-  return (
-    <div className="flex items-center gap-3 py-4">
+  const authorContent = (
+    <>
       <Avatar
         src={profileImageUrl}
         name={author.nickname}
@@ -44,6 +45,18 @@ export function PostAuthorInfo({ author, createdAt }: PostAuthorInfoProps) {
           <time dateTime={createdAt}>{formattedDateTime}</time>
         </div>
       </div>
+    </>
+  );
+
+  if (!onAuthorClick) {
+    return <div className="flex items-center gap-3 py-4">{authorContent}</div>;
+  }
+
+  return (
+    <div className="flex items-center gap-3 py-4">
+      <button type="button" onClick={onAuthorClick} className="flex items-center gap-3 text-left">
+        {authorContent}
+      </button>
     </div>
   );
 }
