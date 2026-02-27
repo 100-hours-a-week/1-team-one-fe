@@ -15,6 +15,7 @@
     "build": "next build --webpack",
     "prestart": "pnpm run generate:firebase-sw",
     "start": "next start",
+    "analyze": "ANALYZE=true pnpm run build",
     "lint": "eslint"
   },
   "dependencies": {
