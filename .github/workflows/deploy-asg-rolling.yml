@@ -131,7 +131,7 @@ jobs:
           fi
           
           if [ "${{ inputs.environment }}" == "production" ]; then
-            MIN_HEALTHY=50
+            MIN_HEALTHY=100
           else
             MIN_HEALTHY=0
           fi
@@ -246,7 +246,7 @@ jobs:
             fi
           done
           echo "All instances are running the correct version."
-          
+
       - name: Set Launch Template Default Version
         if: success()
         run: |
