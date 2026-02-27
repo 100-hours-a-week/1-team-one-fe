@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 
+import type { PostDetailDataType } from '@/src/entities/post';
 import { useDeletePostMutation } from '@/src/features/moments-detail/api/useDeletePostMutation';
 import { usePostDetailQuery } from '@/src/features/moments-detail/api/usePostDetailQuery';
 import { PostDetailMenu } from '@/src/features/moments-detail/ui/PostDetailMenu';
@@ -14,7 +15,11 @@ import { MomentsDetailLikeSection } from '@/src/widgets/moments-detail-like';
 
 import { MomentsDetailPageSkeleton } from './MomentsDetailPage.skeleton';
 
-export function MomentsDetailPage() {
+interface MomentsDetailPageProps {
+  initialData?: PostDetailDataType;
+}
+
+export function MomentsDetailPage({ initialData }: MomentsDetailPageProps) {
   const router = useRouter();
   const { data: onboardingStatus } = useOnboardingStatusQuery();
   const isLoggedIn = onboardingStatus !== 'unauthorized';
@@ -24,6 +29,7 @@ export function MomentsDetailPage() {
 
   const { data, error, isLoading } = usePostDetailQuery(postId, {
     enabled: isPostIdValid,
+    placeholderData: initialData,
   });
 
   const { mutate: deletePost, isPending: isDeleting } = useDeletePostMutation({
