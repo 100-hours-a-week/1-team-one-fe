@@ -4,6 +4,10 @@ export const ROUTINE_PLAN_MESSAGES = {
     GENERATING: '개인 맞춤 루틴을 생성하고 있어요',
     GENERATING_DETAIL: '잠시만 기다려 주세요. 곧 완료됩니다.',
   },
+  GENERATING_NOTICE: {
+    TITLE: '새로운 루틴을 생성하고 있어요',
+    DESCRIPTION: '완료 전까지는 이전 루틴이 표시됩니다.',
+  },
   ERROR: {
     FETCH_FAILED: '루틴을 불러올 수 없습니다',
     RETRY: '다시 시도',
