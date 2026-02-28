@@ -80,10 +80,8 @@ export function ToastProvider({
     <SonnerToaster
       position={position}
       duration={duration}
-      richColors
-      closeButton
+      theme="dark"
       toastOptions={{
-        className: 'bg-surface text-text border-border shadow-lg',
         descriptionClassName: 'text-text-muted',
       }}
       {...props}
