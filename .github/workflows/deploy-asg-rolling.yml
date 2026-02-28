@@ -203,9 +203,9 @@ jobs:
 
           # 프론트엔드 헬스체크 API 경로로 변경
           if [[ "${{ inputs.environment }}" == "production" ]]; then
-            TARGET_URL="http://raisedeveloper.com/"
+            TARGET_URL="https://raisedeveloper.com/"
           else
-            TARGET_URL="http://stage.raisedeveloper.com/"
+            TARGET_URL="https://stage.raisedeveloper.com/"
           fi
           
           for i in {1..5}; do
