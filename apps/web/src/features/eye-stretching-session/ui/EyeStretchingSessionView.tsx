@@ -8,6 +8,7 @@ import {
   useExerciseSessionQuery,
 } from '@/src/features/exercise-session';
 import { WEBGAZER_MODEL_REDIRECTS } from '@/src/features/eye-stretching-session/config/webgazer-models';
+import { StretchingSessionCompletionResult } from '@/src/features/stretching-session/ui/StretchingSessionCompletionResult';
 import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
 
 import { EyeStretchingGuideDot } from './EyeStretchingGuideDot';
@@ -51,8 +52,9 @@ export function EyeStretchingSessionView({
 
   const { data: sessionData } = useExerciseSessionQuery(sessionId);
 
-  const [, setCompletionResult] = useState<CompleteExerciseSessionResponseData | null>(null);
-  const { mutate: completeSession } = useCompleteExerciseSessionMutation({
+  const [completionResult, setCompletionResult] =
+    useState<CompleteExerciseSessionResponseData | null>(null);
+  const { mutate: completeSession, isPending: isCompleting } = useCompleteExerciseSessionMutation({
     sessionId,
     onSuccess: (payload) => setCompletionResult(payload),
   });
@@ -126,11 +128,7 @@ export function EyeStretchingSessionView({
 
   // 세션 완료
   if (isSessionComplete) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <span className="text-brand-600 text-lg font-semibold">눈운동이 완료되었습니다!</span>
-      </div>
-    );
+    return <StretchingSessionCompletionResult result={completionResult} isLoading={isCompleting} />;
   }
 
   return (
