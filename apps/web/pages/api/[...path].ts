@@ -23,6 +23,32 @@ type ProxyResponse = ApiResponse<Record<string, unknown>>;
 
 const NO_AUTH_PATHS = new Set<string>([AUTH_CONFIG.LOGIN_ENDPOINT, AUTH_CONFIG.REFRESH_ENDPOINT]);
 
+const POST_MUTATION_METHODS = new Set(['DELETE', 'PUT', 'PATCH']);
+const POST_PATH_PATTERN = /^\/api\/posts\/(\d+)$/;
+
+function extractPostIdToRevalidate(method: string | undefined, path: string): number | null {
+  if (!method || !POST_MUTATION_METHODS.has(method)) return null;
+  const match = POST_PATH_PATTERN.exec(path);
+  if (!match) return null;
+  return Number(match[1]);
+}
+
+async function maybeRevalidatePost(
+  res: NextApiResponse,
+  method: string | undefined,
+  targetPath: string,
+  status: number,
+): Promise<void> {
+  if (status < 200 || status >= 300) return;
+  const postId = extractPostIdToRevalidate(method, targetPath);
+  if (postId === null) return;
+  try {
+    await res.revalidate(`/moments/post/${postId}`);
+  } catch (err) {
+    console.warn('[bff-proxy] revalidate failed', { postId, err });
+  }
+}
+
 function shouldSkipAuth(targetPath: string): boolean {
   const apiPath = targetPath.replace(/^\/api/, '');
   return NO_AUTH_PATHS.has(apiPath);
@@ -379,6 +405,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (isLogoutPath && initialResponse.status === HTTP_STATUS.OK) {
       clearAuthCookies(res);
     }
+    await maybeRevalidatePost(res, req.method, targetPath, initialResponse.status);
     respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
   }
@@ -414,5 +441,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     clearAuthCookies(res);
   }
 
+  await maybeRevalidatePost(res, req.method, targetPath, retryResponse.status);
   respondWithPayload(res, retryResponse.status, retryResponse.json);
 }

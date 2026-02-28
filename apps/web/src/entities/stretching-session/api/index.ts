@@ -2,9 +2,14 @@ export { completeStretchingSessionFn } from './complete-stretching-session-patch
 export type {
   CompleteStretchingSessionRequestDTO,
   CompleteStretchingSessionResponseDataType,
+  EyeKeyframeResponseType,
+  ReferencePoseResponseType,
+  RoutineStepResponseType,
   StretchingPoseRecordFrameType,
   StretchingResultItemType,
   StretchingResultStatusType,
+  StretchingSessionDataType,
+  StretchingSessionResponseDTO,
   ValidStretchingSessionItemType,
   ValidStretchingSessionsResponseDTO,
 } from './dto/stretching-session.dto';

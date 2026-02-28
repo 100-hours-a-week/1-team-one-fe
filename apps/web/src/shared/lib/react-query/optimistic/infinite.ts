@@ -11,7 +11,15 @@ import { isInfiniteOptimisticContext } from './types';
 export function createInfiniteOptimisticHandlers<TPageData, TVariables, TError = unknown>(
   config: InfiniteOptimisticConfig<InfiniteData<TPageData>, TVariables, TError>,
 ) {
-  const { queryClient, queryKeys, updater, onErrorCallback, onSuccessCallback } = config;
+  const {
+    queryClient,
+    queryKeys,
+    updater,
+    onErrorCallback,
+    onSuccessCallback,
+    onSettledCallback,
+    invalidateOnSettled = true,
+  } = config;
 
   return {
     onMutate: async (variables: TVariables) => {
@@ -52,8 +60,10 @@ export function createInfiniteOptimisticHandlers<TPageData, TVariables, TError =
     },
 
     onSettled: () => {
-      // 모든 쿼리 무효화
-      void Promise.all(queryKeys.map((key) => queryClient.invalidateQueries({ queryKey: key })));
+      if (invalidateOnSettled) {
+        void Promise.all(queryKeys.map((key) => queryClient.invalidateQueries({ queryKey: key })));
+      }
+      onSettledCallback?.();
     },
   };
 }

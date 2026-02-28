@@ -1,10 +1,13 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 
+import type { PostDetailDataType } from '@/src/entities/post';
 import { useDeletePostMutation } from '@/src/features/moments-detail/api/useDeletePostMutation';
 import { usePostDetailQuery } from '@/src/features/moments-detail/api/usePostDetailQuery';
 import { PostDetailMenu } from '@/src/features/moments-detail/ui/PostDetailMenu';
 import { PostDetailView } from '@/src/features/moments-detail/ui/PostDetailView';
+import { MOMENTS_LIST_QUERY_KEYS } from '@/src/features/moments-list';
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
 import { isApiError } from '@/src/shared/api';
 import { LoadableBoundary } from '@/src/shared/ui/boundary/LoadableBoundary';
@@ -14,7 +17,11 @@ import { MomentsDetailLikeSection } from '@/src/widgets/moments-detail-like';
 
 import { MomentsDetailPageSkeleton } from './MomentsDetailPage.skeleton';
 
-export function MomentsDetailPage() {
+interface MomentsDetailPageProps {
+  initialData?: PostDetailDataType;
+}
+
+export function MomentsDetailPage({ initialData }: MomentsDetailPageProps) {
   const router = useRouter();
   const { data: onboardingStatus } = useOnboardingStatusQuery();
   const isLoggedIn = onboardingStatus !== 'unauthorized';
@@ -24,11 +31,14 @@ export function MomentsDetailPage() {
 
   const { data, error, isLoading } = usePostDetailQuery(postId, {
     enabled: isPostIdValid,
+    // placeholderData: initialData,
   });
+
+  const queryClient = useQueryClient();
 
   const { mutate: deletePost, isPending: isDeleting } = useDeletePostMutation({
     onSuccess: () => {
-      //TODO: moments list api 추가 후 invalidate
+      void queryClient.invalidateQueries({ queryKey: MOMENTS_LIST_QUERY_KEYS.root() });
       router.replace('/moments');
     },
   });

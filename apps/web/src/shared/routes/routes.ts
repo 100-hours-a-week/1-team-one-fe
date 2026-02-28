@@ -13,6 +13,7 @@ export const PUBLIC_ROUTES = {
   ONBOARDING_PWA_GUIDE: '/onboarding/pwa-guide',
 
   MOMENTS: '/moments',
+  MOMENTS_NEW: '/moments/new',
 } as const;
 
 export const APP_ROUTES = {
@@ -34,6 +35,10 @@ export function buildStretchSessionPath(sessionId: number | string): string {
 
 export function buildMomentsDetailPath(postId: number | string): string {
   return `/moments/post/${postId}`;
+}
+
+export function buildMomentsUserFeedPath(userId: number | string): string {
+  return `/moments/${userId}`;
 }
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];

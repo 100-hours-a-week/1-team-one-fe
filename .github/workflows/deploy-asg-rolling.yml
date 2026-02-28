@@ -47,10 +47,6 @@ on:
         required: true
       AWS_ROLE_ARN:
         required: true
-      STG_ALB_DNS:
-        required: true
-      PROD_ALB_DNS:
-        required: true
 
 permissions:
   id-token: write
@@ -135,7 +131,7 @@ jobs:
           fi
           
           if [ "${{ inputs.environment }}" == "production" ]; then
-            MIN_HEALTHY=50
+            MIN_HEALTHY=100
           else
             MIN_HEALTHY=0
           fi
@@ -205,11 +201,11 @@ jobs:
         run: |
           echo "Checking actual service health..."
 
-          # [수정] 프론트엔드 헬스체크 API 경로로 변경 (/api/health)
+          # 프론트엔드 헬스체크 API 경로로 변경
           if [[ "${{ inputs.environment }}" == "production" ]]; then
-            TARGET_URL="http://${{ secrets.PROD_ALB_DNS }}/"
+            TARGET_URL="http://raisedeveloper.com/"
           else
-            TARGET_URL="http://${{ secrets.STG_ALB_DNS }}/"
+            TARGET_URL="http://stage.raisedeveloper.com/"
           fi
           
           for i in {1..5}; do
@@ -250,6 +246,16 @@ jobs:
             fi
           done
           echo "All instances are running the correct version."
+
+      - name: Set Launch Template Default Version
+        if: success()
+        run: |
+          NEW_VERSION=${{ steps.update-lt.outputs.VERSION }}
+          echo "Setting Launch Template Default Version to $NEW_VERSION..."
+          aws ec2 modify-launch-template \
+            --launch-template-id ${{ inputs.lt_id }} \
+            --default-version $NEW_VERSION
+          echo "Launch Template Default Version Successfully Updated!"
 
       # 7. 현재 시간 구하기 (KST)
       - name: Get Current Time

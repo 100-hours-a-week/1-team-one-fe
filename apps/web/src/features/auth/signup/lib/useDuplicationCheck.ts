@@ -7,7 +7,7 @@ import {
   useWatch,
 } from 'react-hook-form';
 
-import type { AvailabilityResult } from '@/src/entities/signup';
+import type { AvailabilityResultType } from '@/src/entities/signup';
 
 import type { SignupFormValues } from '../model/signup-schema';
 import type { DupState } from './types';
@@ -26,7 +26,7 @@ type AvailabilityQuery = (
   value: string,
   options?: { enabled?: boolean },
 ) => {
-  refetch: () => Promise<{ data?: AvailabilityResult }>;
+  refetch: () => Promise<{ data?: AvailabilityResultType }>;
 };
 
 type UseDuplicationCheckArgs = {

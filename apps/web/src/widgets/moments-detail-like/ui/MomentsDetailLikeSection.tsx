@@ -26,6 +26,7 @@ export function MomentsDetailLikeSection({
     queryClient,
     queryKey: MOMENTS_DETAIL_QUERY_KEYS.detail(postId),
     updater: createLikeUpdater<PostDetailDataType>(),
+    invalidateOnSettled: false,
     onSuccessCallback: (responseData, variables) => {
       const serverData = responseData as PostLikeDataType;
       const queryKey = MOMENTS_DETAIL_QUERY_KEYS.detail((variables as { postId: number }).postId);

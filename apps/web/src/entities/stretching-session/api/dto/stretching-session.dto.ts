@@ -1,50 +1,59 @@
 import type { ApiResponse } from '@/src/shared/api';
 
-type TargetKeypoint = Readonly<[number, number, number]>;
+type TargetKeypointType = Readonly<[number, number, number]>;
 
-interface ReferenceKeyframeResponse {
+export interface ReferenceKeyframeResponseType {
   phase: string;
   timestampRatio: number;
-  keypoints: ReadonlyArray<TargetKeypoint>;
+  keypoints: ReadonlyArray<TargetKeypointType>;
 }
 
-export interface ReferencePoseResponse {
+export interface ReferencePoseResponseType {
   targetKeypoints: ReadonlyArray<number>;
-  keyframes: ReadonlyArray<ReferenceKeyframeResponse>;
+  keyframes: ReadonlyArray<ReferenceKeyframeResponseType>;
   totalDuration: number;
   fpsHint?: number;
 }
 
-interface StretchingPoseResponse {
-  referencePose: ReferencePoseResponse;
+export interface EyeKeyframeResponseType {
+  phase: string;
+  x: number;
+  y: number;
+  holdMs: number;
 }
 
-interface StretchingExerciseResponse {
+interface StretchingPoseResponseType {
+  referencePose?: ReferencePoseResponseType;
+  keyFrames?: ReadonlyArray<EyeKeyframeResponseType>;
+  totalDurationMs?: number;
+}
+
+interface StretchingExerciseResponseType {
   exerciseId: number;
   type: string;
   name: string;
   content: string;
   effect: string;
-  pose: StretchingPoseResponse;
+  pose: StretchingPoseResponseType;
 }
 
-export interface RoutineStepResponse {
+export interface RoutineStepResponseType {
   routineStepId: number;
   stepOrder: number;
   targetReps: number | null;
   durationTime: number;
   limitTime: number;
-  exercise: StretchingExerciseResponse;
+  exercise: StretchingExerciseResponseType;
 }
 
-export interface StretchingSessionData {
+export interface StretchingSessionDataType {
   routineId: number;
   routineOrder: number;
   createdAt: string;
-  routineSteps: ReadonlyArray<RoutineStepResponse>;
+  routineSteps: ReadonlyArray<RoutineStepResponseType>;
 }
 
-export type StretchingSessionResponseDTO = ApiResponse<StretchingSessionData>;
+export type StretchingSessionResponseDTO = ApiResponse<StretchingSessionDataType>;
 
 // valid stretching sessions
 export type ValidStretchingSessionItemType = {
@@ -53,11 +62,11 @@ export type ValidStretchingSessionItemType = {
   createdAt: string;
 };
 
-type ValidStretchingSessionsData = {
+type ValidStretchingSessionsDataType = {
   sessions: ReadonlyArray<ValidStretchingSessionItemType> | null;
 };
 
-export type ValidStretchingSessionsResponseDTO = ApiResponse<ValidStretchingSessionsData>;
+export type ValidStretchingSessionsResponseDTO = ApiResponse<ValidStretchingSessionsDataType>;
 
 // complete stretching session
 export type StretchingResultStatusType = 'COMPLETED' | 'FAILED';
