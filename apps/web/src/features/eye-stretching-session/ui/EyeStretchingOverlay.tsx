@@ -1,6 +1,8 @@
 import { EYE_MATCH_THRESHOLD, type EyePhase } from '@repo/eye-stretching-session';
 import { ProgressBar } from '@repo/ui/progress-bar';
+import type { Ref } from 'react';
 
+import { EYE_STRETCHING_SESSION_MESSAGES } from '@/src/features/eye-stretching-session/config/messages';
 import { formatDuration } from '@/src/shared/lib/format/format-duration';
 
 type EyeStretchingOverlayProps = {
@@ -16,6 +18,7 @@ type EyeStretchingOverlayProps = {
   phaseRemainingSeconds: number;
   /** follow phase 전체 개수 */
   totalFollowCount: number;
+  containerRef?: Ref<HTMLDivElement>;
 };
 
 /** EYE_MATCH_THRESHOLD 기반 tone 판정 (stretching-session 패턴 동일) */
@@ -32,6 +35,7 @@ export function EyeStretchingOverlay({
   phase,
   phaseRemainingSeconds,
   totalFollowCount,
+  containerRef,
 }: EyeStretchingOverlayProps) {
   const isFollowPhase = phase.startsWith('follow');
   const isClosePhase = phase.startsWith('close');
@@ -46,7 +50,7 @@ export function EyeStretchingOverlay({
         : 'text-brand-600';
 
   return (
-    <div className="pointer-events-none absolute inset-x-4 top-4 z-10 space-y-3">
+    <div ref={containerRef} className="pointer-events-none absolute inset-x-4 top-4 z-10 space-y-3">
       {/* 진행률 바 */}
       <ProgressBar variant="bar" size="sm" total={100} current={Math.round(progressRatio * 100)} />
 
@@ -92,6 +96,13 @@ export function EyeStretchingOverlay({
           </span>
         </div>
       </div>
+
+      {isFollowPhase && (
+        <div className="rounded-lg bg-black/60 px-4 py-2 text-center text-sm font-medium text-white">
+          <p>{EYE_STRETCHING_SESSION_MESSAGES.CALIBRATION.GUIDE.LINE_1}</p>
+          <p>{EYE_STRETCHING_SESSION_MESSAGES.CALIBRATION.GUIDE.LINE_2}</p>
+        </div>
+      )}
     </div>
   );
 }

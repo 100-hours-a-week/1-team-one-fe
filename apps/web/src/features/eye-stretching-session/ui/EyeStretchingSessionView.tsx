@@ -8,6 +8,7 @@ import {
   useCompleteExerciseSessionMutation,
   useExerciseSessionQuery,
 } from '@/src/features/exercise-session';
+import { EYE_STRETCHING_SESSION_LAYOUT } from '@/src/features/eye-stretching-session/config/constants';
 import { EYE_STRETCHING_SESSION_MESSAGES } from '@/src/features/eye-stretching-session/config/messages';
 import { WEBGAZER_MODEL_REDIRECTS } from '@/src/features/eye-stretching-session/config/webgazer-models';
 import { StretchingSessionCompletionResult } from '@/src/features/stretching-session/ui/StretchingSessionCompletionResult';
@@ -51,6 +52,9 @@ export function EyeStretchingSessionView({
 
   const sessionStartedAtRef = useRef<Date | null>(null);
   const hasSubmittedResultRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const [overlaySafeTopRatio, setOverlaySafeTopRatio] = useState(0);
 
   const { data: sessionData, isLoading: isSessionDataLoading } = useExerciseSessionQuery(sessionId);
 
@@ -104,6 +108,39 @@ export function EyeStretchingSessionView({
   const totalFollowCount = reference.keyFrames.filter((kf) => kf.phase.startsWith('follow')).length;
   const shouldRenderSessionUi = isTrackerReady || isSessionPreparing;
 
+  useEffect(() => {
+    const container = containerRef.current;
+    const overlay = overlayRef.current;
+    if (!container || !overlay) return;
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const updateSafeTop = () => {
+      const containerRect = container.getBoundingClientRect();
+      const overlayRect = overlay.getBoundingClientRect();
+      if (containerRect.height <= 0) return;
+
+      const overlayBottomPx = overlayRect.bottom - containerRect.top;
+      const safeTopPx = overlayBottomPx + EYE_STRETCHING_SESSION_LAYOUT.OVERLAY_SAFE_MARGIN_PX;
+      const nextSafeTopRatio = Math.max(0, Math.min(1, safeTopPx / containerRect.height));
+
+      setOverlaySafeTopRatio((prev) =>
+        Math.abs(prev - nextSafeTopRatio) < 0.001 ? prev : nextSafeTopRatio,
+      );
+    };
+
+    updateSafeTop();
+
+    const observer = new ResizeObserver(updateSafeTop);
+    observer.observe(container);
+    observer.observe(overlay);
+    window.addEventListener('resize', updateSafeTop);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSafeTop);
+    };
+  }, [isSessionPreparing, isTrackerReady]);
+
   // 로딩 상태
   if (isSessionDataLoading) {
     return (
@@ -132,7 +169,7 @@ export function EyeStretchingSessionView({
   }
 
   return (
-    <div className="relative h-full w-full">
+    <div ref={containerRef} className="relative h-full w-full">
       {isSessionPreparing && (
         <div
           className="bg-overlay bg-opacity-30 absolute inset-0 z-20 flex items-center justify-center"
@@ -160,6 +197,7 @@ export function EyeStretchingSessionView({
             phase={phase}
             phaseRemainingSeconds={phaseRemainingSeconds}
             totalFollowCount={totalFollowCount}
+            containerRef={overlayRef}
           />
 
           {currentTarget && (
@@ -167,7 +205,7 @@ export function EyeStretchingSessionView({
               phase={phase}
               targetX={guideX}
               targetY={guideY}
-              calibrationRemainingSeconds={phase === 'follow1' ? phaseRemainingSeconds : 0}
+              safeTopRatio={overlaySafeTopRatio}
             />
           )}
 
