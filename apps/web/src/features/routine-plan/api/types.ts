@@ -7,9 +7,19 @@ export interface Exercise {
   reason: string;
 }
 
+export const ROUTINE_STATUSES = {
+  PENDING: 'PENDING',
+  REQUESTED: 'REQUESTED',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;
+
+export type RoutineStatus = (typeof ROUTINE_STATUSES)[keyof typeof ROUTINE_STATUSES];
+
 export interface RoutineData {
-  status: string;
-  submissionId: number;
+  status: RoutineStatus;
+  activeSubmissionId: number | null;
+  generatingSubmissionId: number | null;
   exercises: Exercise[];
 }
 
