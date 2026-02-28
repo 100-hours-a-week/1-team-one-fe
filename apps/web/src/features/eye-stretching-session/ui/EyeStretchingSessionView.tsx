@@ -1,5 +1,6 @@
 import type { EyeStretchingReference } from '@repo/eye-stretching-session';
 import { useEyeStretchingSession } from '@repo/eye-stretching-session/hook';
+import { Spinner } from '@repo/ui/spinner';
 import { useEffect, useRef, useState } from 'react';
 
 import {
@@ -7,6 +8,7 @@ import {
   useCompleteExerciseSessionMutation,
   useExerciseSessionQuery,
 } from '@/src/features/exercise-session';
+import { EYE_STRETCHING_SESSION_MESSAGES } from '@/src/features/eye-stretching-session/config/messages';
 import { WEBGAZER_MODEL_REDIRECTS } from '@/src/features/eye-stretching-session/config/webgazer-models';
 import { StretchingSessionCompletionResult } from '@/src/features/stretching-session/ui/StretchingSessionCompletionResult';
 import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
@@ -29,7 +31,7 @@ export function EyeStretchingSessionView({
   limitTimeSeconds,
 }: EyeStretchingSessionViewProps) {
   const {
-    isLoading,
+    isLoading: isSessionPreparing,
     isTrackerReady,
     isSessionComplete,
     isBlinking,
@@ -50,7 +52,7 @@ export function EyeStretchingSessionView({
   const sessionStartedAtRef = useRef<Date | null>(null);
   const hasSubmittedResultRef = useRef(false);
 
-  const { data: sessionData } = useExerciseSessionQuery(sessionId);
+  const { data: sessionData, isLoading: isSessionDataLoading } = useExerciseSessionQuery(sessionId);
 
   const [completionResult, setCompletionResult] =
     useState<CompleteExerciseSessionResponseData | null>(null);
@@ -100,16 +102,14 @@ export function EyeStretchingSessionView({
   const targetHoldSeconds = currentTarget ? currentTarget.holdMs / 1000 : 0;
   const phaseRemainingSeconds = Math.max(0, Math.ceil(targetHoldSeconds - holdSeconds));
   const totalFollowCount = reference.keyFrames.filter((kf) => kf.phase.startsWith('follow')).length;
+  const shouldRenderSessionUi = isTrackerReady || isSessionPreparing;
 
   // 로딩 상태
-  if (isLoading) {
+  if (isSessionDataLoading) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-3">
         <span className="text-text-muted text-sm font-medium">
-          시선 추적을 준비하고 있습니다...
-        </span>
-        <span className="text-text text-sm font-medium">
-          정확한 눈운동 가이드를 위해 안경을 벗어주세요!
+          {EYE_STRETCHING_SESSION_MESSAGES.LOADING.SESSION.TITLE}
         </span>
       </div>
     );
@@ -120,7 +120,7 @@ export function EyeStretchingSessionView({
     return (
       <div className="flex h-full w-full items-center justify-center">
         <span className="text-error-600 text-sm font-medium">
-          오류가 발생했습니다: {error.message}
+          {EYE_STRETCHING_SESSION_MESSAGES.ERROR.GENERIC} {error.message}
         </span>
       </div>
     );
@@ -133,7 +133,25 @@ export function EyeStretchingSessionView({
 
   return (
     <div className="relative h-full w-full">
-      {isTrackerReady && (
+      {isSessionPreparing && (
+        <div
+          className="bg-overlay bg-opacity-30 absolute inset-0 z-20 flex items-center justify-center"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="bg-surface text-text flex flex-col items-center gap-2 rounded-xl px-5 py-4 text-sm shadow-sm">
+            <Spinner size="sm" />
+            <span className="font-semibold">
+              {EYE_STRETCHING_SESSION_MESSAGES.LOADING.PREPARING.TITLE}
+            </span>
+            <span className="text-text-muted">
+              {EYE_STRETCHING_SESSION_MESSAGES.LOADING.PREPARING.DESCRIPTION}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {shouldRenderSessionUi && (
         <>
           <EyeStretchingOverlay
             progressRatio={progressRatio}
