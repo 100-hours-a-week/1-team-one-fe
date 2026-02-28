@@ -14,7 +14,7 @@ export type {
 export type { PostUpdateDataType, PostUpdateRequestDTO } from './api/dto/post-update.dto';
 export { createPostFn } from './api/post-create';
 export { deletePostFn } from './api/post-delete';
-export { fetchPostDetailFn } from './api/post-detail';
+export { fetchPostDetailFn, fetchPublicPostDetailFn } from './api/post-detail';
 export {
   POST_IMAGE_UPLOAD_ERROR_CODE,
   requestPostImageUploadUrlFn,
