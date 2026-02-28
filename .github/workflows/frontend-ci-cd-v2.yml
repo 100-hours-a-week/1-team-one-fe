@@ -112,12 +112,12 @@ jobs:
         run: |
           if [[ "${{ github.base_ref }}" == "main" ]]; then
             echo "Building for STAGING environment..."
-            echo "${{ secrets.WEB_ENV_STAGING_V2 }}" >> "$GITHUB_ENV"
+            echo "${{ secrets.WEB_ENV_STAGING_V2 }}" | grep -v '^#' | grep -v '^[[:space:]]*$' >> "$GITHUB_ENV"
             echo "NEXT_PUBLIC_RELEASE=raisedev-web@staging-${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
             echo "SENTRY_PROJECT=raisedev-staging" >> "$GITHUB_ENV"
           else
             echo "Building for DEV environment..."
-            echo "${{ secrets.WEB_ENV_DEV_V2 }}" >> "$GITHUB_ENV"
+            echo "${{ secrets.WEB_ENV_DEV_V2 }}" | grep -v '^#' | grep -v '^[[:space:]]*$' >> "$GITHUB_ENV"
             echo "NEXT_PUBLIC_RELEASE=raisedev-web@dev-${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
             echo "SENTRY_PROJECT=raisedev-dev" >> "$GITHUB_ENV"
           fi
