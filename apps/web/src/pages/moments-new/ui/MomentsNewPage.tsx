@@ -1,8 +1,10 @@
 import { Button } from '@repo/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 
 import { MOMENTS_CREATE_MESSAGES, useCreatePostMutation } from '@/src/features/moments-create';
+import { MOMENTS_LIST_QUERY_KEYS } from '@/src/features/moments-list';
 import type { MomentsPostFormValues } from '@/src/shared/types';
 import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
 import { MomentsPostForm } from '@/src/widgets/moments-post-form';
@@ -11,6 +13,7 @@ const FORM_ID = 'moments-create-form';
 
 export function MomentsNewPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isValid, setIsValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { mutateAsync: createPost } = useCreatePostMutation();
@@ -46,9 +49,10 @@ export function MomentsNewPage() {
   const handleSubmit = useCallback(
     async (values: MomentsPostFormValues) => {
       const data = await createPost(values);
+      void queryClient.invalidateQueries({ queryKey: MOMENTS_LIST_QUERY_KEYS.root() });
       router.replace(`/moments/post/${data.postId}`);
     },
-    [createPost, router],
+    [createPost, queryClient, router],
   );
 
   return (
