@@ -17,7 +17,8 @@ export type NotificationsPage = {
 };
 
 export type NotificationsReadRequest = {
-  lastNotificationTime: string;
+  oldestNotificationId: number;
+  latestNotificationId: number;
 };
 
 export type UnreadNotificationsCount = {
