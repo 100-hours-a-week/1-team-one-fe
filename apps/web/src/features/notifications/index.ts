@@ -10,5 +10,6 @@ export type {
   NotificationsReadRequest,
   UnreadNotificationsCount,
 } from './model/types';
+export { useNotificationsAutoRead } from './model/useNotificationsAutoRead';
 export { NotificationItem } from './ui/NotificationItem';
 export { NotificationList } from './ui/NotificationList';
