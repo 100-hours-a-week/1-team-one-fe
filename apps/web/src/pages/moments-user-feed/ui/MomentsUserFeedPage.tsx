@@ -1,6 +1,7 @@
 import { Chip } from '@repo/ui/chip';
 import { UserStatusCard } from '@repo/ui/user-status-card';
-import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useUserByIdQuery } from '@/src/entities/user';
 import {
@@ -8,7 +9,12 @@ import {
   MOMENTS_LIST_QUERY_KEYS,
   usePostsInfiniteQuery,
 } from '@/src/features/moments-list';
-import { useUserProfileQuery } from '@/src/features/user-profile';
+import {
+  ProfileNicknameEditForm,
+  ProfilePencilBadge,
+  useProfileImageUpload,
+  useUserProfileQuery,
+} from '@/src/features/user-profile';
 import StreakImoji from '@/src/shared/assets/streak-imoji.svg';
 import { buildImageUrl } from '@/src/shared/lib/image';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
@@ -53,6 +59,32 @@ export function MomentsUserFeedPage({ authorId }: MomentsUserFeedPageProps) {
 
   const isMyProfile = currentUser !== undefined && currentUser.userId === authorId;
 
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const imageUpload = useProfileImageUpload();
+
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    if (!imageUpload.file) {
+      setPreviewUrl(undefined);
+      return;
+    }
+    const url = URL.createObjectURL(imageUpload.file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageUpload.file]);
+
+  const handleEditDone = () => {
+    imageUpload.reset();
+    setIsEditing(false);
+    void queryClient.invalidateQueries({ queryKey: MOMENTS_LIST_QUERY_KEYS.root() });
+  };
+
+  const handleEditCancel = () => {
+    imageUpload.reset();
+    setIsEditing(false);
+  };
+
   return (
     <div className="flex flex-col gap-4 px-4 pt-4 pb-6">
       <div className="bg-bg sticky top-0 pb-2" style={{ zIndex: 'var(--z-sticky)' }}>
@@ -66,7 +98,9 @@ export function MomentsUserFeedPage({ authorId }: MomentsUserFeedPageProps) {
           {(user) => (
             <div className="relative">
               <UserStatusCard
-                avatarSrc={buildImageUrl(user.profile.imagePath)}
+                avatarSrc={
+                  isEditing && previewUrl ? previewUrl : buildImageUrl(user.profile.imagePath)
+                }
                 avatarAlt={`${user.profile.nickname} 프로필 이미지`}
                 nickname={user.profile.nickname}
                 level={user.character.level}
@@ -74,16 +108,46 @@ export function MomentsUserFeedPage({ authorId }: MomentsUserFeedPageProps) {
                 currentExp={user.character.exp}
                 totalExp={TOTAL_EXP}
                 streakIcon={<StreakImoji className="h-7 w-7" aria-hidden="true" />}
+                avatarBadge={
+                  isEditing ? (
+                    <ProfilePencilBadge
+                      onFileSelect={imageUpload.uploadFile}
+                      isLoading={imageUpload.isUploading}
+                      accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif"
+                    />
+                  ) : undefined
+                }
+                rightContent={
+                  isEditing ? (
+                    <ProfileNicknameEditForm
+                      authorId={authorId}
+                      initialNickname={user.profile.nickname}
+                      imageUpload={imageUpload}
+                      onDone={handleEditDone}
+                      onCancel={handleEditCancel}
+                    />
+                  ) : undefined
+                }
+                rightContentClassName="min-h-24"
               />
-              {isMyProfile && (
-                <div className="absolute top-3 right-3">
-                  <Chip
-                    label={MOMENTS_USER_FEED_MESSAGES.MY_FEED_LABEL}
-                    variant="default"
-                    size="sm"
-                  />
-                </div>
-              )}
+              <div className="absolute top-3 right-3 flex items-center gap-2">
+                {isMyProfile && !isEditing && (
+                  <>
+                    <Chip
+                      label={MOMENTS_USER_FEED_MESSAGES.MY_FEED_LABEL}
+                      variant="default"
+                      size="sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(true)}
+                      className="text-text-muted text-sm underline"
+                    >
+                      {MOMENTS_USER_FEED_MESSAGES.EDIT_BUTTON}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </LoadableBoundary>
