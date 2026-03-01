@@ -128,12 +128,7 @@ export function DebugEyeStretchingPage() {
           />
 
           {currentTarget && (
-            <EyeStretchingGuideDot
-              phase={phase}
-              targetX={guideX}
-              targetY={guideY}
-              calibrationRemainingSeconds={phase === 'follow1' ? phaseRemainingSeconds : 0}
-            />
+            <EyeStretchingGuideDot phase={phase} targetX={guideX} targetY={guideY} />
           )}
 
           <EyeStretchingGazeDot gazeX={gazeX} gazeY={gazeY} />

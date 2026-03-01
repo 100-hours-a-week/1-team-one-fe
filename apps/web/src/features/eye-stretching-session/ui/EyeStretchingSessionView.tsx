@@ -1,5 +1,6 @@
 import type { EyeStretchingReference } from '@repo/eye-stretching-session';
 import { useEyeStretchingSession } from '@repo/eye-stretching-session/hook';
+import { Spinner } from '@repo/ui/spinner';
 import { useEffect, useRef, useState } from 'react';
 
 import {
@@ -7,7 +8,10 @@ import {
   useCompleteExerciseSessionMutation,
   useExerciseSessionQuery,
 } from '@/src/features/exercise-session';
+import { EYE_STRETCHING_SESSION_LAYOUT } from '@/src/features/eye-stretching-session/config/constants';
+import { EYE_STRETCHING_SESSION_MESSAGES } from '@/src/features/eye-stretching-session/config/messages';
 import { WEBGAZER_MODEL_REDIRECTS } from '@/src/features/eye-stretching-session/config/webgazer-models';
+import { StretchingSessionCompletionResult } from '@/src/features/stretching-session/ui/StretchingSessionCompletionResult';
 import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
 
 import { EyeStretchingGuideDot } from './EyeStretchingGuideDot';
@@ -28,7 +32,7 @@ export function EyeStretchingSessionView({
   limitTimeSeconds,
 }: EyeStretchingSessionViewProps) {
   const {
-    isLoading,
+    isLoading: isSessionPreparing,
     isTrackerReady,
     isSessionComplete,
     isBlinking,
@@ -48,11 +52,15 @@ export function EyeStretchingSessionView({
 
   const sessionStartedAtRef = useRef<Date | null>(null);
   const hasSubmittedResultRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const [overlaySafeTopRatio, setOverlaySafeTopRatio] = useState(0);
 
-  const { data: sessionData } = useExerciseSessionQuery(sessionId);
+  const { data: sessionData, isLoading: isSessionDataLoading } = useExerciseSessionQuery(sessionId);
 
-  const [, setCompletionResult] = useState<CompleteExerciseSessionResponseData | null>(null);
-  const { mutate: completeSession } = useCompleteExerciseSessionMutation({
+  const [completionResult, setCompletionResult] =
+    useState<CompleteExerciseSessionResponseData | null>(null);
+  const { mutate: completeSession, isPending: isCompleting } = useCompleteExerciseSessionMutation({
     sessionId,
     onSuccess: (payload) => setCompletionResult(payload),
   });
@@ -98,16 +106,47 @@ export function EyeStretchingSessionView({
   const targetHoldSeconds = currentTarget ? currentTarget.holdMs / 1000 : 0;
   const phaseRemainingSeconds = Math.max(0, Math.ceil(targetHoldSeconds - holdSeconds));
   const totalFollowCount = reference.keyFrames.filter((kf) => kf.phase.startsWith('follow')).length;
+  const shouldRenderSessionUi = isTrackerReady || isSessionPreparing;
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const overlay = overlayRef.current;
+    if (!container || !overlay) return;
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const updateSafeTop = () => {
+      const containerRect = container.getBoundingClientRect();
+      const overlayRect = overlay.getBoundingClientRect();
+      if (containerRect.height <= 0) return;
+
+      const overlayBottomPx = overlayRect.bottom - containerRect.top;
+      const safeTopPx = overlayBottomPx + EYE_STRETCHING_SESSION_LAYOUT.OVERLAY_SAFE_MARGIN_PX;
+      const nextSafeTopRatio = Math.max(0, Math.min(1, safeTopPx / containerRect.height));
+
+      setOverlaySafeTopRatio((prev) =>
+        Math.abs(prev - nextSafeTopRatio) < 0.001 ? prev : nextSafeTopRatio,
+      );
+    };
+
+    updateSafeTop();
+
+    const observer = new ResizeObserver(updateSafeTop);
+    observer.observe(container);
+    observer.observe(overlay);
+    window.addEventListener('resize', updateSafeTop);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSafeTop);
+    };
+  }, [isSessionPreparing, isTrackerReady]);
 
   // 로딩 상태
-  if (isLoading) {
+  if (isSessionDataLoading) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-3">
         <span className="text-text-muted text-sm font-medium">
-          시선 추적을 준비하고 있습니다...
-        </span>
-        <span className="text-text text-sm font-medium">
-          정확한 눈운동 가이드를 위해 안경을 벗어주세요!
+          {EYE_STRETCHING_SESSION_MESSAGES.LOADING.SESSION.TITLE}
         </span>
       </div>
     );
@@ -118,7 +157,7 @@ export function EyeStretchingSessionView({
     return (
       <div className="flex h-full w-full items-center justify-center">
         <span className="text-error-600 text-sm font-medium">
-          오류가 발생했습니다: {error.message}
+          {EYE_STRETCHING_SESSION_MESSAGES.ERROR.GENERIC} {error.message}
         </span>
       </div>
     );
@@ -126,16 +165,30 @@ export function EyeStretchingSessionView({
 
   // 세션 완료
   if (isSessionComplete) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <span className="text-brand-600 text-lg font-semibold">눈운동이 완료되었습니다!</span>
-      </div>
-    );
+    return <StretchingSessionCompletionResult result={completionResult} isLoading={isCompleting} />;
   }
 
   return (
-    <div className="relative h-full w-full">
-      {isTrackerReady && (
+    <div ref={containerRef} className="relative h-full w-full">
+      {isSessionPreparing && (
+        <div
+          className="bg-overlay bg-opacity-30 absolute inset-0 z-20 flex items-center justify-center"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="bg-surface text-text flex flex-col items-center gap-2 rounded-xl px-5 py-4 text-sm shadow-sm">
+            <Spinner size="sm" />
+            <span className="font-semibold">
+              {EYE_STRETCHING_SESSION_MESSAGES.LOADING.PREPARING.TITLE}
+            </span>
+            <span className="text-text-muted">
+              {EYE_STRETCHING_SESSION_MESSAGES.LOADING.PREPARING.DESCRIPTION}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {shouldRenderSessionUi && (
         <>
           <EyeStretchingOverlay
             progressRatio={progressRatio}
@@ -144,6 +197,7 @@ export function EyeStretchingSessionView({
             phase={phase}
             phaseRemainingSeconds={phaseRemainingSeconds}
             totalFollowCount={totalFollowCount}
+            containerRef={overlayRef}
           />
 
           {currentTarget && (
@@ -151,7 +205,7 @@ export function EyeStretchingSessionView({
               phase={phase}
               targetX={guideX}
               targetY={guideY}
-              calibrationRemainingSeconds={phase === 'follow1' ? phaseRemainingSeconds : 0}
+              safeTopRatio={overlaySafeTopRatio}
             />
           )}
 

@@ -1,2 +1,9 @@
 export type { UserCharacter, UserMeData, UserMeResponse, UserProfile } from './api/types';
 export { useUserProfileQuery } from './api/user-profile-query';
+export type { UpdateProfileImageMutationOptions } from './api/useUpdateProfileImageMutation';
+export { useUpdateProfileImageMutation } from './api/useUpdateProfileImageMutation';
+export type { UpdateProfileNicknameMutationOptions } from './api/useUpdateProfileNicknameMutation';
+export { useUpdateProfileNicknameMutation } from './api/useUpdateProfileNicknameMutation';
+export { useProfileImageUpload } from './lib/useProfileImageUpload';
+export { ProfileNicknameEditForm } from './ui/ProfileNicknameEditForm';
+export { ProfilePencilBadge } from './ui/ProfilePencilBadge';

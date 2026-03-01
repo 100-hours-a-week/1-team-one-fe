@@ -19,6 +19,9 @@ export interface UserStatusCardProps extends Omit<
   currentExp: number;
   totalExp: number;
   streakIcon?: React.ReactNode;
+  avatarBadge?: React.ReactNode;
+  rightContent?: React.ReactNode;
+  rightContentClassName?: string;
 }
 
 const getLevelLabel = (level: number) => {
@@ -35,6 +38,9 @@ export function UserStatusCard({
   currentExp,
   totalExp,
   streakIcon,
+  avatarBadge,
+  rightContent,
+  rightContentClassName,
   className,
   ...props
 }: UserStatusCardProps) {
@@ -46,24 +52,28 @@ export function UserStatusCard({
           alt={avatarAlt ?? nickname}
           name={nickname}
           size="md"
-          badge={<StreakBadge streak={streak} icon={streakIcon} size="md" />}
+          badge={avatarBadge ?? <StreakBadge streak={streak} icon={streakIcon} size="md" />}
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-3">
-          <div className="justify-first flex items-center gap-2">
-            <Chip
-              label={getLevelLabel(level)}
-              className="bg-brand text-brand-contrast border-brand"
-            />
-            <span className="text-text truncate text-base font-semibold">{nickname}</span>
-          </div>
-          <ProgressBar
-            current={currentExp}
-            total={totalExp}
-            variant="bar"
-            showValue
-            unitLabel="exp"
-            className="w-full"
-          />
+        <div className={cn('flex min-w-0 flex-1 flex-col gap-3', rightContentClassName)}>
+          {rightContent ?? (
+            <>
+              <div className="justify-first flex items-center gap-2">
+                <Chip
+                  label={getLevelLabel(level)}
+                  className="bg-brand text-brand-contrast border-brand"
+                />
+                <span className="text-text truncate text-base font-semibold">{nickname}</span>
+              </div>
+              <ProgressBar
+                current={currentExp}
+                total={totalExp}
+                variant="bar"
+                showValue
+                unitLabel="exp"
+                className="w-full"
+              />
+            </>
+          )}
         </div>
       </div>
     </Card>
