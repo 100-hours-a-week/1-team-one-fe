@@ -78,11 +78,11 @@ export function MomentsLikeButton({
           </ConfirmDialogHeader>
           <ConfirmDialogFooter>
             <ConfirmDialogClose asChild>
-              <Button variant="secondary" size="sm">
+              <Button variant="secondary" size="sm" className="flex-1">
                 {MOMENTS_LIKE_MESSAGES.DIALOG.CANCEL}
               </Button>
             </ConfirmDialogClose>
-            <Button size="sm" onClick={handleLoginConfirm}>
+            <Button size="sm" onClick={handleLoginConfirm} className="flex-1">
               {MOMENTS_LIKE_MESSAGES.DIALOG.CONFIRM}
             </Button>
           </ConfirmDialogFooter>
