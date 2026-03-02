@@ -9,8 +9,10 @@ import { serializeCookie } from '@/src/shared/lib/cookie/serialize-cookie';
 const JSON_CONTENT_TYPE = 'application/json';
 const BEARER_PREFIX = 'Bearer';
 const BFF_PREFIX = 'bff';
+const MOMENTS_PREFIX = 'moments';
 const REAL_API_PREFIX = '/api';
 const SHOULD_LOG_PROXY = process.env.NODE_ENV !== 'production';
+const NO_META_DATA_RESPONSE = { code: 'NO_META_DATA', data: null } as const;
 
 interface Tokens {
   accessToken: { token: string; expiresAt: string };
@@ -383,7 +385,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const targetPath = [REAL_API_PREFIX, ...pathSegments.slice(1)].join('/');
+  const isMomentsPath = pathSegments[1] === MOMENTS_PREFIX;
+  const targetSegments = isMomentsPath ? pathSegments.slice(2) : pathSegments.slice(1);
+  const targetPath = [REAL_API_PREFIX, ...targetSegments].join('/');
   const isLogoutPath = targetPath.replace(/^\/api/, '') === AUTH_CONFIG.LOGOUT_ENDPOINT;
   const queryString = buildQueryString(req.query);
   const targetUrl = joinUrl(baseUrl, `${targetPath}${queryString}`);
@@ -402,6 +406,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   console.log('req', req.headers);
 
   if (initialResponse.status !== HTTP_STATUS.UNAUTHORIZED || !refreshToken) {
+    if (isMomentsPath && initialResponse.status === HTTP_STATUS.UNAUTHORIZED) {
+      res.status(HTTP_STATUS.OK).json(NO_META_DATA_RESPONSE);
+      return;
+    }
     if (isLogoutPath && initialResponse.status === HTTP_STATUS.OK) {
       clearAuthCookies(res);
     }
@@ -420,6 +428,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // console.log('refreshedTokens', refreshedTokens);
 
   if (!refreshedTokens) {
+    if (isMomentsPath) {
+      res.status(HTTP_STATUS.OK).json(NO_META_DATA_RESPONSE);
+      return;
+    }
     respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
   }
