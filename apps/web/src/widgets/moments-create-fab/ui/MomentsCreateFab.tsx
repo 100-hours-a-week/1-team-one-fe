@@ -34,6 +34,7 @@ export function MomentsCreateFab({ isLoggedIn, onLoginRequired }: MomentsCreateF
         aria-label={MOMENTS_CREATE_FAB_MESSAGES.BUTTON.ARIA_LABEL_LOGIN_REQUIRED}
       >
         <NotebookPen className={imojiClass} strokeWidth={2.5} />
+        <span>글쓰기</span>
       </button>
     );
   }

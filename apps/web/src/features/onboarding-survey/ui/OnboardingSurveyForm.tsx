@@ -98,7 +98,7 @@ export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFor
       renderEmpty={() => <p className="text-text-muted text-sm">{SURVEY_MESSAGES.EMPTY}</p>}
     >
       {() => (
-        <div className="relative flex h-full flex-col justify-start gap-10 p-6">
+        <div className="relative flex h-full flex-col justify-center gap-10 p-6">
           <div className="flex flex-col gap-2">
             <ProgressBar
               variant="bar"

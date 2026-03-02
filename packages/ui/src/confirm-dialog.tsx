@@ -11,13 +11,13 @@ export function ConfirmDialogContent({
     <Dialog.Portal>
       <Dialog.Overlay
         className={cn(
-          'fixed inset-0 z-50 bg-neutral-900/40',
+          'fixed inset-0 z-(--z-modal-backdrop) bg-neutral-900/40',
           'data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out',
         )}
       />
       <Dialog.Content
         className={cn(
-          'bg-bg text-text border-border fixed top-1/2 left-1/2 z-50 w-[90vw] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border p-6 shadow-xl',
+          'bg-bg text-text border-border fixed top-1/2 left-1/2 z-(--z-modal) w-[90vw] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border p-6 shadow-xl',
           'data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out',
           className,
         )}

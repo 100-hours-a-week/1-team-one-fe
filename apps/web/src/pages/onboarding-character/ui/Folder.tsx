@@ -26,7 +26,7 @@ type PaperStyle = {
 
 const PAPER_STYLES: PaperStyle[] = [
   {
-    surface: 'bg-neutral-200',
+    surface: 'bg-neutral-100',
     size: 'h-4/5 w-3/4',
     open: '-translate-x-full -translate-y-2/3 -rotate-12',
   },

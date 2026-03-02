@@ -1,6 +1,9 @@
 import { useState } from 'react';
 
-import { requestProfileImageUploadUrlFn, uploadToPresignedPutFn } from '@/src/entities/signup';
+import {
+  requestProfileImageUploadUrlFn,
+  uploadToPresignedPutFn,
+} from '@/src/entities/image-upload';
 
 import { PROFILE_EDIT_MESSAGES } from '../config/edit-messages';
 

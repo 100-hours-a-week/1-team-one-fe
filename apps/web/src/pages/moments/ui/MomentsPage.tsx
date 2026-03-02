@@ -10,6 +10,8 @@ import {
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
 import { ROUTES } from '@/src/shared/routes';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
+import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
+import { LoginButton } from '@/src/widgets/login-button';
 import { MomentsCreateFab } from '@/src/widgets/moments-create-fab';
 import { MomentsList } from '@/src/widgets/moments-list';
 import { MomentsTagSearch } from '@/src/widgets/moments-tag-search';
@@ -43,12 +45,12 @@ export function MomentsPage() {
   );
 
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    usePostsInfiniteQuery(listParams);
+    usePostsInfiniteQuery(listParams, { isLoggedIn });
 
   const posts = useMemo(() => data?.pages?.flatMap((page) => page.posts) ?? [], [data]);
   const isEmpty = !isLoading && posts.length === 0;
   const isSearching = searchTags.length > 0;
-  const listQueryKey = MOMENTS_LIST_QUERY_KEYS.list(listParams);
+  const listQueryKey = MOMENTS_LIST_QUERY_KEYS.list(listParams, isLoggedIn);
 
   const handleSearch = useCallback(
     (tags: ReadonlyArray<string>) => {
@@ -72,6 +74,11 @@ export function MomentsPage() {
   const handleLoginRequired = useCallback(() => {
     void router.push(ROUTES.LOGIN);
   }, [router]);
+
+  useSetHeaderAction(() => {
+    if (isLoggedIn) return null;
+    return <LoginButton />;
+  }, [isLoggedIn, router]);
 
   return (
     <>

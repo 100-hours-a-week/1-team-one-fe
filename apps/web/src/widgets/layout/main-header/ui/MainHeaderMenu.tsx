@@ -110,11 +110,16 @@ export function MainHeaderMenu() {
           </ConfirmDialogHeader>
           <ConfirmDialogFooter>
             <ConfirmDialogClose asChild>
-              <Button variant="secondary" size="sm">
+              <Button variant="secondary" size="sm" className="flex-1">
                 {MAIN_HEADER_MESSAGES.LOGOUT_CANCEL}
               </Button>
             </ConfirmDialogClose>
-            <Button size="sm" onClick={handleLogoutConfirm} isLoading={isLogoutPending}>
+            <Button
+              size="sm"
+              onClick={handleLogoutConfirm}
+              isLoading={isLogoutPending}
+              className="flex-1"
+            >
               {MAIN_HEADER_MESSAGES.LOGOUT_CONFIRM}
             </Button>
           </ConfirmDialogFooter>
