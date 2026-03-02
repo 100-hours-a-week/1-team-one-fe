@@ -4,7 +4,7 @@ import type {
   ProfileImageUploadUrlDataType,
   ProfileImageUploadUrlRequestDTO,
   ProfileImageUploadUrlResponseDTO,
-} from './dto/profile-image-upload.dto';
+} from './dto/presigned-upload.dto';
 
 export const PROFILE_IMAGE_UPLOAD_ERROR_CODE = 'PROFILE_IMAGE_UPLOAD_FAILED';
 

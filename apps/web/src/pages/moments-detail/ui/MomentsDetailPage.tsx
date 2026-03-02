@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type { PostDetailDataType } from '@/src/entities/post';
 import { useDeletePostMutation } from '@/src/features/moments-detail/api/useDeletePostMutation';
+import { usePostDetailMetaQuery } from '@/src/features/moments-detail/api/usePostDetailMetaQuery';
 import { usePostDetailQuery } from '@/src/features/moments-detail/api/usePostDetailQuery';
 import { PostDetailMenu } from '@/src/features/moments-detail/ui/PostDetailMenu';
 import { PostDetailView } from '@/src/features/moments-detail/ui/PostDetailView';
@@ -34,6 +35,15 @@ export function MomentsDetailPage({ initialData }: MomentsDetailPageProps) {
     // placeholderData: initialData,
   });
 
+  const { data: metaData } = usePostDetailMetaQuery(postId, {
+    enabled: isLoggedIn && isPostIdValid,
+  });
+
+  const mergedData = useMemo(
+    () => (data && metaData ? { ...data, ...metaData } : data),
+    [data, metaData],
+  );
+
   const queryClient = useQueryClient();
 
   const { mutate: deletePost, isPending: isDeleting } = useDeletePostMutation({
@@ -44,21 +54,21 @@ export function MomentsDetailPage({ initialData }: MomentsDetailPageProps) {
   });
 
   const handleEdit = useCallback(() => {
-    if (!data?.postId) return;
-    router.push(`/moments/post/${data.postId}/edit`);
-  }, [data?.postId, router]);
+    if (!mergedData?.postId) return;
+    router.push(`/moments/post/${mergedData.postId}/edit`);
+  }, [mergedData?.postId, router]);
 
   const handleDelete = useCallback(async () => {
-    if (!data?.postId) return;
+    if (!mergedData?.postId) return;
     if (isDeleting) return;
 
-    deletePost({ postId: data.postId });
-  }, [data?.postId, deletePost, isDeleting]);
+    deletePost({ postId: mergedData.postId });
+  }, [mergedData?.postId, deletePost, isDeleting]);
 
   useSetHeaderAction(() => {
-    if (!data?.isAuthor) return null;
+    if (!mergedData?.isAuthor) return null;
     return <PostDetailMenu onEdit={handleEdit} onDelete={handleDelete} isDeleting={isDeleting} />; //내 게시글일 때만 보여주기
-  }, [data?.isAuthor, handleEdit, handleDelete, isDeleting]);
+  }, [mergedData?.isAuthor, handleEdit, handleDelete, isDeleting]);
 
   //TODO: error page 따로 생성
   if (Number.isNaN(postId) || postId <= 0) {
@@ -73,7 +83,7 @@ export function MomentsDetailPage({ initialData }: MomentsDetailPageProps) {
     <LoadableBoundary
       isLoading={isLoading}
       error={error}
-      data={data}
+      data={mergedData}
       renderLoading={() => <MomentsDetailPageSkeleton />}
       renderError={(err) => {
         const variant =

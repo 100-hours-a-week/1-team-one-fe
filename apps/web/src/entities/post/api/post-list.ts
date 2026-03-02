@@ -14,7 +14,7 @@ export type PostListParams = {
  * ?tag=a&tag=b 로 배열을 항상 고정하기 위함.
  * undefined, null, ' ' 처리 포함
  *  */
-function createQueryString(params: Record<string, unknown>): string {
+export function createQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
