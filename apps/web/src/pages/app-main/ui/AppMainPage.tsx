@@ -51,7 +51,7 @@ export function AppMainPage() {
         const activeSession = validSessions?.[0] ?? null;
 
         return (
-          <div className="flex flex-col gap-6 p-6 pb-20">
+          <div className="flex flex-col gap-6 p-6">
             <UserStatusCardSection />
             <AppMainCharacterSection
               characterName={user.character.name}
