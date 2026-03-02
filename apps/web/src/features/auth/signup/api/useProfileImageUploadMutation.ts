@@ -4,7 +4,7 @@ import {
   type ProfileImageUploadUrlDataType,
   type ProfileImageUploadUrlRequestDTO,
   requestProfileImageUploadUrlFn,
-} from '@/src/entities/signup';
+} from '@/src/entities/image-upload';
 import { type ApiError } from '@/src/shared/api';
 
 export type ProfileImageUploadMutationOptions = Omit<
