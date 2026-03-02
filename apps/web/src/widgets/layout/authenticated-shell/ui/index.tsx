@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -7,6 +8,8 @@ import {
   PushPermissionBottomSheet,
   usePushPermissionSheet,
 } from '@/src/features/push-notifications';
+import { isApiError } from '@/src/shared/api';
+import { HTTP_STATUS } from '@/src/shared/config/http-status';
 import { isIosUserAgent, isMobileUserAgent } from '@/src/shared/lib/device/user-agent';
 import { usePwaInstallState } from '@/src/shared/lib/pwa/usePwaInstallState';
 import { ROUTE_GROUPS, ROUTES } from '@/src/shared/routes';
@@ -16,6 +19,7 @@ let hasShownPwaInstallSheet = false;
 
 export function AuthenticatedShell({ children }: PropsWithChildren) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isMobile, setIsMobile] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [isPwaSheetOpen, setIsPwaSheetOpen] = useState(false);
@@ -34,16 +38,12 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
   const { data: onboardingStatus } = useOnboardingStatusQuery({ enabled: isAppRoute });
 
   useEffect(() => {
-    // console.log('onboardingStatus in AuthenticatedShell:', onboardingStatus);
-    // console.log('isAppRoute in AuthenticatedShell:', isAppRoute);
-    // console.log('router.isReady in AuthenticatedShell:', router.isReady);
-
     if (!router.isReady || !onboardingStatus || !isAppRoute) {
       return;
     }
 
     if (onboardingStatus === 'unauthorized') {
-      void router.replace(ROUTES.LOGIN);
+      void router.replace(`${ROUTES.LOGIN}?redirectUrl=${encodeURIComponent(router.asPath)}`);
       return;
     }
 
@@ -51,6 +51,37 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
       void router.replace(ROUTES.ONBOARDING_SURVEY);
     }
   }, [isAppRoute, onboardingStatus, router]);
+
+  useEffect(() => {
+    if (!isAppRoute) return;
+
+    const redirectToLogin = () => {
+      void router.replace(`${ROUTES.LOGIN}?redirectUrl=${encodeURIComponent(router.asPath)}`);
+    };
+
+    const unsubQuery = queryClient.getQueryCache().subscribe((event) => {
+      if (event.type !== 'updated') return;
+      const action = event.action;
+      if (action.type !== 'error') return;
+      if (isApiError(action.error) && action.error.status === HTTP_STATUS.UNAUTHORIZED) {
+        redirectToLogin();
+      }
+    });
+
+    const unsubMutation = queryClient.getMutationCache().subscribe((event) => {
+      if (event.type !== 'updated') return;
+      const action = event.action;
+      if (!action || action.type !== 'error') return;
+      if (isApiError(action.error) && action.error.status === HTTP_STATUS.UNAUTHORIZED) {
+        redirectToLogin();
+      }
+    });
+
+    return () => {
+      unsubQuery();
+      unsubMutation();
+    };
+  }, [isAppRoute, queryClient, router]);
 
   useEffect(() => {
     if (typeof navigator === 'undefined') {
