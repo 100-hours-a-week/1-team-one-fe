@@ -1,41 +1,14 @@
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-import { type OnboardingStatus, useOnboardingStatusQuery } from '@/src/features/onboarding-status';
 import { ROUTES } from '@/src/shared/routes';
 
-function resolveNextPath(onboardingStatus: OnboardingStatus): string | null {
-  // console.log('onboardingStatus', onboardingStatus);
-  if (onboardingStatus === 'unauthorized') {
-    return ROUTES.LOGIN;
-  }
-
-  if (onboardingStatus === 'incomplete') {
-    return ROUTES.ONBOARDING_SURVEY;
-  }
-
-  if (onboardingStatus === 'completed') {
-    return ROUTES.MAIN;
-  }
-
-  return ROUTES.LOGIN;
-}
-//TODO: redirect 한곳으로 몰도록 리팩토링
 export function SplashPage() {
   const router = useRouter();
-  const { data: onboardingStatus } = useOnboardingStatusQuery();
 
   useEffect(() => {
-    if (!onboardingStatus) {
-      return;
-    }
-
-    const nextPath = resolveNextPath(onboardingStatus);
-    // console.log('nextPath', nextPath);
-    if (nextPath) {
-      void router.replace(nextPath);
-    }
-  }, [onboardingStatus, router]);
+    void router.replace(ROUTES.MOMENTS);
+  }, [router]);
 
   return (
     <div className="animate-splash-bg from-brand-100 via-brand-200 to-brand-500 text-text-inverse flex min-h-dvh w-full items-center justify-center bg-linear-to-br px-6">
