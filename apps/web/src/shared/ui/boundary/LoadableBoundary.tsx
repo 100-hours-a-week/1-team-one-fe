@@ -37,10 +37,11 @@ export function LoadableBoundary<TData>({
   children,
   skipDelay = false,
 }: LoadableBoundaryProps<TData>) {
-  const shouldShowLoading = useDelayedValue(
+  const delayedShowLoading = useDelayedValue(
     isLoading,
     skipDelay ? 0 : LOADING_CONFIG.DEFAULT_DELAY,
   );
+  const shouldShowLoading = skipDelay ? isLoading : delayedShowLoading;
   const hasData = data !== undefined;
   const hasError = Boolean(error);
   const shouldRenderWarning = hasError && hasData && Boolean(renderWarning);
