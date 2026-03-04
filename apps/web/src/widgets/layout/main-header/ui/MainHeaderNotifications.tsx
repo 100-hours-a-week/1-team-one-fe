@@ -2,7 +2,7 @@ import { Bell } from 'lucide-react';
 import Link from 'next/link';
 import type React from 'react';
 
-import { useUnreadNotificationsCountQuery } from '@/src/features/notifications';
+import { useUnreadNotificationsCountQuery } from '@/src/features/notifications/query';
 import { ROUTES } from '@/src/shared/routes';
 
 import { MAIN_HEADER_MESSAGES } from '../config/messages';
