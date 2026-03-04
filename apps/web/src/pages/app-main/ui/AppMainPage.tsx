@@ -4,8 +4,8 @@ import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 
 import { transformGrassData, useGrassStatsQuery } from '@/src/features/grass-stats';
-import { useValidStretchingSessionsQuery } from '@/src/features/stretching-session';
-import { useUserProfileQuery } from '@/src/features/user-profile';
+import { useValidStretchingSessionsQuery } from '@/src/features/stretching-session/query';
+import { useUserProfileQuery } from '@/src/features/user-profile/query';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen';
 import { LinkCard } from '@/src/shared/ui/link-card';
