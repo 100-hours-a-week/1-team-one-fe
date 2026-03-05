@@ -22,9 +22,9 @@ export function MainHeader({ className, ...props }: React.ComponentPropsWithoutR
     <header className={cn(mainHeaderVariants(), className)} {...props}>
       <Link href="/app" className="shrink-0">
         <Image
-          src="/icons/logo-without-bg.svg"
+          src="/icons/logo.svg"
           alt={MAIN_HEADER_MESSAGES.LOGO_ALT}
-          width={60}
+          width={110}
           height={40}
           priority
         />
