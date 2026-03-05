@@ -1,8 +1,10 @@
 import { UserStatusCard } from '@repo/ui/user-status-card';
 
-import { useUserProfileQuery } from '@/src/features/user-profile';
+import { useUserProfileQuery } from '@/src/features/user-profile/query';
 import StreakImoji from '@/src/shared/assets/streak-imoji.svg';
 import { buildImageUrl } from '@/src/shared/lib/image';
+
+import { UserStatusCardSectionSkeleton } from './UserStatusCardSection.skeleton';
 
 const TOTAL_EXP = 1000 as const;
 
@@ -11,10 +13,14 @@ export interface UserStatusCardSectionProps {
 }
 
 export function UserStatusCardSection({ isVisible = true }: UserStatusCardSectionProps) {
-  const { data } = useUserProfileQuery({ enabled: isVisible });
+  const { data, isLoading } = useUserProfileQuery({ enabled: isVisible });
 
   if (!isVisible) {
     return null;
+  }
+
+  if (isLoading) {
+    return <UserStatusCardSectionSkeleton />;
   }
 
   if (!data) {

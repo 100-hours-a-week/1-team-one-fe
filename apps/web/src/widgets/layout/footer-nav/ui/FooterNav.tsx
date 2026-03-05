@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 
-import { useUserProfileQuery } from '@/src/features/user-profile';
+import { useUserProfileQuery } from '@/src/features/user-profile/query';
 import { buildMomentsUserFeedPath, ROUTES } from '@/src/shared/routes';
 
 import { navigationItems } from '../model/navigation-items';

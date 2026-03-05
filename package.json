@@ -22,14 +22,14 @@
     ]
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "eslint": "^9.39.2",
-    "husky": "^9.1.7",
-    "identity-obj-proxy": "^3.0.0",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.7.4",
-    "prettier-plugin-tailwindcss": "^0.7.2",
-    "turbo": "^2.7.4",
+    "@types/jest": "30.0.0",
+    "eslint": "9.39.2",
+    "husky": "9.1.7",
+    "identity-obj-proxy": "3.0.0",
+    "lint-staged": "16.2.7",
+    "prettier": "3.8.0",
+    "prettier-plugin-tailwindcss": "0.7.2",
+    "turbo": "2.7.5",
     "typescript": "5.9.2"
   },
   "overrides": {

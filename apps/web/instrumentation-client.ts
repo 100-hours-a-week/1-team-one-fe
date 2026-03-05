@@ -2,46 +2,94 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import * as Sentry from '@sentry/nextjs';
-import { getCommonSentryClientOptions } from '@tooling/sentry-config';
-
 const env = process.env.NEXT_PUBLIC_ENV; // development | staging | production
-const isProd = env === 'production';
 const isLocal = env === 'local';
+const SENTRY_INIT_IDLE_TIMEOUT_MS = 3_000;
 
-Sentry.init({
-  ...getCommonSentryClientOptions(),
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  environment: env,
-  release: process.env.NEXT_PUBLIC_RELEASE,
-  enabled: !isLocal,
+type RouterTransitionArgs = readonly [href: string, navigationType: string];
+type RouterTransitionHandler = (...args: RouterTransitionArgs) => void;
 
-  //성능 수집
-  tracesSampleRate: env === 'production' ? 0.1 : 1.0,
+let isSentryInitScheduled = false;
+let routerTransitionHandler: RouterTransitionHandler | null = null;
+let sentryClientPromise: Promise<RouterTransitionHandler> | null = null;
 
-  integrations: (integrations) => {
-    const withoutBrowserTracing = integrations.filter(
-      (integration) => integration.name !== 'BrowserTracing',
-    );
+const pendingRouterTransitions: RouterTransitionArgs[] = [];
 
-    return [
-      ...withoutBrowserTracing,
-      Sentry.browserTracingIntegration({
-        enableInp: true,
-        enableLongTask: true,
-        enableElementTiming: true,
-      }),
-      // TODO: breadcrumb 자동 수집 + console warn/error만
-      // Sentry.captureConsoleIntegration({ levels: ['warn', 'error'] }),
-      Sentry.replayIntegration(),
-    ];
-  },
+function flushPendingRouterTransitions() {
+  if (!routerTransitionHandler) return;
+  if (pendingRouterTransitions.length === 0) return;
 
-  replaysSessionSampleRate: env === 'production' ? 0.1 : 1.0,
-  replaysOnErrorSampleRate: 1.0,
+  for (const args of pendingRouterTransitions) {
+    routerTransitionHandler(...args);
+  }
 
-  //민감값 -> prod 에서는 false
-  sendDefaultPii: !isProd,
-});
+  pendingRouterTransitions.length = 0;
+}
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+async function loadSentryClient() {
+  if (routerTransitionHandler) return routerTransitionHandler;
+  if (sentryClientPromise) return sentryClientPromise;
+
+  sentryClientPromise = import('./src/shared/lib/monitoring/init-sentry-client')
+    .then((module) => {
+      routerTransitionHandler = module.initSentryClient();
+      flushPendingRouterTransitions();
+      return routerTransitionHandler;
+    })
+    .catch((error: unknown) => {
+      routerTransitionHandler = () => undefined;
+      pendingRouterTransitions.length = 0;
+
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[sentry] client_init_load_failed', { error });
+      }
+
+      return routerTransitionHandler;
+    });
+
+  return sentryClientPromise;
+}
+
+function scheduleSentryClientInit() {
+  if (isLocal) return;
+  if (typeof window === 'undefined') return;
+  if (isSentryInitScheduled) return;
+
+  isSentryInitScheduled = true;
+
+  const runWhenIdle = () => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(
+        () => {
+          void loadSentryClient();
+        },
+        {
+          timeout: SENTRY_INIT_IDLE_TIMEOUT_MS,
+        },
+      );
+      return;
+    }
+
+    globalThis.setTimeout(() => {
+      void loadSentryClient();
+    }, 1);
+  };
+
+  if (document.readyState === 'complete') {
+    runWhenIdle();
+    return;
+  }
+
+  window.addEventListener('load', runWhenIdle, { once: true });
+}
+
+scheduleSentryClientInit();
+
+export function onRouterTransitionStart(href: string, navigationType: string) {
+  if (routerTransitionHandler) {
+    routerTransitionHandler(href, navigationType);
+    return;
+  }
+
+  pendingRouterTransitions.push([href, navigationType]);
+}

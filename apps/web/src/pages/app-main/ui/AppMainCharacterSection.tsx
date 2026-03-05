@@ -118,7 +118,9 @@ export function AppMainCharacterSection({
         alt={APP_MAIN_MESSAGES.CHARACTER_IMAGE_ALT}
         width={300}
         height={300}
+        placeholder="empty"
         className="rounded-xl py-6"
+        preload={true}
       />
       <p className="text-xl font-semibold">{characterName}</p>
     </section>
