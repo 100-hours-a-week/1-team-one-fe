@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
-import type { PostDetailDataType, PostLikeDataType } from '@/src/entities/post';
+import type { PostDetailDataType, PostLikeDataType, PostMetaDataType } from '@/src/entities/post';
 import { MOMENTS_DETAIL_QUERY_KEYS } from '@/src/features/moments-detail/config/query-keys';
 import { useLikePostMutation } from '@/src/features/moments-like';
 import { createLikeUpdater, createSingleOptimisticHandlers } from '@/src/shared/lib/react-query';
@@ -24,13 +24,13 @@ export function MomentsDetailLikeSection({
 
   const optimisticHandlers = createSingleOptimisticHandlers({
     queryClient,
-    queryKey: MOMENTS_DETAIL_QUERY_KEYS.detail(postId),
+    queryKey: MOMENTS_DETAIL_QUERY_KEYS.meta(postId),
     updater: createLikeUpdater<PostDetailDataType>(),
     invalidateOnSettled: false,
     onSuccessCallback: (responseData, variables) => {
       const serverData = responseData as PostLikeDataType;
-      const queryKey = MOMENTS_DETAIL_QUERY_KEYS.detail((variables as { postId: number }).postId);
-      queryClient.setQueryData<PostDetailDataType>(queryKey, (old) => {
+      const queryKey = MOMENTS_DETAIL_QUERY_KEYS.meta((variables as { postId: number }).postId);
+      queryClient.setQueryData<PostMetaDataType>(queryKey, (old) => {
         if (!old) return old;
         return {
           ...old,
