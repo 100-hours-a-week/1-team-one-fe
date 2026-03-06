@@ -2,15 +2,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import { isAfter, isValid, parseISO } from 'date-fns';
 
 import type { DndStatusType, DndUpdateDataType, DndUpdateRequestDTO } from '@/src/entities/dnd';
-import { DND_QUERY_KEYS } from '@/src/features/dnd';
+import { dndStatusQueryOptions } from '@/src/features/dnd';
 import { createSingleOptimisticHandlers } from '@/src/shared/lib/react-query';
 
 export function useDndMutationOptions() {
   const queryClient = useQueryClient();
+  const dndStatusQueryKey = dndStatusQueryOptions().queryKey;
 
   return createSingleOptimisticHandlers<DndStatusType, DndUpdateRequestDTO>({
     queryClient,
-    queryKey: DND_QUERY_KEYS.detail(),
+    queryKey: dndStatusQueryKey,
     updater: (prev, variables) => {
       if (!prev) return prev;
 
@@ -24,7 +25,7 @@ export function useDndMutationOptions() {
     },
     onSuccessCallback: (data, variables) => {
       const serverData = data as DndUpdateDataType | undefined;
-      queryClient.setQueryData<DndStatusType | undefined>(DND_QUERY_KEYS.detail(), (prev) => {
+      queryClient.setQueryData<DndStatusType | undefined>(dndStatusQueryKey, (prev) => {
         if (!prev) return prev;
 
         const finishedAt = serverData?.dndFinishedAt ?? variables.dndFinishedAt;
