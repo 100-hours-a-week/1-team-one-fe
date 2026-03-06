@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 
 import type { PostDetailDataType } from '@/src/entities/post';
-import { MOMENTS_DETAIL_QUERY_KEYS, usePostDetailQuery } from '@/src/features/moments-detail';
+import { postDetailQueryOptions, usePostDetailQuery } from '@/src/features/moments-detail';
 import { MOMENTS_EDIT_MESSAGES, useUpdatePostMutation } from '@/src/features/moments-edit';
 import { MOMENTS_LIST_QUERY_KEYS } from '@/src/features/moments-list';
 import { isApiError } from '@/src/shared/api';
@@ -79,7 +79,7 @@ export function MomentsEditPage() {
     if (!isPostIdValid) return;
 
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: MOMENTS_DETAIL_QUERY_KEYS.detail(postId) }),
+      queryClient.invalidateQueries({ queryKey: postDetailQueryOptions(postId).queryKey }),
       queryClient.invalidateQueries({ queryKey: MOMENTS_LIST_QUERY_KEYS.root() }),
     ]);
     router.replace(`/moments/post/${postId}`);

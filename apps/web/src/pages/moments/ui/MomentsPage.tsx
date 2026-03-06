@@ -4,7 +4,7 @@ import { useCallback, useMemo } from 'react';
 import {
   MOMENTS_LIST_CONFIG,
   MOMENTS_LIST_MESSAGES,
-  MOMENTS_LIST_QUERY_KEYS,
+  momentsListInfiniteQueryOptions,
   usePostsInfiniteQuery,
 } from '@/src/features/moments-list';
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
@@ -50,7 +50,7 @@ export function MomentsPage() {
   const posts = useMemo(() => data?.pages?.flatMap((page) => page.posts) ?? [], [data]);
   const isEmpty = !isLoading && posts.length === 0;
   const isSearching = searchTags.length > 0;
-  const listQueryKey = MOMENTS_LIST_QUERY_KEYS.list(listParams, isLoggedIn);
+  const listQueryKey = momentsListInfiniteQueryOptions(listParams, isLoggedIn).queryKey;
 
   const handleSearch = useCallback(
     (tags: ReadonlyArray<string>) => {
