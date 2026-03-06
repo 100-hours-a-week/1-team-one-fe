@@ -39,23 +39,25 @@ export function MainHeaderMenu() {
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { mutateAsync: logoutAsync, isPending: isLogoutPending } = useLogoutMutation({
+  const { mutate: logout, isPending: isLogoutPending } = useLogoutMutation({
     onSuccess: () => {
       //TODO: public 데이터는 캐시 초기화 x
       queryClient.clear(); //로그아웃 시 캐시 초기화
     },
   });
 
-  const handleLogoutConfirm = async () => {
+  const handleLogoutConfirm = () => {
     if (isLogoutPending) return;
 
-    try {
-      await logoutAsync();
-      setIsLogoutOpen(false);
-      void router.replace(ROUTES.LOGIN);
-    } catch (error) {
-      console.warn('[logout] failed', { error });
-    }
+    logout(undefined, {
+      onSuccess: () => {
+        setIsLogoutOpen(false);
+        void router.replace(ROUTES.LOGIN);
+      },
+      onError: (error) => {
+        console.warn('[logout] failed', { error });
+      },
+    });
   };
 
   const menuItems: MainHeaderMenuItem[] = [
