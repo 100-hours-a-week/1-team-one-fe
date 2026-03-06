@@ -16,10 +16,18 @@ export interface MobileShellProps {
   showFooter?: boolean;
   showHeader?: boolean;
   headerConfig?: HeaderConfig;
+  isPageScroll?: boolean;
 }
 
-export function MobileShell({ children, showFooter = true, headerConfig }: MobileShellProps) {
+export function MobileShell({
+  children,
+  showFooter = true,
+  headerConfig,
+  isPageScroll,
+}: MobileShellProps) {
   const [contextAction, setContextAction] = useState<ReactNode | null>(null);
+
+  const shouldPageScroll = isPageScroll;
 
   const resolvedHeader =
     headerConfig &&
@@ -34,25 +42,31 @@ export function MobileShell({ children, showFooter = true, headerConfig }: Mobil
     ));
 
   return (
-    <div className="bg-bg flex h-dvh justify-center">
-      <div className="relative flex h-full w-full flex-col">
-        {resolvedHeader ? <div className="mx-auto w-full max-w-md">{resolvedHeader}</div> : null}
+    <div className="bg-bg flex h-dvh flex-col justify-center">
+      {resolvedHeader ? <div className="mx-auto w-full max-w-md">{resolvedHeader}</div> : null}
 
-        <HeaderActionContext.Provider value={{ setAction: setContextAction }}>
+      <HeaderActionContext.Provider value={{ setAction: setContextAction }}>
+        <div
+          className={`min-h-0 flex-1 ${shouldPageScroll ? 'overflow-y-auto' : 'overflow-hidden'}`}
+          style={{
+            paddingBottom: showFooter
+              ? 'calc(var(--footer-nav-height) + env(safe-area-inset-bottom))'
+              : undefined,
+          }}
+        >
           <div
-            className="min-h-0 flex-1 overflow-y-auto"
-            style={{
-              paddingBottom: showFooter
-                ? 'calc(var(--footer-nav-height) + env(safe-area-inset-bottom))'
-                : undefined,
-            }}
+            className={
+              shouldPageScroll
+                ? 'mx-auto min-h-full w-full max-w-md'
+                : 'mx-auto flex h-full min-h-0 w-full max-w-md flex-col'
+            }
           >
-            <div className="mx-auto min-h-full w-full max-w-md">{children}</div>
+            {children}
           </div>
-        </HeaderActionContext.Provider>
+        </div>
+      </HeaderActionContext.Provider>
 
-        {showFooter && <FooterNav />}
-      </div>
+      {showFooter && <FooterNav />}
     </div>
   );
 }

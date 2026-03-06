@@ -12,7 +12,11 @@ export function StretchSessionPage() {
 
   if (typeof sessionId !== 'string') return null;
 
-  return <StretchSessionPageContent sessionId={sessionId} />;
+  return (
+    <div className="h-full flex-1">
+      <StretchSessionPageContent sessionId={sessionId} />
+    </div>
+  );
 }
 
 function StretchSessionPageContent({ sessionId }: { sessionId: string }) {
@@ -20,7 +24,7 @@ function StretchSessionPageContent({ sessionId }: { sessionId: string }) {
 
   if (isSessionLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
+      <div className="flex w-full items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <Spinner size="sm" />
           <span className="text-text-muted text-sm font-medium">

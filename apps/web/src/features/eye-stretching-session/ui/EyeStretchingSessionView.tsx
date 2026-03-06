@@ -169,7 +169,7 @@ export function EyeStretchingSessionView({
   }
 
   return (
-    <div ref={containerRef} className="relative h-full w-full">
+    <div ref={containerRef} className="relative flex h-full w-full flex-1">
       {isSessionPreparing && (
         <div
           className="bg-overlay bg-opacity-30 absolute inset-0 z-20 flex items-center justify-center"
