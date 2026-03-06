@@ -2,7 +2,10 @@ import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
 import { useNotificationsReadMutation } from '../api/notifications-mutation';
-import { NOTIFICATIONS_QUERY_KEYS } from '../config/query-keys';
+import {
+  notificationsInfiniteQueryOptions,
+  unreadNotificationsCountQueryOptions,
+} from '../api/query-options';
 import { getNotificationIdRange, hasUnreadNotifications } from '../lib/notifications-read';
 import type { NotificationsPage } from './types';
 
@@ -22,7 +25,7 @@ export function useNotificationsAutoRead({ limit }: UseNotificationsAutoReadOpti
   const { mutate } = useNotificationsReadMutation();
 
   useEffect(() => {
-    const notificationsListQueryKey = NOTIFICATIONS_QUERY_KEYS.list(limit);
+    const notificationsListQueryKey = notificationsInfiniteQueryOptions(limit).queryKey;
     const cache = queryClient.getQueryCache();
 
     const unsubscribe = cache.subscribe((event) => {
@@ -90,7 +93,7 @@ export function useNotificationsAutoRead({ limit }: UseNotificationsAutoReadOpti
                 },
               );
               void queryClient.invalidateQueries({
-                queryKey: NOTIFICATIONS_QUERY_KEYS.unreadCount(),
+                queryKey: unreadNotificationsCountQueryOptions().queryKey,
               });
             },
           },
