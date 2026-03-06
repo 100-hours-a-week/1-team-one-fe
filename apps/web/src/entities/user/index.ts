@@ -13,6 +13,7 @@ export type {
 export { fetchUserByIdFn } from './api/fetch-user-by-id';
 export { patchProfileImageFn } from './api/patch-profile-image';
 export { patchProfileNicknameFn } from './api/patch-profile-nickname';
+export { userByIdQueryOptions } from './api/query-options';
 export type { UserByIdQueryKey, UserByIdQueryOptions } from './api/useUserByIdQuery';
 export { useUserByIdQuery } from './api/useUserByIdQuery';
 export { USER_QUERY_KEYS } from './config/query-keys';
