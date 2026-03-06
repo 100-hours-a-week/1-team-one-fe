@@ -8,6 +8,7 @@ const Page: NextPageWithLayout = () => {
 
 Page.getLayout = createAuthenticatedLayout({
   showFooter: true,
+  isPageScroll: false,
 });
 
 export default Page;

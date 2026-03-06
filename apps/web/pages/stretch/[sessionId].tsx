@@ -3,5 +3,5 @@ import { createAuthenticatedLayout } from '@/src/shared/lib/layout';
 import type { NextPageWithLayout } from '@/src/shared/types';
 
 const Page: NextPageWithLayout = StretchSessionPage;
-Page.getLayout = createAuthenticatedLayout({ showFooter: false });
+Page.getLayout = createAuthenticatedLayout({ showFooter: false, isPageScroll: false });
 export default Page;
