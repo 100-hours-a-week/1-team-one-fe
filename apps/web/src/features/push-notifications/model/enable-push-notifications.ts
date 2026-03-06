@@ -34,7 +34,7 @@ function bindForegroundNotifications(messaging: ReturnType<typeof getMessaging>)
     const title = '운동할 시간이에요';
     const options: NotificationOptions = {
       body: '오늘 루틴을 시작해볼까요?',
-      icon: '/icons/logo-192.png',
+      icon: '/icons/logo.png',
       data,
     };
     const toast = new Notification(title, options);
