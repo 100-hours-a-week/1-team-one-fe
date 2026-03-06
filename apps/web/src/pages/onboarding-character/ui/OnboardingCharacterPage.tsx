@@ -8,7 +8,7 @@ import {
   type CharacterType,
   useCharacterSelectionMutation,
 } from '@/src/features/character-selection';
-import { ONBOARDING_STATUS_QUERY_KEYS } from '@/src/features/onboarding-status/config/query-keys';
+import { onboardingStatusQueryOptions } from '@/src/features/onboarding-status';
 import { isMobileUserAgent } from '@/src/shared/lib/device/user-agent';
 import { ROUTES } from '@/src/shared/routes';
 
@@ -24,20 +24,18 @@ export function OnboardingCharacterPage() {
   const queryClient = useQueryClient();
   const [selectedType, setSelectedType] = useState<CharacterType | null>(null);
   const [isFolderOpen, setIsFolderOpen] = useState(false);
+  const onboardingStatusQueryKey = onboardingStatusQueryOptions().queryKey;
   const {
     mutate: characterMutate,
     isPending,
     isSuccess,
   } = useCharacterSelectionMutation({
     onSuccess: async () => {
-      queryClient.setQueryData(ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(), (prev: any) => ({
-        ...prev,
-        onboardingCompleted: true,
-      }));
+      queryClient.setQueryData(onboardingStatusQueryKey, 'completed');
 
       //동기화도 진행
       void queryClient.refetchQueries({
-        queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
+        queryKey: onboardingStatusQueryKey,
         type: 'all',
       });
     },
