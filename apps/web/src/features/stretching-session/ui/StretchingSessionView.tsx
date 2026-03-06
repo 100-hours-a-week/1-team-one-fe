@@ -104,7 +104,7 @@ export function StretchingSessionView({
           </div>
         )}
 
-        <div className="relative mt-4 h-full flex-1">
+        <div className="relative mt-4 h-3/5 flex-1">
           {isCanvasReady && (
             <StretchingSessionOverlay
               timeRemainingSeconds={timeRemainingSeconds}
@@ -123,7 +123,7 @@ export function StretchingSessionView({
           <video ref={videoRef} className="absolute inset-0 w-full opacity-0" playsInline muted />
           <canvas
             ref={canvasRef}
-            className={`absolute inset-0 h-full w-full rounded-2xl ${accuracyColorBorderClassName}`}
+            className={`inset-0 h-full w-full rounded-2xl ${accuracyColorBorderClassName}`}
           />
           {!isCanvasReady && (
             <div className="absolute inset-0 flex items-center justify-center">
