@@ -7,7 +7,7 @@ import {
 } from '@/src/entities/post';
 import type { ApiError } from '@/src/shared/api';
 
-import { MOMENTS_DETAIL_QUERY_KEYS } from '../config/query-keys';
+import { postDetailQueryOptions } from './query-options';
 
 export type DeletePostMutationOptions = Omit<
   UseMutationOptions<PostDeleteDataType, ApiError, PostDeleteRequestDTO>,
@@ -22,7 +22,7 @@ export function useDeletePostMutation(options?: DeletePostMutationOptions) {
     mutationFn: deletePostFn,
     onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({
-        queryKey: MOMENTS_DETAIL_QUERY_KEYS.detail(variables.postId),
+        queryKey: postDetailQueryOptions(variables.postId).queryKey,
       });
       onSuccess?.(data, variables, onMutateResult, context);
     },

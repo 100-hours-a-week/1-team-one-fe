@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 
 import { toAlarmSettingsValues } from '@/src/entities/alarm-settings';
 import {
-  ALARM_SETTINGS_QUERY_KEYS,
+  alarmSettingsQueryOptions,
   type AlarmSettingsValuesType,
   NotificationSettingsForm,
   toAlarmSettingsRequest,
@@ -37,6 +37,8 @@ const fallbackValues: AlarmSettingsValuesType = {
 export function AppAlarmPage() {
   const queryClient = useQueryClient();
   const pushPermissionSheet = usePushPermissionSheet();
+  const { open, setOpen, permission, platform, isRequesting, openSheet, requestPermission } =
+    pushPermissionSheet;
   const {
     data: alarmSettings,
     isLoading,
@@ -46,7 +48,7 @@ export function AppAlarmPage() {
   });
   const { mutateAsync } = useAlarmSettingsMutation({
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ALARM_SETTINGS_QUERY_KEYS.detail() });
+      void queryClient.invalidateQueries({ queryKey: alarmSettingsQueryOptions().queryKey });
     },
   });
 
@@ -55,11 +57,9 @@ export function AppAlarmPage() {
   };
 
   useEffect(() => {
-    if (pushPermissionSheet.permission === 'granted') {
-      return;
-    }
-    pushPermissionSheet.openSheet();
-  }, [pushPermissionSheet.openSheet, pushPermissionSheet.permission]);
+    if (permission === 'granted') return;
+    openSheet();
+  }, [openSheet, permission]);
 
   return (
     <LoadableBoundary
@@ -77,12 +77,12 @@ export function AppAlarmPage() {
             submitLabel={APP_ALARM_MESSAGES.SUBMIT_DEFAULT}
           />
           <PushPermissionBottomSheet
-            open={pushPermissionSheet.open}
-            onOpenChange={pushPermissionSheet.setOpen}
-            permission={pushPermissionSheet.permission}
-            platform={pushPermissionSheet.platform}
-            isRequesting={pushPermissionSheet.isRequesting}
-            onRequestPermission={pushPermissionSheet.requestPermission}
+            open={open}
+            onOpenChange={setOpen}
+            permission={permission}
+            platform={platform}
+            isRequesting={isRequesting}
+            onRequestPermission={requestPermission}
           />
         </>
       )}

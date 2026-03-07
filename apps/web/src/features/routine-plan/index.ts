@@ -1,3 +1,4 @@
+export { routinePlanQueryOptions } from './api/query-options';
 export type { RoutineQueryOptions } from './api/routine-query';
 export { useRoutineQuery } from './api/routine-query';
 export type { Exercise, RoutineData } from './api/types';

@@ -1,11 +1,9 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
-import { type EmailAvailabilityDataType, fetchEmailAvailabilityFn } from '@/src/entities/signup';
+import { type EmailAvailabilityDataType } from '@/src/entities/signup';
 import { type ApiError } from '@/src/shared/api';
 
-import { AUTH_QUERY_KEYS } from '../config/query-keys';
-
-export type EmailAvailabilityQueryKey = ReturnType<typeof AUTH_QUERY_KEYS.emailAvailability>;
+import { type EmailAvailabilityQueryKey, emailAvailabilityQueryOptions } from './query-options';
 
 export type EmailAvailabilityQueryOptions = Omit<
   UseQueryOptions<
@@ -22,8 +20,7 @@ export function useEmailAvailabilityQuery(email: string, options?: EmailAvailabi
   const enabled = hasEmail && (options?.enabled ?? true);
 
   return useQuery({
-    queryKey: AUTH_QUERY_KEYS.emailAvailability(email),
-    queryFn: () => fetchEmailAvailabilityFn(email),
+    ...emailAvailabilityQueryOptions(email),
     enabled,
     ...options,
     meta: { ...options?.meta, disableToast: true },

@@ -1,4 +1,8 @@
 export {
+  stretchingSessionQueryOptions,
+  validStretchingSessionsQueryOptions,
+} from './api/query-options';
+export {
   type CompleteStretchingSessionMutationOptionsType,
   useCompleteStretchingSessionMutation,
 } from './api/useCompleteStretchingSessionMutation';

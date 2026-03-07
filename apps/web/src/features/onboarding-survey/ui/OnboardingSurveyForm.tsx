@@ -37,7 +37,7 @@ function OnboardingSurveySubmittingOverlay() {
 
 export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFormProps) {
   const { data, isPending, error } = useSurveyQuery();
-  const { mutateAsync, isPending: isSubmitting } = useSubmitSurveyMutation({
+  const { mutate, isPending: isSubmitting } = useSubmitSurveyMutation({
     meta: { disableToast: true },
   });
 
@@ -54,7 +54,7 @@ export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFor
     handleNext,
   } = useSurveyForm({ onBack, data });
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (isSubmitting) return;
     const shouldSubmit = handleNext();
     if (!shouldSubmit) return;
@@ -63,28 +63,33 @@ export function OnboardingSurveyForm({ onBack, onComplete }: OnboardingSurveyFor
     const hasAllResponses = responses.length === data.questions.length;
     if (!hasAllResponses) return;
 
-    try {
-      const result = await mutateAsync({
+    mutate(
+      {
         surveyId: data.surveyId,
         responses,
-      });
-      toast({
-        title: SURVEY_MESSAGES.TOAST.SUBMIT_SUCCESS,
-        variant: 'success',
-      });
-      onComplete(result);
-    } catch (error) {
-      if (isApiError(error) && error.status === HTTP_STATUS.SERVICE_UNAVAILABLE) {
-        toast({
-          title: SURVEY_MESSAGES.TOAST.SERVER_ERROR,
-          variant: 'error',
-        });
-        return;
-      }
+      },
+      {
+        onSuccess: (result) => {
+          toast({
+            title: SURVEY_MESSAGES.TOAST.SUBMIT_SUCCESS,
+            variant: 'success',
+          });
+          onComplete(result);
+        },
+        onError: (error) => {
+          if (isApiError(error) && error.status === HTTP_STATUS.SERVICE_UNAVAILABLE) {
+            toast({
+              title: SURVEY_MESSAGES.TOAST.SERVER_ERROR,
+              variant: 'error',
+            });
+            return;
+          }
 
-      const message = isApiError(error) ? error.message : TOAST_MESSAGES.ERROR_FALLBACK;
-      toast({ title: message, variant: 'error' });
-    }
+          const message = isApiError(error) ? error.message : TOAST_MESSAGES.ERROR_FALLBACK;
+          toast({ title: message, variant: 'error' });
+        },
+      },
+    );
   };
 
   return (

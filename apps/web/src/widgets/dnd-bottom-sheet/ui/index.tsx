@@ -42,7 +42,7 @@ export function DndBottomSheet({ open, onOpenChange }: DndBottomSheetProps) {
     refetchOnMount: 'always',
   });
   const dndMutationOptions = useDndMutationOptions();
-  const { mutateAsync, isPending } = useDndMutation(dndMutationOptions);
+  const { mutate, isPending } = useDndMutation(dndMutationOptions);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartY = useRef<number | null>(null);
@@ -50,7 +50,7 @@ export function DndBottomSheet({ open, onOpenChange }: DndBottomSheetProps) {
   const isDndOn = isDndActive(dndStatus?.dnd, dndStatus?.dndFinishedAt);
   const dndStatusLabel = isDndOn ? formatDndUntilLabel(dndStatus?.dndFinishedAt) : '';
 
-  const handleOptionClick = async (optionId: (typeof DND_OPTIONS)[number]['id']) => {
+  const handleOptionClick = (optionId: (typeof DND_OPTIONS)[number]['id']) => {
     if (isPending) return;
 
     const finishedAt = getDndFinishedAt(optionId);
@@ -59,14 +59,14 @@ export function DndBottomSheet({ open, onOpenChange }: DndBottomSheetProps) {
       '[dnd] finishedAt (local)',
       format(finishedAt, 'yyyy-MM-dd HH:mm:ss', { in: tz(localTimeZone) }),
     );
-    await mutateAsync({ dndFinishedAt: toDndPayloadUtc(finishedAt) });
+    mutate({ dndFinishedAt: toDndPayloadUtc(finishedAt) });
   };
 
-  const handleToggleChange = async (checked: boolean) => {
+  const handleToggleChange = (checked: boolean) => {
     if (isPending) return;
 
     const finishedAt = checked ? getDndFinishedAt(DND_OPTION_IDS.INFINITE) : new Date();
-    await mutateAsync({ dndFinishedAt: toDndPayloadUtc(finishedAt) });
+    mutate({ dndFinishedAt: toDndPayloadUtc(finishedAt) });
   };
 
   const handlePointerDown: PointerEventHandler<HTMLDivElement> = (event) => {

@@ -1,19 +1,34 @@
 import { useQueryClient } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
-import {
-  PushPermissionBottomSheet,
-  usePushPermissionSheet,
-} from '@/src/features/push-notifications';
+import { usePushPermissionSheet } from '@/src/features/push-notifications';
 import { isApiError } from '@/src/shared/api';
 import { HTTP_STATUS } from '@/src/shared/config/http-status';
 import { isIosUserAgent, isMobileUserAgent } from '@/src/shared/lib/device/user-agent';
 import { usePwaInstallState } from '@/src/shared/lib/pwa/usePwaInstallState';
 import { ROUTE_GROUPS, ROUTES } from '@/src/shared/routes';
-import { PwaInstallBottomSheet } from '@/src/widgets/pwa-install';
+
+const PushPermissionBottomSheet = dynamic(
+  () =>
+    import('@/src/features/push-notifications/ui/PushPermissionBottomSheet').then(
+      (mod) => mod.PushPermissionBottomSheet,
+    ),
+  { ssr: false },
+);
+
+const PwaInstallBottomSheet = dynamic(
+  () =>
+    import('@/src/widgets/pwa-install/ui/PwaInstallBottomSheet').then(
+      (mod) => mod.PwaInstallBottomSheet,
+    ),
+  { ssr: false },
+);
+
+const BOTTOM_SHEET_IDLE_TIMEOUT_MS = 1200;
 
 let hasShownPwaInstallSheet = false;
 
@@ -23,13 +38,14 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
   const [isMobile, setIsMobile] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [isPwaSheetOpen, setIsPwaSheetOpen] = useState(false);
+  const [shouldMountBottomSheets, setShouldMountBottomSheets] = useState(false);
   const pwaState = usePwaInstallState();
 
   const isAppRoute = useMemo(
     () => (ROUTE_GROUPS.APP as readonly string[]).includes(router.pathname),
     [router.pathname],
   );
-  const shouldAutoOpenPushPermissionSheet = isAppRoute && router.isReady;
+  const shouldAutoOpenPushPermissionSheet = shouldMountBottomSheets && isAppRoute && router.isReady;
   const pushPermissionSheet = usePushPermissionSheet({
     autoOpen: shouldAutoOpenPushPermissionSheet,
   });
@@ -93,7 +109,35 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
     setIsIos(isIosUserAgent(userAgent));
   }, []);
 
+  useEffect(() => {
+    if (!isAppRoute) {
+      setShouldMountBottomSheets(false);
+      return;
+    }
+
+    const mountBottomSheets = () => {
+      setShouldMountBottomSheets(true);
+    };
+
+    const requestIdleCallbackFn = window.requestIdleCallback;
+    if (typeof requestIdleCallbackFn === 'function') {
+      const idleCallbackId = requestIdleCallbackFn(mountBottomSheets, {
+        timeout: BOTTOM_SHEET_IDLE_TIMEOUT_MS,
+      });
+      return () => {
+        window.cancelIdleCallback?.(idleCallbackId);
+      };
+    }
+
+    const timerId = window.setTimeout(mountBottomSheets, BOTTOM_SHEET_IDLE_TIMEOUT_MS);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [isAppRoute]);
+
   const shouldShowPwaSheet =
+    shouldMountBottomSheets &&
     isAppRoute &&
     isMobile &&
     pwaState.isReady &&
@@ -112,7 +156,7 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
   return (
     <main className="h-full">
       {children}
-      {shouldRenderGlobalPushSheet && (
+      {shouldMountBottomSheets && shouldRenderGlobalPushSheet && (
         <PushPermissionBottomSheet
           open={pushPermissionSheet.open}
           onOpenChange={pushPermissionSheet.setOpen}
@@ -122,7 +166,7 @@ export function AuthenticatedShell({ children }: PropsWithChildren) {
           onRequestPermission={pushPermissionSheet.requestPermission}
         />
       )}
-      {isAppRoute && isMobile && (
+      {shouldMountBottomSheets && isAppRoute && isMobile && (
         <PwaInstallBottomSheet
           open={isPwaSheetOpen}
           onOpenChange={setIsPwaSheetOpen}

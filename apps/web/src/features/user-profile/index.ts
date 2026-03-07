@@ -1,3 +1,4 @@
+export { userProfileQueryOptions } from './api/query-options';
 export type { UserCharacter, UserMeData, UserMeResponse, UserProfile } from './api/types';
 export { useUserProfileQuery } from './api/user-profile-query';
 export type { UpdateProfileImageMutationOptions } from './api/useUpdateProfileImageMutation';
