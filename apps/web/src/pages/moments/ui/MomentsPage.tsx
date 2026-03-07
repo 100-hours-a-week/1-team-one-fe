@@ -4,7 +4,6 @@ import { useCallback, useMemo } from 'react';
 import {
   MOMENTS_LIST_CONFIG,
   MOMENTS_LIST_MESSAGES,
-  MOMENTS_LIST_QUERY_KEYS,
   usePostsInfiniteQuery,
 } from '@/src/features/moments-list';
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
@@ -50,7 +49,6 @@ export function MomentsPage() {
   const posts = useMemo(() => data?.pages?.flatMap((page) => page.posts) ?? [], [data]);
   const isEmpty = !isLoading && posts.length === 0;
   const isSearching = searchTags.length > 0;
-  const listQueryKey = MOMENTS_LIST_QUERY_KEYS.list(listParams, isLoggedIn);
 
   const handleSearch = useCallback(
     (tags: ReadonlyArray<string>) => {
@@ -115,7 +113,6 @@ export function MomentsPage() {
               hasNextPage={Boolean(hasNextPage)}
               onFetchNext={() => void fetchNextPage()}
               isLoggedIn={isLoggedIn}
-              listQueryKey={listQueryKey}
             />
           )}
         </LoadableBoundary>

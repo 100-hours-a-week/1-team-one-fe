@@ -3,6 +3,10 @@ export {
   useNotificationsInfiniteQuery,
   useUnreadNotificationsCountQuery,
 } from './api/notifications-query';
+export {
+  notificationsInfiniteQueryOptions,
+  unreadNotificationsCountQueryOptions,
+} from './api/query-options';
 export type {
   NotificationLogItem,
   NotificationsPage,

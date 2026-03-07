@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 import type { LoginFormValues } from '@/src/features/auth/login';
 import { LoginForm, useLoginMutation } from '@/src/features/auth/login';
-import { ONBOARDING_STATUS_QUERY_KEYS } from '@/src/features/onboarding-status/config/query-keys';
+import { onboardingStatusQueryOptions } from '@/src/features/onboarding-status';
 import { refreshPushTokenOnLogin, usePutFcmTokenMutation } from '@/src/features/push-notifications';
 import { ROUTES } from '@/src/shared/routes';
 import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
@@ -37,7 +37,7 @@ export function LoginPage() {
           }
         }
         await queryClient.refetchQueries({
-          queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
+          queryKey: onboardingStatusQueryOptions().queryKey,
           type: 'all',
         });
         const postLoginPath = redirectUrl

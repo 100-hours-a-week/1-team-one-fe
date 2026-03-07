@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 
 import { MOMENTS_CREATE_MESSAGES, useCreatePostMutation } from '@/src/features/moments-create';
-import { MOMENTS_LIST_QUERY_KEYS } from '@/src/features/moments-list';
+import { momentsListRootQueryOptions } from '@/src/features/moments-list';
 import type { MomentsPostFormValues } from '@/src/shared/types';
 import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
 import { MomentsPostForm } from '@/src/widgets/moments-post-form';
@@ -49,7 +49,7 @@ export function MomentsNewPage() {
   const handleSubmit = useCallback(
     async (values: MomentsPostFormValues) => {
       const data = await createPost(values);
-      void queryClient.invalidateQueries({ queryKey: MOMENTS_LIST_QUERY_KEYS.root() });
+      void queryClient.invalidateQueries({ queryKey: momentsListRootQueryOptions().queryKey });
       router.replace(`/moments/post/${data.postId}`);
     },
     [createPost, queryClient, router],

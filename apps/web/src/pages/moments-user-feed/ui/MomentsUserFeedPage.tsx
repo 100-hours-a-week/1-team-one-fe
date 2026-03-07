@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useUserByIdQuery } from '@/src/entities/user';
 import {
   MOMENTS_LIST_CONFIG,
-  MOMENTS_LIST_QUERY_KEYS,
+  momentsListRootQueryOptions,
   usePostsInfiniteQuery,
 } from '@/src/features/moments-list';
 import {
@@ -55,7 +55,6 @@ export function MomentsUserFeedPage({ authorId }: MomentsUserFeedPageProps) {
 
   const posts = useMemo(() => data?.pages?.flatMap((page) => page.posts) ?? [], [data]);
   const isEmpty = !isPostsLoading && posts.length === 0;
-  const listQueryKey = MOMENTS_LIST_QUERY_KEYS.list(listParams);
 
   const isMyProfile = currentUser !== undefined && currentUser.userId === authorId;
 
@@ -77,7 +76,7 @@ export function MomentsUserFeedPage({ authorId }: MomentsUserFeedPageProps) {
   const handleEditDone = () => {
     imageUpload.reset();
     setIsEditing(false);
-    void queryClient.invalidateQueries({ queryKey: MOMENTS_LIST_QUERY_KEYS.root() });
+    void queryClient.invalidateQueries({ queryKey: momentsListRootQueryOptions().queryKey });
   };
 
   const handleEditCancel = () => {
@@ -173,7 +172,6 @@ export function MomentsUserFeedPage({ authorId }: MomentsUserFeedPageProps) {
             hasNextPage={Boolean(hasNextPage)}
             onFetchNext={() => void fetchNextPage()}
             isLoggedIn={currentUser !== undefined}
-            listQueryKey={listQueryKey}
           />
         )}
       </LoadableBoundary>

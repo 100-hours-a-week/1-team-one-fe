@@ -1,11 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
-import type { PostDetailDataType, PostLikeDataType, PostMetaDataType } from '@/src/entities/post';
-import { MOMENTS_DETAIL_QUERY_KEYS } from '@/src/features/moments-detail/config/query-keys';
-import { useLikePostMutation } from '@/src/features/moments-like';
+import type { PostLikeDataType, PostMetaDataType } from '@/src/entities/post';
+import { postDetailMetaQueryOptions } from '@/src/features/moments-detail';
+import {
+  MomentsLikeButton,
+  syncPostLikeInAllMomentsListQueries,
+  useLikePostMutation,
+} from '@/src/features/moments-like';
 import { createLikeUpdater, createSingleOptimisticHandlers } from '@/src/shared/lib/react-query';
-import { MomentsLikeButton } from '@/src/widgets/moments-like-button';
 
 interface MomentsDetailLikeSectionProps {
   postId: number;
@@ -21,23 +24,33 @@ export function MomentsDetailLikeSection({
   isLoggedIn,
 }: MomentsDetailLikeSectionProps) {
   const queryClient = useQueryClient();
+  const metaQueryKey = postDetailMetaQueryOptions(postId).queryKey;
 
   const optimisticHandlers = createSingleOptimisticHandlers({
     queryClient,
-    queryKey: MOMENTS_DETAIL_QUERY_KEYS.meta(postId),
-    updater: createLikeUpdater<PostDetailDataType>(),
+    queryKey: metaQueryKey,
+    updater: createLikeUpdater<PostMetaDataType>(),
     invalidateOnSettled: false,
     onSuccessCallback: (responseData, variables) => {
       const serverData = responseData as PostLikeDataType;
-      const queryKey = MOMENTS_DETAIL_QUERY_KEYS.meta((variables as { postId: number }).postId);
+      const queryKey = postDetailMetaQueryOptions(
+        (variables as { postId: number }).postId,
+      ).queryKey;
       queryClient.setQueryData<PostMetaDataType>(queryKey, (old) => {
         if (!old) return old;
+        if (old.isLiked === serverData.isLiked) return old;
+
         return {
           ...old,
           isLiked: serverData.isLiked,
-          likeCount: serverData.isLiked ? old.likeCount : Math.max(0, old.likeCount),
+          likeCount: serverData.isLiked ? old.likeCount + 1 : Math.max(0, old.likeCount - 1),
         };
       });
+      syncPostLikeInAllMomentsListQueries(
+        queryClient,
+        (variables as { postId: number }).postId,
+        serverData.isLiked,
+      );
     },
   });
 

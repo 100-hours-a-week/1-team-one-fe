@@ -1,3 +1,4 @@
+export { onboardingSurveyQueryOptions } from './api/query-options';
 export { useSubmitSurveyMutation } from './api/submit-survey-mutation';
 export { useSurveyQuery } from './api/survey-query';
 export type {

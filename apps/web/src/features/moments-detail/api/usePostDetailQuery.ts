@@ -1,11 +1,9 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
-import { fetchPostDetailFn, type PostDetailDataType } from '@/src/entities/post';
+import { type PostDetailDataType } from '@/src/entities/post';
 import { type ApiError } from '@/src/shared/api';
 
-import { MOMENTS_DETAIL_QUERY_KEYS } from '../config/query-keys';
-
-export type PostDetailQueryKey = ReturnType<typeof MOMENTS_DETAIL_QUERY_KEYS.detail>;
+import { type PostDetailQueryKey, postDetailQueryOptions } from './query-options';
 
 export type PostDetailQueryOptions = Omit<
   UseQueryOptions<PostDetailDataType, ApiError, PostDetailDataType, PostDetailQueryKey>,
@@ -14,8 +12,7 @@ export type PostDetailQueryOptions = Omit<
 
 export function usePostDetailQuery(postId: number, options?: PostDetailQueryOptions) {
   return useQuery({
-    queryKey: MOMENTS_DETAIL_QUERY_KEYS.detail(postId),
-    queryFn: () => fetchPostDetailFn(postId),
+    ...postDetailQueryOptions(postId),
     ...options,
   });
 }

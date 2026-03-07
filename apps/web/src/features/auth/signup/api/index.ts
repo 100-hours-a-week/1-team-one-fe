@@ -1,3 +1,4 @@
+export { emailAvailabilityQueryOptions, nicknameAvailabilityQueryOptions } from './query-options';
 export { useEmailAvailabilityQuery } from './useEmailAvailabilityQuery';
 export { useNicknameAvailabilityQuery } from './useNicknameAvailabilityQuery';
 export { useProfileImageUploadMutation } from './useProfileImageUploadMutation';
