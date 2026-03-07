@@ -1,8 +1,9 @@
 import { cn } from '@repo/ui/lib/utils';
 import { cva } from 'class-variance-authority';
-import Image from 'next/image';
 import Link from 'next/link';
 import type React from 'react';
+
+import { OptimizedImage } from '@/src/shared/ui/optimized-image';
 
 import { MAIN_HEADER_MESSAGES } from '../config/messages';
 import { MainHeaderMenu } from './MainHeaderMenu';
@@ -21,12 +22,11 @@ export function MainHeader({ className, ...props }: React.ComponentPropsWithoutR
   return (
     <header className={cn(mainHeaderVariants(), className)} {...props}>
       <Link href="/app" className="shrink-0">
-        <Image
+        <OptimizedImage
           src="/icons/logo.svg"
           alt={MAIN_HEADER_MESSAGES.LOGO_ALT}
           width={110}
           height={40}
-          priority
         />
       </Link>
 
