@@ -7,7 +7,7 @@ import { useCallback, useState } from 'react';
 import type { PostDetailDataType } from '@/src/entities/post';
 import { postDetailQueryOptions, usePostDetailQuery } from '@/src/features/moments-detail';
 import { MOMENTS_EDIT_MESSAGES, useUpdatePostMutation } from '@/src/features/moments-edit';
-import { MOMENTS_LIST_QUERY_KEYS } from '@/src/features/moments-list';
+import { momentsListRootQueryOptions } from '@/src/features/moments-list';
 import { isApiError } from '@/src/shared/api';
 import type { MomentsPostFormValues } from '@/src/shared/types';
 import { LoadableBoundary } from '@/src/shared/ui/boundary/LoadableBoundary';
@@ -80,7 +80,7 @@ export function MomentsEditPage() {
 
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: postDetailQueryOptions(postId).queryKey }),
-      queryClient.invalidateQueries({ queryKey: MOMENTS_LIST_QUERY_KEYS.root() }),
+      queryClient.invalidateQueries({ queryKey: momentsListRootQueryOptions().queryKey }),
     ]);
     router.replace(`/moments/post/${postId}`);
   }, [isPostIdValid, postId, queryClient, router]);

@@ -3,9 +3,12 @@ import { useCallback } from 'react';
 
 import type { PostLikeDataType, PostMetaDataType } from '@/src/entities/post';
 import { postDetailMetaQueryOptions } from '@/src/features/moments-detail';
-import { useLikePostMutation } from '@/src/features/moments-like';
+import {
+  MomentsLikeButton,
+  syncPostLikeInAllMomentsListQueries,
+  useLikePostMutation,
+} from '@/src/features/moments-like';
 import { createLikeUpdater, createSingleOptimisticHandlers } from '@/src/shared/lib/react-query';
-import { MomentsLikeButton } from '@/src/widgets/moments-like-button';
 
 interface MomentsDetailLikeSectionProps {
   postId: number;
@@ -35,12 +38,19 @@ export function MomentsDetailLikeSection({
       ).queryKey;
       queryClient.setQueryData<PostMetaDataType>(queryKey, (old) => {
         if (!old) return old;
+        if (old.isLiked === serverData.isLiked) return old;
+
         return {
           ...old,
           isLiked: serverData.isLiked,
-          likeCount: serverData.isLiked ? old.likeCount : Math.max(0, old.likeCount),
+          likeCount: serverData.isLiked ? old.likeCount + 1 : Math.max(0, old.likeCount - 1),
         };
       });
+      syncPostLikeInAllMomentsListQueries(
+        queryClient,
+        (variables as { postId: number }).postId,
+        serverData.isLiked,
+      );
     },
   });
 

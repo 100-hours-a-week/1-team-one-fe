@@ -8,7 +8,7 @@ import { usePostDetailMetaQuery } from '@/src/features/moments-detail/api/usePos
 import { usePostDetailQuery } from '@/src/features/moments-detail/api/usePostDetailQuery';
 import { PostDetailMenu } from '@/src/features/moments-detail/ui/PostDetailMenu';
 import { PostDetailView } from '@/src/features/moments-detail/ui/PostDetailView';
-import { MOMENTS_LIST_QUERY_KEYS } from '@/src/features/moments-list';
+import { momentsListRootQueryOptions } from '@/src/features/moments-list';
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
 import { isApiError } from '@/src/shared/api';
 import { LoadableBoundary } from '@/src/shared/ui/boundary/LoadableBoundary';
@@ -48,7 +48,7 @@ export function MomentsDetailPage({ initialData }: MomentsDetailPageProps) {
 
   const { mutate: deletePost, isPending: isDeleting } = useDeletePostMutation({
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: MOMENTS_LIST_QUERY_KEYS.root() });
+      void queryClient.invalidateQueries({ queryKey: momentsListRootQueryOptions().queryKey });
       router.replace('/moments');
     },
   });
