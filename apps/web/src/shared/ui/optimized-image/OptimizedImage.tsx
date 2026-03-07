@@ -7,8 +7,25 @@ import {
   type ImageLcpCandidate,
   type ImageLcpLoadStrategy,
 } from '@/src/shared/config/image';
+import { buildImageUrl } from '@/src/shared/lib/image';
 
 type LcpAwareImageProps = Pick<ImageProps, 'loading' | 'fetchPriority' | 'preload'>;
+
+function shouldSkipBuildImageUrl(src: string): boolean {
+  return (
+    src.startsWith('/') ||
+    src.startsWith('http://') ||
+    src.startsWith('https://') ||
+    src.startsWith('data:') ||
+    src.startsWith('blob:')
+  );
+}
+
+function resolveImageSrc(src: ImageProps['src'], srcBaseUrl?: string): ImageProps['src'] {
+  if (typeof src !== 'string') return src;
+  if (shouldSkipBuildImageUrl(src)) return src;
+  return buildImageUrl(src, srcBaseUrl);
+}
 
 /**
  * LCP 후보 여부와 전략에 따라 `loading` / `fetchPriority` / `preload`를 안전하게 계산한다.
@@ -76,6 +93,8 @@ export type OptimizedImageProps = Omit<ImageProps, 'priority'> & {
   lcpCandidate?: ImageLcpCandidate;
   /** LCP 후보일 때 적용할 전략 (`fetch-priority` | `preload`) */
   lcpLoadStrategy?: ImageLcpLoadStrategy;
+  /** 기본 이미지 base URL을 강제로 지정할 때 사용 */
+  srcBaseUrl?: string;
 };
 
 /**
@@ -87,6 +106,7 @@ export type OptimizedImageProps = Omit<ImageProps, 'priority'> & {
  * - `blurDataURL` 없는 `placeholder="blur"`를 안전하게 `empty`로 보정
  */
 export function OptimizedImage({
+  src,
   quality = IMAGE_CONFIG.DEFAULT_QUALITY,
   decoding = IMAGE_CONFIG.DEFAULT_DECODING,
   placeholder,
@@ -98,8 +118,10 @@ export function OptimizedImage({
   preload,
   lcpCandidate = IMAGE_LCP_CANDIDATE.AUTO,
   lcpLoadStrategy = IMAGE_LCP_LOAD_STRATEGY.FETCH_PRIORITY,
+  srcBaseUrl,
   ...props
 }: OptimizedImageProps) {
+  const resolvedSrc = resolveImageSrc(src, srcBaseUrl);
   const hasBlurDataURL = typeof blurDataURL === 'string' && blurDataURL.length > 0;
   const blurPlaceholder = hasBlurDataURL ? (placeholder ?? 'blur') : placeholder;
   const resolvedPlaceholder =
@@ -118,6 +140,7 @@ export function OptimizedImage({
 
   return (
     <Image
+      src={resolvedSrc}
       quality={quality}
       decoding={decoding}
       placeholder={resolvedPlaceholder}
