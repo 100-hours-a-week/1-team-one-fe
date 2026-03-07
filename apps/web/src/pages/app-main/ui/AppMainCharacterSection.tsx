@@ -9,9 +9,9 @@ import {
   ConfirmDialogTitle,
   ConfirmDialogTrigger,
 } from '@repo/ui/confirm-dialog';
-import Image from 'next/image';
 
 import type { UserCharacter } from '@/src/features/user-profile';
+import { OptimizedImage } from '@/src/shared/ui/optimized-image';
 
 import {
   CHARACTER_STATUS,
@@ -113,14 +113,14 @@ export function AppMainCharacterSection({
           </ConfirmDialogContent>
         </ConfirmDialog>
       </div>
-      <Image
+      <OptimizedImage
         src={characterImage}
         alt={APP_MAIN_MESSAGES.CHARACTER_IMAGE_ALT}
         width={300}
         height={300}
         placeholder="empty"
         className="rounded-xl py-6"
-        preload={true}
+        lcpCandidate="candidate"
       />
       <p className="text-xl font-semibold">{characterName}</p>
     </section>

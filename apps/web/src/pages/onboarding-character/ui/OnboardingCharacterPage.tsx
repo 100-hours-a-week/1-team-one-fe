@@ -1,6 +1,5 @@
 import { Button } from '@repo/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
@@ -11,6 +10,7 @@ import {
 import { onboardingStatusQueryOptions } from '@/src/features/onboarding-status';
 import { isMobileUserAgent } from '@/src/shared/lib/device/user-agent';
 import { ROUTES } from '@/src/shared/routes';
+import { OptimizedImage } from '@/src/shared/ui/optimized-image';
 
 import { CHARACTER_CARDS } from '../config/characters';
 import { ONBOARDING_CHARACTER_MESSAGES } from '../config/messages';
@@ -95,7 +95,7 @@ export function OnboardingCharacterPage() {
         key={card.type}
         className="text-text relative flex h-80 w-80 flex-col items-center gap-1"
       >
-        <Image
+        <OptimizedImage
           src={card.imageSrc}
           alt={`${card.name} ${IMAGE_ALT_SUFFIX}`}
           width={220}
