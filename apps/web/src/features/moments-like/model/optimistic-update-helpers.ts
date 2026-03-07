@@ -2,7 +2,7 @@ import type { InfiniteData, QueryClient, QueryKey } from '@tanstack/react-query'
 
 import type { PostListItemType, PostListResponseDataType } from '@/src/entities/post';
 
-export const MOMENTS_LIST_QUERY_ROOT = ['moments-list'] as const;
+import { MOMENTS_LIKE_CACHE_TARGETS } from './query-options';
 
 interface MomentsListQuerySnapshot {
   queryKey: QueryKey;
@@ -96,8 +96,9 @@ function patchPostLikeInInfiniteData(
 }
 
 export function getMomentsListQuerySnapshots(queryClient: QueryClient): MomentsListQuerySnapshot[] {
+  const listRootOptions = MOMENTS_LIKE_CACHE_TARGETS.momentsListRoot();
   return queryClient
-    .getQueriesData<InfiniteData<PostListResponseDataType>>({ queryKey: MOMENTS_LIST_QUERY_ROOT })
+    .getQueriesData<InfiniteData<PostListResponseDataType>>(listRootOptions)
     .map(([queryKey, data]) => ({ queryKey, data }));
 }
 
