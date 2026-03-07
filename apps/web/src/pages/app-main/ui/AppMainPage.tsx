@@ -1,7 +1,6 @@
 import { ActivityCalendar } from '@repo/ui/activity-calendar';
 import { Skeleton } from '@repo/ui/skeleton';
 import { ChevronRight } from 'lucide-react';
-import Image from 'next/image';
 
 import { transformGrassData, useGrassStatsQuery } from '@/src/features/grass-stats';
 import { useValidStretchingSessionsQuery } from '@/src/features/stretching-session/query';
@@ -9,6 +8,7 @@ import { useUserProfileQuery } from '@/src/features/user-profile/query';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen';
 import { LinkCard } from '@/src/shared/ui/link-card';
+import { OptimizedImage } from '@/src/shared/ui/optimized-image';
 import { UserStatusCardSection } from '@/src/widgets/user-status-card';
 
 import { APP_MAIN_ACTION_CARDS } from '../config/action-cards';
@@ -76,7 +76,7 @@ export function AppMainPage() {
               className="hover:border-border-strong hover:bg-bg-subtle transition-colors"
               header={
                 <div className="flex h-full w-full items-center justify-center">
-                  <Image src={image} alt={title} width={48} height={48} />
+                  <OptimizedImage src={image} alt={title} width={48} height={48} />
                 </div>
               }
               footer={
