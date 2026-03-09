@@ -1,0 +1,42 @@
+export const APP_REPORT_DETAIL_PAGE_MESSAGES = {
+  SESSION: {
+    TITLE: '세션 정보',
+    REPORT_ID_LABEL: '리포트 ID',
+    CREATED_AT_LABEL: '생성 시각',
+    ROUTINE_COMPLETED_LABEL: '루틴 완료 여부',
+    ROUTINE_COMPLETED: '완료',
+    ROUTINE_INCOMPLETE: '미완료',
+  },
+  EXERCISE: {
+    TITLE: '운동 결과',
+    COUNT_LABEL: '총 운동 수',
+    EMPTY: '운동 결과가 없습니다.',
+    ORDER_LABEL: '순서',
+    TYPE_LABEL: '타입',
+    STATUS_LABEL: '결과',
+    ACCURACY_LABEL: '정확도',
+    ACCURACY_EMPTY: '-',
+    TYPE_UNKNOWN: '알 수 없음',
+    STATUS_UNKNOWN: '알 수 없음',
+    TYPE: {
+      REPS: '횟수 기반',
+      DURATION: '시간 기반',
+      EYES: '눈 운동',
+    },
+    STATUS: {
+      PENDING: '대기',
+      COMPLETED: '성공',
+      FAILED: '실패',
+      SKIPPED: '건너뜀',
+    },
+  },
+  REWARD: {
+    TITLE: '보상 정보',
+    LEVEL_LABEL: '레벨',
+    PREVIOUS_EXP_LABEL: '이전 경험치',
+    EARNED_EXP_LABEL: '획득 경험치',
+    STREAK_LABEL: '연속 운동 일수',
+    PREVIOUS_STATUS_SCORE_LABEL: '이전 상태 점수',
+    EARNED_STATUS_SCORE_LABEL: '획득 상태 점수',
+  },
+} as const;
