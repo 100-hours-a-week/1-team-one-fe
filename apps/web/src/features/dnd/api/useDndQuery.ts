@@ -1,9 +1,11 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
-import { type DndStatusType } from '@/src/entities/dnd';
+import {
+  type DndStatusQueryKey,
+  dndStatusQueryOptions,
+  type DndStatusType,
+} from '@/src/entities/dnd';
 import { type ApiError } from '@/src/shared/api';
-
-import { type DndStatusQueryKey, dndStatusQueryOptions } from './query-options';
 
 type DndQueryOptionsType = Omit<
   UseQueryOptions<DndStatusType, ApiError, DndStatusType, DndStatusQueryKey>,
