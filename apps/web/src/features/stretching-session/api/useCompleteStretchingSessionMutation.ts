@@ -1,33 +1,35 @@
-import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import {
-  completeStretchingSessionFn,
-  type CompleteStretchingSessionRequestDTO,
-  type CompleteStretchingSessionResponseDataType,
+  type CompleteExerciseSessionMutationOptions as CompleteExerciseSessionMutationOptionsType,
+  useCompleteExerciseSessionMutation as useCompleteExerciseSessionMutationEntity,
 } from '@/src/entities/stretching-session';
-import { type ApiError } from '@/src/shared/api';
 
-import { STRETCHING_SESSION_QUERY_KEYS } from '../config/query-keys';
+import {
+  stretchingSessionQueryOptions,
+  validStretchingSessionsQueryOptions,
+} from './query-options';
 
-export type CompleteStretchingSessionMutationOptionsType = Omit<
-  UseMutationOptions<
-    CompleteStretchingSessionResponseDataType,
-    ApiError,
-    CompleteStretchingSessionRequestDTO
-  >,
-  'mutationFn'
-> & {
-  sessionId: string;
-};
+export type CompleteStretchingSessionMutationOptionsType =
+  CompleteExerciseSessionMutationOptionsType;
 
 export function useCompleteStretchingSessionMutation(
   options: CompleteStretchingSessionMutationOptionsType,
 ) {
-  const { sessionId, ...mutationOptions } = options;
+  const queryClient = useQueryClient();
+  const { onSuccess, sessionId, ...restOptions } = options;
 
-  return useMutation({
-    mutationKey: STRETCHING_SESSION_QUERY_KEYS.complete(sessionId),
-    mutationFn: (payload) => completeStretchingSessionFn(sessionId, payload),
-    ...mutationOptions,
+  return useCompleteExerciseSessionMutationEntity({
+    sessionId,
+    ...restOptions,
+    onSuccess: (data, variables, onMutateResult, context) => {
+      void queryClient.invalidateQueries({
+        queryKey: stretchingSessionQueryOptions(sessionId).queryKey,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: validStretchingSessionsQueryOptions().queryKey,
+      });
+      onSuccess?.(data, variables, onMutateResult, context);
+    },
   });
 }

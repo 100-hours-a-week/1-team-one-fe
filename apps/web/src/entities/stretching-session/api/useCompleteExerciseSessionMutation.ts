@@ -2,7 +2,7 @@ import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 
 import { type ApiError } from '@/src/shared/api';
 
-import { EXERCISE_SESSION_QUERY_KEYS } from '../config/query-keys';
+import { STRETCHING_SESSION_QUERY_KEYS } from '../config/query-keys';
 import { completeStretchingSessionFn } from './complete-stretching-session-patch';
 import type {
   CompleteStretchingSessionAcceptedDataType,
@@ -31,7 +31,7 @@ export function useCompleteExerciseSessionMutation(
   const { sessionId, ...mutationOptions } = options;
 
   return useMutation({
-    mutationKey: EXERCISE_SESSION_QUERY_KEYS.complete(sessionId),
+    mutationKey: STRETCHING_SESSION_QUERY_KEYS.complete(sessionId),
     mutationFn: (payload) => completeStretchingSessionFn(sessionId, payload),
     ...mutationOptions,
   });

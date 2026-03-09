@@ -1,45 +1,44 @@
-import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import {
-  type CompleteStretchingSessionAcceptedDataType,
-  completeStretchingSessionFn,
-  type CompleteStretchingSessionRequestDTO,
-  type StretchingPoseRecordFrameType,
-  type StretchingResultItemType,
-  type StretchingResultStatusType,
+  type CompleteExerciseSessionMutationOptions as CompleteExerciseSessionMutationOptionsType,
+  type CompleteExerciseSessionRequest,
+  type CompleteExerciseSessionResponseData,
+  type ExercisePoseRecordFrame,
+  type ExerciseResultItem,
+  type ExerciseResultStatus,
+  useCompleteExerciseSessionMutation as useCompleteExerciseSessionMutationEntity,
 } from '@/src/entities/stretching-session';
-import { type ApiError } from '@/src/shared/api';
 
-import { EXERCISE_SESSION_QUERY_KEYS } from '../config/query-keys';
+import { exerciseSessionQueryOptions, validExerciseSessionsQueryOptions } from './query-options';
 
-async function completeExerciseSession(
-  sessionId: string,
-  payload: CompleteStretchingSessionRequestDTO,
-): Promise<CompleteStretchingSessionAcceptedDataType> {
-  return completeStretchingSessionFn(sessionId, payload);
-}
-
-export type ExerciseResultStatus = StretchingResultStatusType;
-export type ExercisePoseRecordFrame = StretchingPoseRecordFrameType;
-export type ExerciseResultItem = StretchingResultItemType;
-export type CompleteExerciseSessionRequest = CompleteStretchingSessionRequestDTO;
-export type CompleteExerciseSessionResponseData = CompleteStretchingSessionAcceptedDataType;
-
-export type CompleteExerciseSessionMutationOptions = Omit<
-  UseMutationOptions<CompleteExerciseSessionResponseData, ApiError, CompleteExerciseSessionRequest>,
-  'mutationFn'
-> & {
-  sessionId: string;
+export type {
+  CompleteExerciseSessionRequest,
+  CompleteExerciseSessionResponseData,
+  ExercisePoseRecordFrame,
+  ExerciseResultItem,
+  ExerciseResultStatus,
 };
+
+export type CompleteExerciseSessionMutationOptions = CompleteExerciseSessionMutationOptionsType;
 
 export function useCompleteExerciseSessionMutation(
   options: CompleteExerciseSessionMutationOptions,
 ) {
-  const { sessionId, ...mutationOptions } = options;
+  const queryClient = useQueryClient();
+  const { onSuccess, sessionId, ...restOptions } = options;
 
-  return useMutation({
-    mutationKey: EXERCISE_SESSION_QUERY_KEYS.complete(sessionId),
-    mutationFn: (payload) => completeExerciseSession(sessionId, payload),
-    ...mutationOptions,
+  return useCompleteExerciseSessionMutationEntity({
+    sessionId,
+    ...restOptions,
+    onSuccess: (data, variables, onMutateResult, context) => {
+      void queryClient.invalidateQueries({
+        queryKey: exerciseSessionQueryOptions(sessionId).queryKey,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: validExerciseSessionsQueryOptions().queryKey,
+      });
+      onSuccess?.(data, variables, onMutateResult, context);
+    },
   });
 }
