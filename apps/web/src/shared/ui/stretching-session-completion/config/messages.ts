@@ -1,0 +1,18 @@
+export const STRETCHING_SESSION_COMPLETION_MESSAGES = {
+  STAGE_LABEL: '상태',
+  IN_PROGRESS_TITLE: '세션 완료를 처리하고 있어요',
+  IN_PROGRESS_DESCRIPTION: '잠시만 기다려주세요.',
+  COMPLETED_TITLE: '세션이 완료되었어요',
+  COMPLETED_DESCRIPTION: '평가를 남기고 원하는 화면으로 이동하세요.',
+  FEEDBACK_TITLE: '이번 스트레칭은 어땠나요?',
+  FEEDBACK_DESCRIPTION: '좋아요/별로에요 중 하나를 선택하고 제출해주세요.',
+  FEEDBACK_LIKE: '좋아요',
+  FEEDBACK_DISLIKE: '별로에요',
+  SUBMIT_LABEL: '제출하기',
+  SUBMIT_DONE_LABEL: '제출 완료',
+  SUBMIT_HELPER: '평가 API는 준비 중이며 현재는 UI만 동작합니다.',
+  HOME_LABEL: '홈으로',
+  HOME_ICON_ARIA: '홈으로 이동',
+  RESULT_LABEL: '결과 페이지 이동',
+  RESULT_ICON_ARIA: '결과 페이지로 이동',
+} as const;
