@@ -1,9 +1,11 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
-import { type EmailAvailabilityDataType } from '@/src/entities/signup';
+import {
+  type EmailAvailabilityDataType,
+  type EmailAvailabilityQueryKey,
+  emailAvailabilityQueryOptions,
+} from '@/src/entities/signup';
 import { type ApiError } from '@/src/shared/api';
-
-import { type EmailAvailabilityQueryKey, emailAvailabilityQueryOptions } from './query-options';
 
 export type EmailAvailabilityQueryOptions = Omit<
   UseQueryOptions<
