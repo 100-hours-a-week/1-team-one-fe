@@ -16,6 +16,11 @@ export type {
   ValidStretchingSessionItemType,
   ValidStretchingSessionsResponseDTO,
 } from './dto/stretching-session.dto';
+export type { StretchingSessionQueryKey, ValidStretchingSessionsQueryKey } from './query-options';
+export {
+  stretchingSessionQueryOptions,
+  validStretchingSessionsQueryOptions,
+} from './query-options';
 export { fetchStretchingSessionFn } from './stretching-session-get';
 export {
   type CompleteExerciseSessionMutationOptions,

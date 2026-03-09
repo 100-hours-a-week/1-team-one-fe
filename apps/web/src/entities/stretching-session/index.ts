@@ -19,16 +19,20 @@ export type {
   StretchingResultItemType,
   StretchingResultStatusType,
   StretchingSessionDataType,
+  StretchingSessionQueryKey,
   StretchingSessionResponseDTO,
   ValidStretchingSessionItemType,
+  ValidStretchingSessionsQueryKey,
   ValidStretchingSessionsResponseDTO,
 } from './api';
 export {
   completeStretchingSessionFn,
   fetchStretchingSessionFn,
   fetchValidStretchingSessionsFn,
+  stretchingSessionQueryOptions,
   useCompleteExerciseSessionMutation,
   useExerciseSessionQuery,
+  validStretchingSessionsQueryOptions,
 } from './api';
 export { STRETCHING_SESSION_QUERY_KEYS } from './config/query-keys';
 export { toEyeReference } from './lib/to-eye-reference';
