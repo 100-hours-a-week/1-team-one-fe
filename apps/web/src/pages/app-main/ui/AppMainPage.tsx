@@ -1,4 +1,5 @@
 import { ActivityCalendar } from '@repo/ui/activity-calendar';
+import { cn } from '@repo/ui/lib/utils';
 import { Skeleton } from '@repo/ui/skeleton';
 import { ChevronRight } from 'lucide-react';
 
@@ -67,31 +68,33 @@ export function AppMainPage() {
         isLoading={validSessionsQuery.isLoading}
       />
 
-      <section className="flex gap-3">
-        {APP_MAIN_ACTION_CARDS.map(({ key, href, title, image, description }) => (
-          <div key={key} className="flex-1">
-            <LinkCard
-              href={href}
-              headerHeight="md"
-              className="hover:border-border-strong hover:bg-bg-subtle transition-colors"
-              header={
-                <div className="flex h-full w-full items-center justify-center">
-                  <OptimizedImage src={image} alt={title} width={48} height={48} />
+      <section className="grid grid-cols-2 gap-3">
+        {APP_MAIN_ACTION_CARDS.map(
+          ({ key, href, title, image, description, containerClassName }) => (
+            <div key={key} className={cn('col-span-1', containerClassName)}>
+              <LinkCard
+                href={href}
+                headerHeight="md"
+                className="hover:border-border-strong hover:bg-bg-subtle transition-colors"
+                header={
+                  <div className="flex h-full w-full items-center justify-center">
+                    <OptimizedImage src={image} alt={title} width={48} height={48} />
+                  </div>
+                }
+                footer={
+                  <div>
+                    <span className="text-sm">{description}</span>
+                  </div>
+                }
+              >
+                <div className="text-text flex items-center justify-between text-center text-lg font-semibold">
+                  {title}
+                  <ChevronRight className="ml-2" />
                 </div>
-              }
-              footer={
-                <div>
-                  <span className="text-sm">{description}</span>
-                </div>
-              }
-            >
-              <div className="text-text flex items-center justify-between text-center text-lg font-semibold">
-                {title}
-                <ChevronRight className="ml-2" />
-              </div>
-            </LinkCard>
-          </div>
-        ))}
+              </LinkCard>
+            </div>
+          ),
+        )}
       </section>
     </div>
   );
