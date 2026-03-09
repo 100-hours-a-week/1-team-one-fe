@@ -13,6 +13,6 @@ export const STRETCHING_SESSION_COMPLETION_MESSAGES = {
   SUBMIT_HELPER: '평가 API는 준비 중이며 현재는 UI만 동작합니다.',
   HOME_LABEL: '홈으로',
   HOME_ICON_ARIA: '홈으로 이동',
-  RESULT_LABEL: '결과 페이지 이동',
-  RESULT_ICON_ARIA: '결과 페이지로 이동',
+  RESULT_LABEL: '리포트 목록 이동',
+  RESULT_ICON_ARIA: '리포트 목록으로 이동',
 } as const;

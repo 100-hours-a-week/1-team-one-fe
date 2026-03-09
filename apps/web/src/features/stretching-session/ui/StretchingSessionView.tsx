@@ -82,7 +82,7 @@ export function StretchingSessionView({
   }, [currentStep, isCanvasReady]);
 
   if (isSessionComplete) {
-    return <StretchingSessionCompletionScreen sessionId={sessionId} />;
+    return <StretchingSessionCompletionScreen />;
   }
 
   return (

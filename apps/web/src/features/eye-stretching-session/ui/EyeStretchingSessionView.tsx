@@ -164,7 +164,7 @@ export function EyeStretchingSessionView({
 
   // 세션 완료
   if (isSessionComplete) {
-    return <StretchingSessionCompletionScreen sessionId={sessionId} />;
+    return <StretchingSessionCompletionScreen />;
   }
 
   return (

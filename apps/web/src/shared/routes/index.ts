@@ -3,6 +3,7 @@ export {
   APP_ROUTES,
   buildMomentsDetailPath,
   buildMomentsUserFeedPath,
+  buildReportDetailPath,
   buildStretchSessionPath,
   buildStretchSessionResultPath,
   PUBLIC_ROUTES,
