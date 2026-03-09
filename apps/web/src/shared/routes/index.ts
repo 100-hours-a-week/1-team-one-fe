@@ -5,7 +5,6 @@ export {
   buildMomentsUserFeedPath,
   buildReportDetailPath,
   buildStretchSessionPath,
-  buildStretchSessionResultPath,
   PUBLIC_ROUTES,
   ROUTE_GROUPS,
   ROUTES,

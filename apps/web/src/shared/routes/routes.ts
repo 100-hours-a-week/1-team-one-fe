@@ -34,10 +34,6 @@ export function buildStretchSessionPath(sessionId: number | string): string {
   return `/stretch/${sessionId}`;
 }
 
-export function buildStretchSessionResultPath(sessionId: number | string): string {
-  return `/stretch/${sessionId}/result`;
-}
-
 export function buildReportDetailPath(reportId: number | string): string {
   return `/app/reports/${reportId}`;
 }
