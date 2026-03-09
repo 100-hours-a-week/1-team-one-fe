@@ -2,10 +2,11 @@ import { ProgressBar } from '@repo/ui/progress-bar';
 import { toast } from '@repo/ui/toast';
 import { useEffect, useRef } from 'react';
 
+import { StretchingSessionCompletionScreen } from '@/src/shared/ui/stretching-session-completion';
+
 import { STRETCHING_SESSION_CONFIG } from '../config/constants';
 import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
 import { StretchingSessionDebugOptions, useStretchingSession } from '../lib/useStretchingSession';
-import { StretchingSessionCompletionResult } from './StretchingSessionCompletionResult';
 import { StretchingSessionGuideCard } from './StretchingSessionGuideCard';
 import { StretchingSessionHomeButton } from './StretchingSessionHomeButton';
 import { StretchingSessionOverlay } from './StretchingSessionOverlay';
@@ -38,8 +39,6 @@ export function StretchingSessionView({
     stepOutcome,
     isCanvasReady,
     isSessionComplete,
-    completionResult,
-    isCompleting,
   } = useStretchingSession(sessionId, { debug: debugOptions, targetFps });
   const hasShownGuideToastRef = useRef(false);
 
@@ -83,7 +82,7 @@ export function StretchingSessionView({
   }, [currentStep, isCanvasReady]);
 
   if (isSessionComplete) {
-    return <StretchingSessionCompletionResult result={completionResult} isLoading={isCompleting} />;
+    return <StretchingSessionCompletionScreen sessionId={sessionId} />;
   }
 
   return (
