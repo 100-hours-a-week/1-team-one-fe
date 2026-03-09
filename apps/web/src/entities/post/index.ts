@@ -30,3 +30,18 @@ export { togglePostLikeFn } from './api/post-like';
 export { fetchPostListPageFn } from './api/post-list';
 export { fetchPostListMetaFn, fetchPostMetaFn } from './api/post-meta';
 export { updatePostFn } from './api/post-update';
+export type {
+  PostDetailMetaQueryKey,
+  PostDetailQueryKey,
+  PostListInfiniteQueryKey,
+  PostListInfiniteQueryOptions,
+  PostListRootQueryKey,
+} from './api/query-options';
+export {
+  postDetailMetaQueryOptions,
+  postDetailQueryOptions,
+  postListInfiniteQueryOptions,
+  postListRootQueryOptions,
+} from './api/query-options';
+export type { PostListQueryParams } from './config/query-keys';
+export { POST_QUERY_KEYS } from './config/query-keys';

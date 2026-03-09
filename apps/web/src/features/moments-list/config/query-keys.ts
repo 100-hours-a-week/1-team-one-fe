@@ -1,7 +1,9 @@
+import { POST_QUERY_KEYS } from '@/src/entities/post';
+
 import type { MomentsListQueryParams } from '../model/types';
 
 export const MOMENTS_LIST_QUERY_KEYS = {
-  root: () => ['moments-list'] as const,
+  root: POST_QUERY_KEYS.root,
   list: (params: MomentsListQueryParams, isLoggedIn?: boolean) =>
-    [...MOMENTS_LIST_QUERY_KEYS.root(), params, { isLoggedIn: !!isLoggedIn }] as const,
+    POST_QUERY_KEYS.list(params, isLoggedIn),
 } as const;
