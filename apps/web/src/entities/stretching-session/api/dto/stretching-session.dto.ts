@@ -69,7 +69,7 @@ type ValidStretchingSessionsDataType = {
 export type ValidStretchingSessionsResponseDTO = ApiResponse<ValidStretchingSessionsDataType>;
 
 // complete stretching session
-export type StretchingResultStatusType = 'COMPLETED' | 'FAILED';
+export type StretchingResultStatusType = 'PENDING' | 'COMPLETED' | 'FAILED' | 'SKIPPED';
 
 export type StretchingPoseRecordFrameType = {
   frameId: number;
@@ -77,13 +77,17 @@ export type StretchingPoseRecordFrameType = {
   keypoints: ReadonlyArray<ReadonlyArray<number>>;
 };
 
+export type StretchingPoseRecordType =
+  | ReadonlyArray<StretchingPoseRecordFrameType>
+  | Readonly<Record<string, unknown>>;
+
 export type StretchingResultItemType = {
   routineStepId: number;
   status: StretchingResultStatusType;
   accuracy: number;
   startAt: string;
   endAt: string;
-  pose_record: ReadonlyArray<StretchingPoseRecordFrameType>;
+  pose_record: StretchingPoseRecordType;
 };
 
 export type CompleteStretchingSessionRequestDTO = {
@@ -91,6 +95,17 @@ export type CompleteStretchingSessionRequestDTO = {
   endAt: string;
   exerciseResult: ReadonlyArray<StretchingResultItemType>;
 };
+
+export type CompleteStretchingSessionAcceptedDataType = {
+  sessionId: number;
+  routineId: number;
+  startAt: string;
+  endAt: string;
+  isRoutineCompleted: boolean;
+};
+
+export type CompleteStretchingSessionAcceptedResponseDTO =
+  ApiResponse<CompleteStretchingSessionAcceptedDataType>;
 
 //TODO: dto 만 export 하게 수정을 고려해보기
 

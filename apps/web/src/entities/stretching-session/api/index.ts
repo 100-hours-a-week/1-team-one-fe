@@ -1,11 +1,14 @@
 export { completeStretchingSessionFn } from './complete-stretching-session-patch';
 export type {
+  CompleteStretchingSessionAcceptedDataType,
+  CompleteStretchingSessionAcceptedResponseDTO,
   CompleteStretchingSessionRequestDTO,
   CompleteStretchingSessionResponseDataType,
   EyeKeyframeResponseType,
   ReferencePoseResponseType,
   RoutineStepResponseType,
   StretchingPoseRecordFrameType,
+  StretchingPoseRecordType,
   StretchingResultItemType,
   StretchingResultStatusType,
   StretchingSessionDataType,
