@@ -19,6 +19,7 @@ export const PUBLIC_ROUTES = {
 export const APP_ROUTES = {
   MAIN: '/app',
   PLAN: '/app/plan',
+  REPORTS: '/app/reports',
   SETTINGS_NOTIFICATIONS: '/app/notifications',
   ALARM: '/app/alarm',
   SURVEY_EDIT: '/app/survey/edit',
@@ -33,8 +34,8 @@ export function buildStretchSessionPath(sessionId: number | string): string {
   return `/stretch/${sessionId}`;
 }
 
-export function buildStretchSessionResultPath(sessionId: number | string): string {
-  return `/stretch/${sessionId}/result`;
+export function buildReportDetailPath(reportId: number | string): string {
+  return `/app/reports/${reportId}`;
 }
 
 export function buildMomentsDetailPath(postId: number | string): string {

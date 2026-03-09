@@ -27,6 +27,10 @@ export const APP_MAIN_MESSAGES = {
       TITLE: '알림 설정',
       DESCRIPTION: '스트레칭을 언제할지 관리해요',
     },
+    REPORTS: {
+      TITLE: '리포트',
+      DESCRIPTION: '운동 결과와 보상을 확인해요',
+    },
   },
   ACTIVE_SESSION: {
     TITLE: '진행 중인 스트레칭',
