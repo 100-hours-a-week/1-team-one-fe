@@ -1,11 +1,3 @@
-export {
-  type CompleteExerciseSessionRequest,
-  type CompleteExerciseSessionResponseData,
-  type ExercisePoseRecordFrame,
-  type ExerciseResultItem,
-  type ExerciseResultStatus,
-  useCompleteExerciseSessionMutation,
-} from './api/complete-exercise-session-mutation';
 export type {
   ExerciseSessionQueryKey,
   ExerciseSessionQueryOptions,
@@ -15,6 +7,14 @@ export {
   exerciseSessionQueryOptions,
   validExerciseSessionsQueryOptions,
 } from './api/query-options';
+export {
+  type CompleteExerciseSessionRequest,
+  type CompleteExerciseSessionResponseData,
+  type ExercisePoseRecordFrame,
+  type ExerciseResultItem,
+  type ExerciseResultStatus,
+  useCompleteExerciseSessionMutation,
+} from './api/useCompleteExerciseSessionMutation';
 export type {
   ValidExerciseSessionItem,
   ValidExerciseSessionsQueryKey,
