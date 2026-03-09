@@ -3,10 +3,7 @@ import { Chip } from '@repo/ui/chip';
 import Link from 'next/link';
 
 import type { ExerciseSessionReportListItemType } from '@/src/entities/exercise-session-report';
-import {
-  formatReportRelativeTimeLabel,
-  formatReportTimeLabel,
-} from '@/src/shared/lib/date/report-date';
+import { formatRelativeTimeLabel, formatTimeLabel } from '@/src/shared/lib/date/display-date';
 import { buildReportDetailPath } from '@/src/shared/routes';
 
 import { EXERCISE_SESSION_REPORT_MESSAGES } from '../config/messages';
@@ -16,8 +13,8 @@ type ReportItemProps = {
 };
 
 export function ReportItem({ item }: ReportItemProps) {
-  const timeLabel = formatReportTimeLabel(item.createdAt);
-  const relativeTimeLabel = formatReportRelativeTimeLabel(item.createdAt);
+  const timeLabel = formatTimeLabel(item.createdAt);
+  const relativeTimeLabel = formatRelativeTimeLabel(item.createdAt);
 
   return (
     <Link href={buildReportDetailPath(item.sessionReportId)} className="block">

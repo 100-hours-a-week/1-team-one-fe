@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import type { ExerciseSessionReportListItemType } from '@/src/entities/exercise-session-report';
-import { formatReportDateLabel, getReportDateKey } from '@/src/shared/lib/date/report-date';
+import { formatDateLabel, getDateKey } from '@/src/shared/lib/date/display-date';
 
 import { ReportItem } from './ReportItem';
 
@@ -18,13 +18,13 @@ export function ReportList({ items }: ReportListProps) {
         items: ExerciseSessionReportListItemType[];
       }>
     >((accumulator, item) => {
-      const dateKey = getReportDateKey(item.createdAt);
+      const dateKey = getDateKey(item.createdAt);
       const lastGroup = accumulator[accumulator.length - 1];
 
       if (!lastGroup || lastGroup.dateKey !== dateKey) {
         accumulator.push({
           dateKey,
-          label: formatReportDateLabel(item.createdAt),
+          label: formatDateLabel(item.createdAt),
           items: [item],
         });
         return accumulator;
