@@ -1,3 +1,6 @@
+import { Card } from '@repo/ui/card';
+import { Chip } from '@repo/ui/chip';
+
 import { STRETCHING_SESSION_COMPLETION_MESSAGES } from '../config/messages';
 import {
   StretchingSessionCompletionFeedback,
@@ -6,28 +9,36 @@ import {
 import { StretchingSessionCompletionNavigation } from './StretchingSessionCompletionNavigation';
 
 type StretchingSessionCompletionScreenProps = {
-  sessionId: string;
   onSubmitFeedback?: (feedback: StretchingSessionFeedbackType) => void;
 };
 
 export function StretchingSessionCompletionScreen({
-  sessionId,
   onSubmitFeedback,
 }: StretchingSessionCompletionScreenProps) {
   const title = STRETCHING_SESSION_COMPLETION_MESSAGES.COMPLETED_TITLE;
   const description = STRETCHING_SESSION_COMPLETION_MESSAGES.COMPLETED_DESCRIPTION;
 
   return (
-    <div className="flex h-full w-full flex-col justify-center gap-8 p-6">
-      <div className="flex flex-col items-center justify-center gap-3 pt-8 text-center">
-        <h1 className="text-text text-xl font-semibold">{title}</h1>
-        <p className="text-text-muted text-sm">{description}</p>
-      </div>
+    <div className="flex h-full w-full flex-col items-stretch gap-6 p-6">
+      <Card
+        padding="md"
+        variant="elevated"
+        className="animate-result-fade animate-result-delay-1 flex flex-col gap-6"
+      >
+        <div className="animate-result-pop bg-brand-50 flex flex-col items-center gap-3 rounded-lg px-4 py-5 text-center">
+          <Chip
+            label={title}
+            size="sm"
+            className="bg-brand-100 text-brand-800 border-0 text-xs font-semibold"
+          />
+          <p className="text-brand-700 text-base font-semibold whitespace-pre-line">
+            {description}
+          </p>
+        </div>
 
-      <div className="flex flex-col gap-6">
         <StretchingSessionCompletionFeedback canSubmit onSubmit={onSubmitFeedback} />
-        <StretchingSessionCompletionNavigation sessionId={sessionId} />
-      </div>
+        <StretchingSessionCompletionNavigation />
+      </Card>
     </div>
   );
 }
