@@ -17,4 +17,18 @@ export type {
   ValidStretchingSessionsResponseDTO,
 } from './dto/stretching-session.dto';
 export { fetchStretchingSessionFn } from './stretching-session-get';
+export {
+  type CompleteExerciseSessionMutationOptions,
+  type CompleteExerciseSessionRequest,
+  type CompleteExerciseSessionResponseData,
+  type ExercisePoseRecordFrame,
+  type ExerciseResultItem,
+  type ExerciseResultStatus,
+  useCompleteExerciseSessionMutation,
+} from './useCompleteExerciseSessionMutation';
+export {
+  type ExerciseSessionQueryKey,
+  type ExerciseSessionQueryOptions,
+  useExerciseSessionQuery,
+} from './useExerciseSessionQuery';
 export { fetchValidStretchingSessionsFn } from './valid-stretching-sessions-get';
