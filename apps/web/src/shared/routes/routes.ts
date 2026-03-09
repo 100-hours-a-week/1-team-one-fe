@@ -33,6 +33,10 @@ export function buildStretchSessionPath(sessionId: number | string): string {
   return `/stretch/${sessionId}`;
 }
 
+export function buildStretchSessionResultPath(sessionId: number | string): string {
+  return `/stretch/${sessionId}/result`;
+}
+
 export function buildMomentsDetailPath(postId: number | string): string {
   return `/moments/post/${postId}`;
 }
