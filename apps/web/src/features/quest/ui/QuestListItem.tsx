@@ -37,6 +37,7 @@ export function QuestListItem({ item }: QuestListItemProps) {
           <OptimizedImage
             src={item.questImagePath}
             alt={`${item.name} ${QUEST_MESSAGES.ITEM.IMAGE_ALT_SUFFIX}`}
+            useBaseUrl
             fill
             className="object-cover"
           />
