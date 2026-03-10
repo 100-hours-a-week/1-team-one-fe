@@ -54,6 +54,12 @@ const QUEST_MOCK_RESPONSES = {
   completed: QuestListDataType;
 };
 
+//TODO: MOCK_RESPONSE
+// function toIsCompletedParam(isCompleted?: boolean) {
+//   if (isCompleted) return true;
+//   return undefined;
+// }
+
 function toQuestMockBucket(isCompleted?: boolean): 'inProgress' | 'completed' {
   if (isCompleted) return 'completed';
   return 'inProgress';
@@ -62,4 +68,12 @@ function toQuestMockBucket(isCompleted?: boolean): 'inProgress' | 'completed' {
 export async function fetchMeQuestsFn(params: QuestQueryParams = {}): Promise<QuestListDataType> {
   const bucket = toQuestMockBucket(params.isCompleted);
   return QUEST_MOCK_RESPONSES[bucket];
+  // const client = getHttpClient({ requiresAuth: true });
+  // const response = await client.get<MeQuestsResponseDTO>('/me/quests', {
+  //   params: {
+  //     'is-completed': toIsCompletedParam(params.isCompleted),
+  //   },
+  // });
+
+  // return response.data.data;
 }
