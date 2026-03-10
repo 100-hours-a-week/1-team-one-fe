@@ -6,11 +6,7 @@ import type { QuestItemType } from '@/src/entities/quest';
 import { formatFutureDaysLabel, formatRelativeTimeLabel } from '@/src/shared/lib/date/display-date';
 import { OptimizedImage } from '@/src/shared/ui/optimized-image';
 
-import {
-  getQuestTypeBadgeClassName,
-  getQuestTypeLabel,
-  resolveQuestImageSrc,
-} from '../config/constants';
+import { getQuestTypeBadgeClassName, getQuestTypeLabel } from '../config/constants';
 import { QUEST_MESSAGES } from '../config/messages';
 
 interface QuestListItemProps {
@@ -31,7 +27,6 @@ function formatDueChipLabel(finishedAt: string): string {
 }
 
 export function QuestListItem({ item }: QuestListItemProps) {
-  const imagePath = resolveQuestImageSrc(item.questImagePath, item.type);
   const typeLabel = getQuestTypeLabel(item.type);
   const typeBadgeClassName = getQuestTypeBadgeClassName(item.type);
 
@@ -40,7 +35,7 @@ export function QuestListItem({ item }: QuestListItemProps) {
       <div className="flex items-start gap-3">
         <div className="bg-bg-muted relative h-20 w-20 shrink-0 overflow-hidden rounded-xl">
           <OptimizedImage
-            src={imagePath}
+            src={item.questImagePath}
             alt={`${item.name} ${QUEST_MESSAGES.ITEM.IMAGE_ALT_SUFFIX}`}
             fill
             className="object-cover"
