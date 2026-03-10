@@ -8,11 +8,16 @@ import { fetchMeQuestsFn } from './quests-get';
 
 export type MeQuestsQueryKey = ReturnType<typeof QUEST_QUERY_KEYS.list>;
 
+function normalizeQuestQueryParams(params: QuestQueryParams) {
+  if (params.isCompleted) return { isCompleted: true } as const;
+  return { isCompleted: undefined } as const;
+}
+
 export function meQuestsQueryOptions(params: QuestQueryParams = {}) {
-  const { isCompleted } = params;
+  const normalizedParams = normalizeQuestQueryParams(params);
 
   return queryOptions<QuestListDataType, ApiError, QuestListDataType, MeQuestsQueryKey>({
-    queryKey: QUEST_QUERY_KEYS.list(isCompleted),
-    queryFn: () => fetchMeQuestsFn({ isCompleted }),
+    queryKey: QUEST_QUERY_KEYS.list(normalizedParams.isCompleted),
+    queryFn: () => fetchMeQuestsFn(normalizedParams),
   });
 }
