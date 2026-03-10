@@ -4,9 +4,8 @@ import { FormField } from '@repo/ui/form-field';
 import { useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
 
-import { userByIdQueryOptions } from '@/src/entities/user';
+import { userByIdQueryOptions, userMeQueryOptions } from '@/src/entities/user';
 
-import { userProfileQueryOptions } from '../api/query-options';
 import { useUpdateProfileImageMutation } from '../api/useUpdateProfileImageMutation';
 import { useUpdateProfileNicknameMutation } from '../api/useUpdateProfileNicknameMutation';
 import { PROFILE_EDIT_MESSAGES } from '../config/edit-messages';
@@ -76,7 +75,7 @@ export function ProfileNicknameEditForm({
 
     await Promise.all(tasks);
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: userProfileQueryOptions().queryKey }),
+      queryClient.invalidateQueries({ queryKey: userMeQueryOptions().queryKey }),
       queryClient.invalidateQueries({ queryKey: userByIdQueryOptions(authorId).queryKey }),
     ]);
     onDone();

@@ -1,10 +1,14 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import type { MomentsListQueryParams } from '../model/types';
 import {
-  type MomentsListInfiniteQueryOptions,
-  momentsListInfiniteQueryOptions,
-} from './query-options';
+  type PostListInfiniteQueryOptions,
+  postListInfiniteQueryOptions,
+} from '@/src/entities/post';
+
+import { MOMENTS_LIST_CONFIG } from '../config/constants';
+import type { MomentsListQueryParams } from '../model/types';
+
+type MomentsListInfiniteQueryOptions = PostListInfiniteQueryOptions;
 
 export function usePostsInfiniteQuery(
   params: MomentsListQueryParams,
@@ -13,7 +17,7 @@ export function usePostsInfiniteQuery(
   const { isLoggedIn = false, ...queryOverrides } = options ?? {};
 
   return useInfiniteQuery({
-    ...momentsListInfiniteQueryOptions(params, isLoggedIn),
+    ...postListInfiniteQueryOptions(params, isLoggedIn, MOMENTS_LIST_CONFIG.MAX_PAGES),
     ...queryOverrides,
   });
 }

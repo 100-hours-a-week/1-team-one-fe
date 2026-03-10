@@ -1,9 +1,11 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
-import { type PostMetaDataType } from '@/src/entities/post';
+import {
+  type PostDetailMetaQueryKey,
+  postDetailMetaQueryOptions,
+  type PostMetaDataType,
+} from '@/src/entities/post';
 import { type ApiError } from '@/src/shared/api';
-
-import { type PostDetailMetaQueryKey, postDetailMetaQueryOptions } from './query-options';
 
 export type PostDetailMetaQueryOptions = Omit<
   UseQueryOptions<

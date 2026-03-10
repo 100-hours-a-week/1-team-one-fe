@@ -1,9 +1,12 @@
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 
-import { type DndUpdateDataType, type DndUpdateRequestDTO, submitDndFn } from '@/src/entities/dnd';
+import {
+  DND_QUERY_KEYS,
+  type DndUpdateDataType,
+  type DndUpdateRequestDTO,
+  submitDndFn,
+} from '@/src/entities/dnd';
 import { type ApiError } from '@/src/shared/api';
-
-import { DND_QUERY_KEYS } from '../config/query-keys';
 
 export type DndMutationOptionsType = Omit<
   UseMutationOptions<DndUpdateDataType, ApiError, DndUpdateRequestDTO>,

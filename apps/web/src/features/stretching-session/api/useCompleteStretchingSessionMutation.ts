@@ -2,13 +2,10 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import {
   type CompleteExerciseSessionMutationOptions as CompleteExerciseSessionMutationOptionsType,
-  useCompleteExerciseSessionMutation as useCompleteExerciseSessionMutationEntity,
-} from '@/src/entities/stretching-session';
-
-import {
   stretchingSessionQueryOptions,
+  useCompleteExerciseSessionMutation as useCompleteExerciseSessionMutationEntity,
   validStretchingSessionsQueryOptions,
-} from './query-options';
+} from '@/src/entities/stretching-session';
 
 export type CompleteStretchingSessionMutationOptionsType =
   CompleteExerciseSessionMutationOptionsType;

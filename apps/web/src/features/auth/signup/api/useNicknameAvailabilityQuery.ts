@@ -1,12 +1,11 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
-import { type NicknameAvailabilityDataType } from '@/src/entities/signup';
-import { type ApiError } from '@/src/shared/api';
-
 import {
+  type NicknameAvailabilityDataType,
   type NicknameAvailabilityQueryKey,
   nicknameAvailabilityQueryOptions,
-} from './query-options';
+} from '@/src/entities/signup';
+import { type ApiError } from '@/src/shared/api';
 
 export type NicknameAvailabilityQueryOptions = Omit<
   UseQueryOptions<

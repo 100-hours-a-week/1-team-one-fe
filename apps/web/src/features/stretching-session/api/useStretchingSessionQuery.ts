@@ -1,11 +1,12 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
-import { type StretchingSessionType } from '@/src/entities/stretching-session';
+import {
+  type StretchingSessionQueryKey,
+  stretchingSessionQueryOptions,
+  type StretchingSessionType,
+} from '@/src/entities/stretching-session';
 import { type ApiError } from '@/src/shared/api';
-
-import { type StretchingSessionQueryKey, stretchingSessionQueryOptions } from './query-options';
-
-export type { StretchingSessionQueryKey } from './query-options';
+export type { StretchingSessionQueryKey } from '@/src/entities/stretching-session';
 
 export type StretchingSessionQueryOptionsType = Omit<
   UseQueryOptions<
