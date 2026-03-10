@@ -20,7 +20,7 @@ const DEFAULT_MAX_PAGES = 10;
 export type PostDetailQueryKey = ReturnType<typeof POST_QUERY_KEYS.detail>;
 export type PostDetailMetaQueryKey = ReturnType<typeof POST_QUERY_KEYS.meta>;
 export type PostListInfiniteQueryKey = ReturnType<typeof POST_QUERY_KEYS.list>;
-export type PostListRootQueryKey = ReturnType<typeof POST_QUERY_KEYS.root>;
+export type PostListRootQueryKey = ReturnType<typeof POST_QUERY_KEYS.listRoot>;
 
 export type PostListInfiniteQueryOptions = Omit<
   UseInfiniteQueryOptions<
@@ -56,7 +56,7 @@ export function postDetailMetaQueryOptions(postId: number) {
 
 export function postListRootQueryOptions() {
   return queryOptions<unknown, ApiError, unknown, PostListRootQueryKey>({
-    queryKey: POST_QUERY_KEYS.root(),
+    queryKey: POST_QUERY_KEYS.listRoot(),
   });
 }
 
