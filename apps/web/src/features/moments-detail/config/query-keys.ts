@@ -1,5 +1,7 @@
+import { POST_QUERY_KEYS } from '@/src/entities/post';
+
 export const MOMENTS_DETAIL_QUERY_KEYS = {
-  all: ['moments-detail'] as const,
-  detail: (postId: number) => [...MOMENTS_DETAIL_QUERY_KEYS.all, postId] as const,
-  meta: (postId: number) => [...MOMENTS_DETAIL_QUERY_KEYS.all, postId, 'meta'] as const,
-};
+  all: POST_QUERY_KEYS.root(),
+  detail: POST_QUERY_KEYS.detail,
+  meta: POST_QUERY_KEYS.meta,
+} as const;

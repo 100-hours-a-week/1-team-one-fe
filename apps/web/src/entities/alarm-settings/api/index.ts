@@ -5,3 +5,5 @@ export type {
   AlarmSettingsRequestDTO,
   AlarmSettingsResponseDTO,
 } from './dto/alarm-settings.dto';
+export type { AlarmSettingsQueryKey } from './query-options';
+export { alarmSettingsQueryOptions } from './query-options';

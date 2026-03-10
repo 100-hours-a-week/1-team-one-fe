@@ -4,10 +4,9 @@ import {
   patchProfileImageFn,
   type UpdateProfileImageRequestDTO,
   type UpdateProfileResponseDataType,
+  USER_QUERY_KEYS,
 } from '@/src/entities/user';
 import { type ApiError } from '@/src/shared/api';
-
-import { USER_PROFILE_QUERY_KEYS } from '../config/query-keys';
 
 export type UpdateProfileImageMutationOptions = Omit<
   UseMutationOptions<UpdateProfileResponseDataType, ApiError, UpdateProfileImageRequestDTO>,
@@ -16,7 +15,7 @@ export type UpdateProfileImageMutationOptions = Omit<
 
 export function useUpdateProfileImageMutation(options?: UpdateProfileImageMutationOptions) {
   return useMutation({
-    mutationKey: USER_PROFILE_QUERY_KEYS.updateImage(),
+    mutationKey: USER_QUERY_KEYS.updateImage(),
     mutationFn: patchProfileImageFn,
     ...options,
   });
