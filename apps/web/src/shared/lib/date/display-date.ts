@@ -1,4 +1,10 @@
-import { format, formatDistanceToNowStrict, isValid, parseISO } from 'date-fns';
+import {
+  differenceInCalendarDays,
+  format,
+  formatDistanceToNowStrict,
+  isValid,
+  parseISO,
+} from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 function parseDate(value: string): Date | null {
@@ -61,4 +67,19 @@ export function formatRelativeTimeLabel(value: string): string {
     addSuffix: true,
     locale: ko,
   });
+}
+
+export function formatFutureDaysLabel(value: string): string | null {
+  const parsedDate = parseDate(value);
+  if (!parsedDate) {
+    return null;
+  }
+
+  const now = new Date();
+  if (parsedDate.getTime() <= now.getTime()) {
+    return null;
+  }
+
+  const diffDays = Math.max(0, differenceInCalendarDays(parsedDate, now));
+  return `${String(diffDays).padStart(2, '0')}일 후`;
 }
