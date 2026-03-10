@@ -1,5 +1,4 @@
 import Image, { type ImageProps } from 'next/image';
-import { useEffect } from 'react';
 
 import {
   IMAGE_CONFIG,
@@ -12,18 +11,34 @@ import { buildImageUrl } from '@/src/shared/lib/image';
 
 type LcpAwareImageProps = Pick<ImageProps, 'loading' | 'fetchPriority' | 'preload'>;
 
-function shouldSkipBuildImageUrl(src: string): boolean {
-  return (
+function shouldSkipBuildImageUrl(src: string, useBaseUrl?: boolean): boolean {
+  if (
     src.startsWith('http://') ||
     src.startsWith('https://') ||
     src.startsWith('data:') ||
     src.startsWith('blob:')
-  );
+  ) {
+    return true;
+  }
+
+  if (useBaseUrl === false) {
+    return true;
+  }
+
+  if (src.startsWith('/') && useBaseUrl !== true) {
+    return true;
+  }
+
+  return false;
 }
 
-function resolveImageSrc(src: ImageProps['src'], srcBaseUrl?: string): ImageProps['src'] {
+function resolveImageSrc(
+  src: ImageProps['src'],
+  srcBaseUrl?: string,
+  useBaseUrl?: boolean,
+): ImageProps['src'] {
   if (typeof src !== 'string') return src;
-  if (shouldSkipBuildImageUrl(src)) return src;
+  if (shouldSkipBuildImageUrl(src, useBaseUrl)) return src;
   return buildImageUrl(src, srcBaseUrl);
 }
 
@@ -95,6 +110,13 @@ export type OptimizedImageProps = Omit<ImageProps, 'priority'> & {
   lcpLoadStrategy?: ImageLcpLoadStrategy;
   /** 기본 이미지 base URL을 강제로 지정할 때 사용 */
   srcBaseUrl?: string;
+  /**
+   * baseUrl 적용 여부
+   * - `undefined` => `/...` 경로는 그대로 사용하고, 그 외 상대 경로에만 baseUrl 적용
+   * - `true` => `/...` 경로를 포함해 baseUrl을 강제 적용
+   * - `false` => 어떤 상대 경로에도 baseUrl을 적용하지 않음
+   */
+  useBaseUrl?: boolean;
 };
 
 /**
@@ -118,14 +140,11 @@ export function OptimizedImage({
   preload,
   lcpCandidate = IMAGE_LCP_CANDIDATE.AUTO,
   lcpLoadStrategy = IMAGE_LCP_LOAD_STRATEGY.FETCH_PRIORITY,
-  srcBaseUrl = process.env.NEXT_PUBLIC_GCS_BASE_URL,
+  srcBaseUrl,
+  useBaseUrl,
   ...props
 }: OptimizedImageProps) {
-  const resolvedSrc = resolveImageSrc(src, srcBaseUrl);
-
-  useEffect(() => {
-    console.log(resolvedSrc);
-  }, [resolvedSrc]);
+  const resolvedSrc = resolveImageSrc(src, srcBaseUrl, useBaseUrl);
   const hasBlurDataURL = typeof blurDataURL === 'string' && blurDataURL.length > 0;
   const blurPlaceholder = hasBlurDataURL ? (placeholder ?? 'blur') : placeholder;
   const resolvedPlaceholder =
