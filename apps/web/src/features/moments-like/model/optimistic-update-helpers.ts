@@ -44,12 +44,14 @@ function resolveLikeState(current: PostListItemType, patch: LikePatch) {
   return patch.isLiked;
 }
 
+//리스트에서 좋아요 누를 때
 function patchPostLikeInInfiniteData(
   data: InfiniteData<PostListResponseDataType> | undefined,
   postId: number,
   patch: LikePatch,
 ) {
   if (!data) return data;
+  if (!Array.isArray(data.pages)) return data;
 
   let nextPages: PostListResponseDataType[] | null = null;
 
