@@ -1,4 +1,5 @@
 import Image, { type ImageProps } from 'next/image';
+import { useEffect } from 'react';
 
 import {
   IMAGE_CONFIG,
@@ -13,7 +14,6 @@ type LcpAwareImageProps = Pick<ImageProps, 'loading' | 'fetchPriority' | 'preloa
 
 function shouldSkipBuildImageUrl(src: string): boolean {
   return (
-    src.startsWith('/') ||
     src.startsWith('http://') ||
     src.startsWith('https://') ||
     src.startsWith('data:') ||
@@ -118,10 +118,14 @@ export function OptimizedImage({
   preload,
   lcpCandidate = IMAGE_LCP_CANDIDATE.AUTO,
   lcpLoadStrategy = IMAGE_LCP_LOAD_STRATEGY.FETCH_PRIORITY,
-  srcBaseUrl,
+  srcBaseUrl = process.env.NEXT_PUBLIC_GCS_BASE_URL,
   ...props
 }: OptimizedImageProps) {
   const resolvedSrc = resolveImageSrc(src, srcBaseUrl);
+
+  useEffect(() => {
+    console.log(resolvedSrc);
+  }, [resolvedSrc]);
   const hasBlurDataURL = typeof blurDataURL === 'string' && blurDataURL.length > 0;
   const blurPlaceholder = hasBlurDataURL ? (placeholder ?? 'blur') : placeholder;
   const resolvedPlaceholder =
