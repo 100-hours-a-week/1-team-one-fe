@@ -19,6 +19,8 @@ export const PUBLIC_ROUTES = {
 export const APP_ROUTES = {
   MAIN: '/app',
   PLAN: '/app/plan',
+  QUEST: '/app/quest',
+  LEADERBOARD: '/app/leaderboard',
   REPORTS: '/app/reports',
   SETTINGS_NOTIFICATIONS: '/app/notifications',
   ALARM: '/app/alarm',

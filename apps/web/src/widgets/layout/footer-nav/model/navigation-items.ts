@@ -15,7 +15,7 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'more',
     label: '더보기',
-    href: '/app/ready?page=more',
+    href: APP_ROUTES.MAIN,
     icon: CircleEllipsis,
   },
   {
