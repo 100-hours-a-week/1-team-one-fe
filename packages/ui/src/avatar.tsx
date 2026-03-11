@@ -6,8 +6,7 @@ import { cn } from './lib/utils';
 
 const avatarVariants = cva(
   [
-    'inline-flex items-center justify-center',
-    'overflow-hidden rounded-full',
+    'inline-flex items-center justify-center overflow-hidden',
     'bg-bg-subtle text-text',
     'select-none',
   ],
@@ -18,9 +17,14 @@ const avatarVariants = cva(
         md: 'h-12 w-12 text-base',
         lg: 'h-16 w-16 text-lg',
       },
+      shape: {
+        circle: 'rounded-full',
+        squircle: 'rounded-[34%_34%_34%_34%/28%_28%_40%_40%]',
+      },
     },
     defaultVariants: {
       size: 'md',
+      shape: 'circle',
     },
   },
 );
@@ -59,6 +63,7 @@ export function Avatar({
   fallbackText,
   fallbackDelayMs = 0,
   size,
+  shape,
   badge,
   className,
   ...props
@@ -68,7 +73,7 @@ export function Avatar({
 
   return (
     <div className="relative inline-flex">
-      <AvatarPrimitive.Root className={cn(avatarVariants({ size }), className)} {...props}>
+      <AvatarPrimitive.Root className={cn(avatarVariants({ size, shape }), className)} {...props}>
         <AvatarPrimitive.Image
           src={src ?? undefined}
           alt={ariaLabel}
