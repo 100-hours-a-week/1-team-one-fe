@@ -10,7 +10,7 @@ export const LEADERBOARD_MESSAGES = {
     FETCHING_MORE: '순위를 더 불러오는 중...',
   },
   PODIUM: {
-    RANK_RULE: 'exp 가 높은 순으로 랭크돼요(중앙점)',
+    RANK_RULE: 'exp 가 높은 순으로 랭크돼요!',
     LAST_UPDATED_PREFIX: '마지막 업데이트 시간',
     LAST_UPDATED_FALLBACK: '-',
     TITLE: 'TOP 3',
