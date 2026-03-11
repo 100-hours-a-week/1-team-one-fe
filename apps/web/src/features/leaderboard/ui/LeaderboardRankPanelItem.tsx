@@ -21,7 +21,7 @@ function getPercentileLabel(rank: number, totalCount: number) {
   return `${LEADERBOARD_MESSAGES.ROW.PERCENTILE_PREFIX} ${percentile}%`;
 }
 
-export function LeaderboardRankItem({ item, isMyRank, totalCount }: LeaderboardRankRowProps) {
+export function LeaderboardRankRow({ item, isMyRank, totalCount }: LeaderboardRankRowProps) {
   const scoreLabel = item.exp.toLocaleString('ko-KR');
   const rankBadgeLabel = `${item.rank}${LEADERBOARD_MESSAGES.ROW.RANK_SUFFIX}`;
   const subtitleLabel = isMyRank ? LEADERBOARD_MESSAGES.ROW.MY_BADGE : item.nickname;
@@ -29,6 +29,7 @@ export function LeaderboardRankItem({ item, isMyRank, totalCount }: LeaderboardR
 
   return (
     <div
+      data-leaderboard-my-rank={isMyRank ? 'true' : undefined}
       className={cn(
         'duration-base relative flex items-center gap-2.5 rounded-xl px-2.5 py-2.5 transition-[background-color,box-shadow]',
         isMyRank
@@ -71,3 +72,5 @@ export function LeaderboardRankItem({ item, isMyRank, totalCount }: LeaderboardR
     </div>
   );
 }
+
+export const LeaderboardRankItem = LeaderboardRankRow;
