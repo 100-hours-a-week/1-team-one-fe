@@ -36,7 +36,7 @@ function QuestTabPanel({
       isEmpty={isEmpty}
       renderLoading={() => <QuestListSkeleton />}
       renderError={() => (
-        <Card padding="md" variant="elevated" className="bg-bg-subtle border-0 shadow-none">
+        <Card padding="md" variant="elevated" className="bg-bg-subtle shadow-none">
           <p className="text-error text-sm">{APP_QUEST_PAGE_MESSAGES.STATE.ERROR}</p>
         </Card>
       )}

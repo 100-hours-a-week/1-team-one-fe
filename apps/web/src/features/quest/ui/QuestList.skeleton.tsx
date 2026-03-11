@@ -10,7 +10,7 @@ function QuestListItemSkeleton({ index }: { index: number }) {
       key={`quest-list-skeleton-${index}`}
       padding="sm"
       variant="elevated"
-      className="bg-bg-subtle border-0 shadow-none"
+      className="bg-bg-subtle shadow-none"
     >
       <div className="flex items-start gap-3">
         <Skeleton className="h-20 w-20 shrink-0 rounded-xl" />

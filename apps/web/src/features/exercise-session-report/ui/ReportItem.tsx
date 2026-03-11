@@ -21,7 +21,7 @@ export function ReportItem({ item }: ReportItemProps) {
       <Card
         padding="md"
         variant="elevated"
-        className="bg-bg-subtle hover:bg-bg-muted border-0 shadow-none transition-colors"
+        className="bg-bg-subtle hover:bg-bg-muted shadow-none transition-colors"
       >
         <CardHeader className="flex-row items-center justify-between gap-3 space-y-0 p-0">
           <Chip label={timeLabel} size="sm" variant="date" />

@@ -10,7 +10,7 @@ export function StretchSessionResultPage() {
 
   return (
     <div className="flex h-full w-full items-center justify-center px-6">
-      <Card variant="elevated" padding="lg" className="w-full max-w-md border-0 text-center">
+      <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
         <h1 className="text-text text-xl font-semibold">
           {STRETCH_SESSION_RESULT_PAGE_MESSAGES.TITLE}
         </h1>

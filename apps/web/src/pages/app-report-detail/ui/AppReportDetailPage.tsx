@@ -228,7 +228,7 @@ export function AppReportDetailPage() {
                         key={`${exercise.exerciseId}-${exercise.stepOrder}`}
                         variant="elevated"
                         padding="none"
-                        className="bg-surface border-0 shadow-none"
+                        className="bg-surface shadow-none"
                       >
                         <CardHeader className="space-y-0 px-3 pt-3 pb-0">
                           <div className="flex items-start justify-between gap-2">

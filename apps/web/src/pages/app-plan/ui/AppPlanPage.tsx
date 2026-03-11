@@ -52,9 +52,9 @@ export function AppPlanPage() {
 
             {isGenerating && (
               <Card
-                variant="default"
+                variant="elevated"
                 padding="none"
-                className="bg-bg-subtle text-text flex items-start gap-3 border-0 px-4 py-3 text-sm"
+                className="bg-bg-subtle text-text flex items-start gap-3 px-4 py-3 text-sm"
                 role="status"
                 aria-live="polite"
               >
