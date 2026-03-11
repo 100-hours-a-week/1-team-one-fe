@@ -1,9 +1,14 @@
-import { useRouter } from 'next/router';
+import { type NextRouter, useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 import { normalizeStatsMonth } from '@/src/features/stats-month-selector';
 
 import { STATS_MONTH_QUERY_KEY } from '../config/constants';
+
+const MONTH_QUERY_NAVIGATION_OPTIONS = {
+  shallow: true,
+  scroll: false,
+} as const;
 
 function getMonthQueryValue(value: string | string[] | undefined): string | undefined {
   if (typeof value === 'string') {
@@ -11,6 +16,32 @@ function getMonthQueryValue(value: string | string[] | undefined): string | unde
   }
 
   return undefined;
+}
+
+function createMonthQueryRoute(router: NextRouter, month: string) {
+  return {
+    pathname: router.pathname,
+    query: {
+      ...router.query,
+      [STATS_MONTH_QUERY_KEY]: month,
+    },
+  };
+}
+
+function replaceToMonthQueryString(router: NextRouter, month: string) {
+  return router.replace(
+    createMonthQueryRoute(router, month),
+    undefined,
+    MONTH_QUERY_NAVIGATION_OPTIONS,
+  );
+}
+
+function pushToMonthQueryString(router: NextRouter, month: string) {
+  return router.push(
+    createMonthQueryRoute(router, month),
+    undefined,
+    MONTH_QUERY_NAVIGATION_OPTIONS,
+  );
 }
 
 export function useStatsMonthQueryState() {
@@ -25,34 +56,14 @@ export function useStatsMonthQueryState() {
     const currentQueryValue = getMonthQueryValue(router.query[STATS_MONTH_QUERY_KEY]);
     if (currentQueryValue === selectedMonth) return;
 
-    void router.replace(
-      {
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          [STATS_MONTH_QUERY_KEY]: selectedMonth,
-        },
-      },
-      undefined,
-      { shallow: true, scroll: false },
-    );
+    void replaceToMonthQueryString(router, selectedMonth);
   }, [router, router.isReady, router.pathname, router.query, selectedMonth]);
 
   const handleMonthChange = (nextMonth: string) => {
     const normalizedNextMonth = normalizeStatsMonth(nextMonth);
     if (normalizedNextMonth === selectedMonth) return;
 
-    void router.push(
-      {
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          [STATS_MONTH_QUERY_KEY]: normalizedNextMonth,
-        },
-      },
-      undefined,
-      { shallow: true, scroll: false },
-    );
+    void pushToMonthQueryString(router, normalizedNextMonth);
   };
 
   return {
