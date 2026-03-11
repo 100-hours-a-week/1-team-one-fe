@@ -1,5 +1,6 @@
 export type {
   GetUsersRankResponseDTO,
+  LeaderboardInfinitePageParam,
   LeaderboardInfiniteQueryOptions,
   LeaderboardListInfiniteQueryKey,
   LeaderboardListRootQueryKey,
@@ -11,6 +12,7 @@ export {
 } from './api';
 export { LEADERBOARD_QUERY_KEYS } from './config/query-keys';
 export type {
+  LeaderboardCursorDirectionType,
   LeaderboardDataType,
   LeaderboardListQueryParamsType,
   LeaderboardPagingType,

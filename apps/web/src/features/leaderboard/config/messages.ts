@@ -6,9 +6,13 @@ export const LEADERBOARD_MESSAGES = {
     SHARE_BUTTON: '내 점수 자랑하기',
   },
   LIST: {
+    FETCHING_PREVIOUS: '이전 순위를 불러오는 중...',
     FETCHING_MORE: '순위를 더 불러오는 중...',
   },
   PODIUM: {
+    RANK_RULE: 'exp 가 높은 순으로 랭크돼요!',
+    LAST_UPDATED_PREFIX: '마지막 업데이트 시간',
+    LAST_UPDATED_FALLBACK: '-',
     TITLE: 'TOP 3',
     EMPTY: '표시할 포디움 정보가 없어요.',
     ERROR: '리더보드를 불러오지 못했어요.',
