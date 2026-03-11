@@ -21,7 +21,7 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'statistic',
     label: '통계',
-    href: '/app/ready?page=statistic',
+    href: APP_ROUTES.STATISTICS,
     icon: ChartPie,
     isMain: true,
   },
