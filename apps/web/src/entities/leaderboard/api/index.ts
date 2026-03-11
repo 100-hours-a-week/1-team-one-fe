@@ -1,5 +1,6 @@
 export type { GetUsersRankResponseDTO } from './dto/users-rank-get.dto';
 export type {
+  LeaderboardInfinitePageParam,
   LeaderboardInfiniteQueryOptions,
   LeaderboardListInfiniteQueryKey,
   LeaderboardListRootQueryKey,

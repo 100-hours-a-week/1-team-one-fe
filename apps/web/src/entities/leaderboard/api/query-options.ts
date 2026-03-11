@@ -8,7 +8,11 @@ import {
 import type { ApiError } from '@/src/shared/api';
 
 import { LEADERBOARD_QUERY_KEYS } from '../config/query-keys';
-import type { LeaderboardDataType, LeaderboardListQueryParamsType } from '../model/types';
+import type {
+  LeaderboardCursorDirectionType,
+  LeaderboardDataType,
+  LeaderboardListQueryParamsType,
+} from '../model/types';
 import { fetchUsersRankFn } from './users-rank-get';
 
 const LEADERBOARD_DEFAULT_LIMIT = 20;
@@ -24,15 +28,20 @@ function resolveLeaderboardLimit(limit?: number) {
 export type LeaderboardListInfiniteQueryKey = ReturnType<typeof LEADERBOARD_QUERY_KEYS.list>;
 export type LeaderboardListRootQueryKey = ReturnType<typeof LEADERBOARD_QUERY_KEYS.listRoot>;
 
+export type LeaderboardInfinitePageParam = {
+  cursor?: string;
+  direction?: LeaderboardCursorDirectionType;
+} | null;
+
 export type LeaderboardInfiniteQueryOptions = Omit<
   UseInfiniteQueryOptions<
     LeaderboardDataType,
     ApiError,
     InfiniteData<LeaderboardDataType>,
     LeaderboardListInfiniteQueryKey,
-    string | null
+    LeaderboardInfinitePageParam
   >,
-  'queryKey' | 'queryFn' | 'initialPageParam' | 'getNextPageParam'
+  'queryKey' | 'queryFn' | 'initialPageParam' | 'getNextPageParam' | 'getPreviousPageParam'
 >;
 
 export function leaderboardListRootQueryOptions() {
@@ -49,21 +58,52 @@ export function leaderboardInfiniteQueryOptions(params: LeaderboardListQueryPara
     ApiError,
     InfiniteData<LeaderboardDataType>,
     LeaderboardListInfiniteQueryKey,
-    string | null
+    LeaderboardInfinitePageParam
   >({
     queryKey: LEADERBOARD_QUERY_KEYS.list(limit),
-    queryFn: ({ pageParam }) =>
-      fetchUsersRankFn({
+    queryFn: ({ pageParam }) => {
+      if (!pageParam?.cursor) {
+        return fetchUsersRankFn({
+          limit,
+        });
+      }
+
+      return fetchUsersRankFn({
         limit,
-        cursor: pageParam ?? undefined,
-      }),
+        cursor: pageParam.cursor,
+        direction: pageParam.direction,
+      });
+    },
     initialPageParam: null,
     getNextPageParam: (lastPage) => {
       if (!lastPage.paging.hasNext) {
         return undefined;
       }
 
-      return lastPage.paging.nextCursor ?? undefined;
+      const nextCursor = lastPage.paging.nextCursor;
+      if (!nextCursor) {
+        return undefined;
+      }
+
+      return {
+        cursor: nextCursor,
+        direction: 'NEXT',
+      };
+    },
+    getPreviousPageParam: (firstPage) => {
+      if (!firstPage.paging.hasPrev) {
+        return undefined;
+      }
+
+      const prevCursor = firstPage.paging.prevCursor;
+      if (!prevCursor) {
+        return undefined;
+      }
+
+      return {
+        cursor: prevCursor,
+        direction: 'PREV',
+      };
     },
   });
 }

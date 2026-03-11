@@ -7,10 +7,12 @@ export async function fetchUsersRankFn(
   params: LeaderboardRequestParamsType = {},
 ): Promise<LeaderboardDataType> {
   const client = getHttpClient({ requiresAuth: true });
+
   const response = await client.get<GetUsersRankResponseDTO>('/users/rank', {
     params: {
       limit: params.limit,
       cursor: params.cursor,
+      direction: params.direction,
     },
   });
 
