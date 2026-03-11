@@ -10,6 +10,6 @@ export const EXERCISE_STATUS_CHIP_CLASSNAME: Record<ExerciseSessionReportStatus,
 export const UNKNOWN_EXERCISE_STATUS_CHIP_CLASSNAME = 'bg-bg-muted text-text-muted border-0';
 
 export const ROUTINE_COMPLETED_CARD_CLASSNAME = {
-  COMPLETED: 'bg-brand-50 border-0 shadow-none',
-  INCOMPLETE: 'bg-error-50 border-0 shadow-none',
+  COMPLETED: 'bg-brand-50 shadow-none',
+  INCOMPLETE: 'bg-error-50 shadow-none',
 } as const;

@@ -31,7 +31,7 @@ export function QuestListItem({ item }: QuestListItemProps) {
   const typeBadgeClassName = getQuestTypeBadgeClassName(item.type);
 
   return (
-    <Card padding="sm" variant="elevated" className="bg-bg-subtle border-0 shadow-none">
+    <Card padding="sm" variant="elevated" className="bg-bg-subtle shadow-none">
       <div className="flex items-start gap-3">
         <div className="bg-bg-muted relative h-20 w-20 shrink-0 overflow-hidden rounded-xl">
           <OptimizedImage
