@@ -1,3 +1,3 @@
 export const APP_LEADERBOARD_PAGE_MESSAGES = {
-  DESCRIPTION: '리더보드 페이지는 준비 중이에요.',
+  TITLE_BADGE: '게임 리더보드',
 } as const;
