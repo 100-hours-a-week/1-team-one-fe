@@ -4,10 +4,9 @@ import {
   patchProfileNicknameFn,
   type UpdateProfileNicknameRequestDTO,
   type UpdateProfileResponseDataType,
+  USER_QUERY_KEYS,
 } from '@/src/entities/user';
 import { type ApiError } from '@/src/shared/api';
-
-import { USER_PROFILE_QUERY_KEYS } from '../config/query-keys';
 
 export type UpdateProfileNicknameMutationOptions = Omit<
   UseMutationOptions<UpdateProfileResponseDataType, ApiError, UpdateProfileNicknameRequestDTO>,
@@ -16,7 +15,7 @@ export type UpdateProfileNicknameMutationOptions = Omit<
 
 export function useUpdateProfileNicknameMutation(options?: UpdateProfileNicknameMutationOptions) {
   return useMutation({
-    mutationKey: USER_PROFILE_QUERY_KEYS.updateNickname(),
+    mutationKey: USER_QUERY_KEYS.updateNickname(),
     mutationFn: patchProfileNicknameFn,
     ...options,
   });

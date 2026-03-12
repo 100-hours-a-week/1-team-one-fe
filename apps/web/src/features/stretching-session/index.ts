@@ -18,4 +18,4 @@ export type {
 export { useValidStretchingSessionsQuery } from './api/useValidStretchingSessionsQuery';
 export { useStretchingSession } from './lib/useStretchingSession';
 export { StretchingSessionView } from './ui/StretchingSessionView';
-export type { CompleteStretchingSessionResponseDataType } from '@/src/entities/stretching-session';
+export type { CompleteStretchingSessionAcceptedDataType } from '@/src/entities/stretching-session';

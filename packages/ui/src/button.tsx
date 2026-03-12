@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import { ElementType } from 'react';
-import { Slot } from 'radix-ui';
+import { Slot as SlotPrimitive } from 'radix-ui';
 
 import { Spinner } from './spinner';
 import { cn } from './lib/utils';
@@ -94,7 +94,7 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const Comp = (asChild ? Slot : 'button') as ElementType;
+  const Comp = (asChild ? SlotPrimitive.Root : 'button') as ElementType;
   const resolvedSize = size ?? 'md';
   const spinnerSize = resolvedSize === 'lg' ? 'md' : 'sm';
   const isDisabled = Boolean(disabled || isLoading);
@@ -108,7 +108,7 @@ export function Button({
       {...props}
     >
       {isLoading && <Spinner size={spinnerSize} className="shrink-0" />}
-      {children}
+      <SlotPrimitive.Slottable>{children}</SlotPrimitive.Slottable>
     </Comp>
   );
 }

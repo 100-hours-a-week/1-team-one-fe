@@ -4,10 +4,9 @@ import {
   deletePostFn,
   type PostDeleteDataType,
   type PostDeleteRequestDTO,
+  postDetailQueryOptions,
 } from '@/src/entities/post';
 import type { ApiError } from '@/src/shared/api';
-
-import { postDetailQueryOptions } from './query-options';
 
 export type DeletePostMutationOptions = Omit<
   UseMutationOptions<PostDeleteDataType, ApiError, PostDeleteRequestDTO>,

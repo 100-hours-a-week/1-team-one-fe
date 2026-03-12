@@ -15,13 +15,13 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'more',
     label: '더보기',
-    href: '/app/ready?page=more',
+    href: APP_ROUTES.MAIN,
     icon: CircleEllipsis,
   },
   {
     id: 'statistic',
     label: '통계',
-    href: '/app/ready?page=statistic',
+    href: APP_ROUTES.STATISTICS,
     icon: ChartPie,
     isMain: true,
   },

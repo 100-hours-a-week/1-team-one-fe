@@ -4,15 +4,14 @@ import { Spinner } from '@repo/ui/spinner';
 import { useEffect, useRef, useState } from 'react';
 
 import {
-  type CompleteExerciseSessionResponseData,
   useCompleteExerciseSessionMutation,
   useExerciseSessionQuery,
-} from '@/src/features/exercise-session';
+} from '@/src/entities/stretching-session';
 import { EYE_STRETCHING_SESSION_LAYOUT } from '@/src/features/eye-stretching-session/config/constants';
 import { EYE_STRETCHING_SESSION_MESSAGES } from '@/src/features/eye-stretching-session/config/messages';
 import { WEBGAZER_MODEL_REDIRECTS } from '@/src/features/eye-stretching-session/config/webgazer-models';
-import { StretchingSessionCompletionResult } from '@/src/features/stretching-session/ui/StretchingSessionCompletionResult';
 import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
+import { StretchingSessionCompletionScreen } from '@/src/shared/ui/stretching-session-completion';
 
 import { EyeStretchingGuideDot } from './EyeStretchingGuideDot';
 import { EyeStretchingOverlay } from './EyeStretchingOverlay';
@@ -58,12 +57,12 @@ export function EyeStretchingSessionView({
 
   const { data: sessionData, isLoading: isSessionDataLoading } = useExerciseSessionQuery(sessionId);
 
-  const [completionResult, setCompletionResult] =
-    useState<CompleteExerciseSessionResponseData | null>(null);
-  const { mutate: completeSession, isPending: isCompleting } = useCompleteExerciseSessionMutation({
-    sessionId,
-    onSuccess: (payload) => setCompletionResult(payload),
-  });
+  const { mutate: completeSession } = useCompleteExerciseSessionMutation({ sessionId });
+
+  useEffect(() => {
+    hasSubmittedResultRef.current = false;
+    sessionStartedAtRef.current = null;
+  }, [sessionId]);
 
   // 세션 시작 시각 기록
   useEffect(() => {
@@ -95,7 +94,7 @@ export function EyeStretchingSessionView({
           accuracy: score,
           startAt: formatDateTime(startedAt),
           endAt: formatDateTime(endedAt),
-          pose_record: [],
+          pose_record: { frames: [] },
         },
       ],
     });
@@ -165,7 +164,7 @@ export function EyeStretchingSessionView({
 
   // 세션 완료
   if (isSessionComplete) {
-    return <StretchingSessionCompletionResult result={completionResult} isLoading={isCompleting} />;
+    return <StretchingSessionCompletionScreen />;
   }
 
   return (

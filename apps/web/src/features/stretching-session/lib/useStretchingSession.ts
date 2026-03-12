@@ -12,7 +12,7 @@ import { createSession, type StretchingSession } from '@repo/stretching-session'
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
-  CompleteStretchingSessionResponseDataType,
+  CompleteStretchingSessionAcceptedDataType,
   StretchingSessionStepType,
 } from '@/src/entities/stretching-session';
 import { formatDateTime } from '@/src/shared/lib/date/format-date-time';
@@ -48,7 +48,8 @@ export type UseStretchingSessionResult = {
   isCanvasReady: boolean;
   isSessionComplete: boolean;
   isRoutineSuccess: boolean;
-  completionResult: CompleteStretchingSessionResponseDataType | null;
+  completionResult: CompleteStretchingSessionAcceptedDataType | null;
+  isCompletionAccepted: boolean;
   isCompleting: boolean;
 };
 
@@ -218,7 +219,8 @@ export function useStretchingSession(
   const [isCanvasReady, setIsCanvasReady] = useState(false);
   // 세션 완료 응답 데이터
   const [completionResult, setCompletionResult] =
-    useState<CompleteStretchingSessionResponseDataType | null>(null);
+    useState<CompleteStretchingSessionAcceptedDataType | null>(null);
+  const [isCompletionAccepted, setIsCompletionAccepted] = useState(false);
 
   //마지막 ui 반영 값 refs
   const lastUiAccuracyPercentRef = useRef(0);
@@ -236,6 +238,10 @@ export function useStretchingSession(
       sessionId: sessionId ?? '',
       onSuccess: (payload) => {
         setCompletionResult(payload);
+        setIsCompletionAccepted(true);
+      },
+      onError: () => {
+        setIsCompletionAccepted(false);
       },
     },
   );
@@ -537,6 +543,7 @@ export function useStretchingSession(
     sessionEndedAtRef.current = null;
     stepStartedAtRef.current = null;
     setCompletionResult(null);
+    setIsCompletionAccepted(false);
     guideStartAtRef.current = null;
     guideProgressRatioRef.current = 0;
 
@@ -826,7 +833,7 @@ export function useStretchingSession(
         accuracy: result.accuracy,
         startAt: result.startAt,
         endAt: result.endAt,
-        pose_record: [],
+        pose_record: { frames: [] },
       })),
     });
   }, [completeSession, isSessionComplete, sessionId, stepResults]);
@@ -914,6 +921,7 @@ export function useStretchingSession(
     isSessionComplete,
     isRoutineSuccess,
     completionResult,
+    isCompletionAccepted,
     isCompleting,
   };
 }

@@ -3,18 +3,18 @@ import { HEADERS } from '@/src/shared/config/headers';
 import { createIdempotencyKey } from '@/src/shared/lib/crypto/create-idempotency-key';
 
 import type {
+  CompleteStretchingSessionAcceptedDataType,
+  CompleteStretchingSessionAcceptedResponseDTO,
   CompleteStretchingSessionRequestDTO,
-  CompleteStretchingSessionResponseDataType,
-  CompleteStretchingSessionResponseDTO,
 } from './dto/stretching-session.dto';
 
 export async function completeStretchingSessionFn(
   sessionId: string,
   payload: CompleteStretchingSessionRequestDTO,
-): Promise<CompleteStretchingSessionResponseDataType> {
+): Promise<CompleteStretchingSessionAcceptedDataType> {
   const client = getHttpClient({ requiresAuth: true });
-  const response = await client.patch<CompleteStretchingSessionResponseDTO>(
-    `/me/exercise-sessions/${encodeURIComponent(sessionId)}`,
+  const response = await client.patch<CompleteStretchingSessionAcceptedResponseDTO>(
+    `/v2/me/exercise-sessions/${encodeURIComponent(sessionId)}`,
     payload,
     {
       headers: {

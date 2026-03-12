@@ -1,10 +1,12 @@
 import { Spinner } from '@repo/ui/spinner';
 import { useRouter } from 'next/router';
 
-import { useExerciseSessionQuery } from '@/src/features/exercise-session';
 import { EYE_STRETCHING_SESSION_MESSAGES } from '@/src/features/eye-stretching-session/config/messages';
 import { EyeStretchingSessionView } from '@/src/features/eye-stretching-session/ui';
-import { StretchingSessionView } from '@/src/features/stretching-session';
+import {
+  StretchingSessionView,
+  useStretchingSessionQuery,
+} from '@/src/features/stretching-session';
 
 export function StretchSessionPage() {
   const router = useRouter();
@@ -20,11 +22,11 @@ export function StretchSessionPage() {
 }
 
 function StretchSessionPageContent({ sessionId }: { sessionId: string }) {
-  const { data: session, isLoading: isSessionLoading } = useExerciseSessionQuery(sessionId);
+  const { data: session, isLoading: isSessionLoading } = useStretchingSessionQuery(sessionId);
 
   if (isSessionLoading) {
     return (
-      <div className="flex w-full items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <Spinner size="sm" />
           <span className="text-text-muted text-sm font-medium">
