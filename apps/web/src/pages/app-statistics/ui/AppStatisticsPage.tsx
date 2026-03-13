@@ -1,5 +1,6 @@
 import { MonthlyGrassStatsPanel } from '@/src/features/grass-stats';
 import { StatsMonthSelector } from '@/src/features/stats-month-selector';
+import { ReactionSpeedChallengePanel } from '@/src/features/stats-reaction-speed';
 import { StatsSummarySection } from '@/src/features/stats-summary';
 
 import { useStatsMonthQueryState } from '../model/useStatsMonthQueryState';
@@ -12,6 +13,7 @@ export function AppStatisticsPage() {
       <StatsSummarySection />
       <StatsMonthSelector selectedMonth={selectedMonth} onMonthChange={handleMonthChange} />
       <MonthlyGrassStatsPanel selectedMonth={selectedMonth} />
+      <ReactionSpeedChallengePanel />
     </section>
   );
 }
