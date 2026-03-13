@@ -4,13 +4,17 @@ import { cn } from '@repo/ui/lib/utils';
 import { Minus, Target, TrendingDown, TrendingUp } from 'lucide-react';
 
 import { isApiError } from '@/src/shared/api';
+import { LoadableBoundary } from '@/src/shared/ui/boundary';
 
+import { useStatsSummaryQuery } from '../api/useStatsSummaryQuery';
 import { STATS_SUMMARY_MESSAGES } from '../config/messages';
+import { buildStatsSummaryViewModel } from '../model/build-stats-summary-vm';
 import type {
   StatsSummaryViewModel,
   WeeklyDeltaDirection,
   WeeklySuccessTone,
 } from '../model/types';
+import { StatsSummarySectionSkeleton } from './StatsSummarySection.skeleton';
 
 function formatStreakLabel(streak: number) {
   return `${streak}${STATS_SUMMARY_MESSAGES.UNITS.DAY}`;
@@ -170,5 +174,23 @@ function StatsSummaryErrorState({ error }: { error: Error | unknown }) {
     <Card variant="elevated" padding="md" className="bg-bg-subtle shadow-none">
       <p className="text-error-600 text-sm">{STATS_SUMMARY_MESSAGES.STATE.UNEXPECTED_ERROR}</p>
     </Card>
+  );
+}
+
+export function StatsSummarySection() {
+  const statsSummaryQuery = useStatsSummaryQuery();
+
+  return (
+    <LoadableBoundary
+      isLoading={statsSummaryQuery.isLoading}
+      isFetching={statsSummaryQuery.isFetching}
+      error={statsSummaryQuery.error}
+      data={statsSummaryQuery.data}
+      skipDelay
+      renderLoading={() => <StatsSummarySectionSkeleton />}
+      renderError={(error) => <StatsSummaryErrorState error={error} />}
+    >
+      {(summary) => <StatsSummaryContent summary={buildStatsSummaryViewModel(summary)} />}
+    </LoadableBoundary>
   );
 }
