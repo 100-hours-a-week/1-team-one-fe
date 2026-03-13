@@ -1,6 +1,6 @@
 import { format, getDaysInMonth, parse } from 'date-fns';
 
-import { normalizeStatsMonth } from '@/src/features/stats-month-selector';
+import { normalizeStatsMonth } from '@/src/shared/lib/date/stats-month';
 
 import type { GrassStatsItem } from '../api/types';
 import { GRASS_LEVELS, GRASS_RATIO_THRESHOLDS } from '../config/constants';
