@@ -1,4 +1,8 @@
-import { formatStatsMonthLabel, normalizeStatsMonth, shiftStatsMonth } from './month';
+import {
+  formatStatsMonthLabel,
+  normalizeStatsMonth,
+  shiftStatsMonth,
+} from '@/src/shared/lib/date/stats-month';
 
 interface CreateStatsMonthSelectorModelParams {
   selectedMonth: string;
