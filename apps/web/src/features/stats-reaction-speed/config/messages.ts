@@ -25,6 +25,7 @@ export const STATS_REACTION_SPEED_MESSAGES = {
   },
   UNITS: {
     MINUTE: '분',
+    SECOND: '초',
     PERCENT: '%',
   },
   PLACEHOLDER: {

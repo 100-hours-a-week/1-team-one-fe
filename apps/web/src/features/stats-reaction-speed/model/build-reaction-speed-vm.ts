@@ -24,6 +24,20 @@ function formatAverageMinutes(speed: number) {
   return roundedMinuteValue.toString();
 }
 
+function formatAverageSpeedDisplay(speed: number) {
+  if (speed < STATS_REACTION_SPEED_METRICS.SECONDS_PER_MINUTE) {
+    return {
+      valueText: Math.floor(speed).toString(),
+      unitText: STATS_REACTION_SPEED_MESSAGES.UNITS.SECOND,
+    };
+  }
+
+  return {
+    valueText: formatAverageMinutes(speed),
+    unitText: STATS_REACTION_SPEED_MESSAGES.UNITS.MINUTE,
+  };
+}
+
 function resolveBadgeTone(rate: number): ReactionSpeedBadgeTone {
   if (rate <= STATS_REACTION_SPEED_BADGE_THRESHOLDS.FAST_MAX_RATE) {
     return 'fast';
@@ -62,14 +76,18 @@ export function buildReactionSpeedViewModel(
   const rate = reactionSpeed.rate;
   const hasAverageSpeed = speed !== null;
 
-  const averageMinutesText =
+  const averageSpeedDisplay =
     speed === null
-      ? STATS_REACTION_SPEED_MESSAGES.PLACEHOLDER.EMPTY_VALUE
-      : formatAverageMinutes(speed);
+      ? {
+          valueText: STATS_REACTION_SPEED_MESSAGES.PLACEHOLDER.EMPTY_VALUE,
+          unitText: '',
+        }
+      : formatAverageSpeedDisplay(speed);
 
   if (rate === null) {
     return {
-      averageMinutesText,
+      averageSpeedValueText: averageSpeedDisplay.valueText,
+      averageSpeedUnitText: averageSpeedDisplay.unitText,
       hasAverageSpeed,
       markerPositionPercent: 0,
       hasRate: false,
@@ -83,7 +101,8 @@ export function buildReactionSpeedViewModel(
   const badgeTone = resolveBadgeTone(clampedRate);
 
   return {
-    averageMinutesText,
+    averageSpeedValueText: averageSpeedDisplay.valueText,
+    averageSpeedUnitText: averageSpeedDisplay.unitText,
     hasAverageSpeed,
     markerPositionPercent: 100 - clampedRate,
     hasRate: true,

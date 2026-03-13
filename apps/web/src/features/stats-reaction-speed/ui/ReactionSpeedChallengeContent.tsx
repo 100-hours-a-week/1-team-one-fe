@@ -30,11 +30,13 @@ interface ReactionSpeedRankBadgeProps {
 }
 
 interface ReactionSpeedAverageMinutesPanelProps {
-  averageMinutesText: string;
+  averageSpeedValueText: string;
+  averageSpeedUnitText: string;
 }
 
 function ReactionSpeedAverageMinutesPanel({
-  averageMinutesText,
+  averageSpeedValueText,
+  averageSpeedUnitText,
 }: ReactionSpeedAverageMinutesPanelProps) {
   return (
     <div className="flex flex-1 flex-col items-center">
@@ -43,11 +45,13 @@ function ReactionSpeedAverageMinutesPanel({
       </p>
       <div className="mt-2 flex items-end justify-center gap-1">
         <p className="text-warning-700 text-5xl leading-none font-bold tabular-nums">
-          {averageMinutesText}
+          {averageSpeedValueText}
         </p>
-        <span className="text-text text-base leading-none font-semibold">
-          {STATS_REACTION_SPEED_MESSAGES.UNITS.MINUTE}
-        </span>
+        {averageSpeedUnitText ? (
+          <span className="text-text text-base leading-none font-semibold">
+            {averageSpeedUnitText}
+          </span>
+        ) : null}
       </div>
     </div>
   );
@@ -109,7 +113,10 @@ function ReactionSpeedRankBadge({ tone, title, subtitle }: ReactionSpeedRankBadg
 export function ReactionSpeedChallengeContent({ viewModel }: ReactionSpeedChallengeContentProps) {
   return (
     <div className="bg-surface mt-3 flex flex-col items-center rounded-2xl px-4 py-5">
-      <ReactionSpeedAverageMinutesPanel averageMinutesText={viewModel.averageMinutesText} />
+      <ReactionSpeedAverageMinutesPanel
+        averageSpeedValueText={viewModel.averageSpeedValueText}
+        averageSpeedUnitText={viewModel.averageSpeedUnitText}
+      />
       <ReactionSpeedPercentileVisualizationPanel
         hasRate={viewModel.hasRate}
         markerPositionPercent={viewModel.markerPositionPercent}

@@ -8,7 +8,8 @@ export type ReactionSpeedFilterOption = {
 export type ReactionSpeedBadgeTone = 'fast' | 'normal' | 'slow' | 'empty';
 
 export type ReactionSpeedViewModel = {
-  averageMinutesText: string;
+  averageSpeedValueText: string;
+  averageSpeedUnitText: string;
   hasAverageSpeed: boolean;
   markerPositionPercent: number;
   hasRate: boolean;
