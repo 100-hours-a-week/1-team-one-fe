@@ -105,7 +105,10 @@ export function MomentsEditPage() {
       )}
       renderError={(err) => {
         const variant =
-          isApiError(err) && err.code === 'POST_NOT_FOUND' ? 'not-found' : 'unexpected';
+          isApiError(err) &&
+          (err.code === 'POST_NOT_FOUND' || err.code === 'RESOURCE_NOT_FOUND' || err.status === 404)
+            ? 'not-found'
+            : 'unexpected';
         return <ErrorScreen variant={variant} />;
       }}
     >
