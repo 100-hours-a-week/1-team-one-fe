@@ -24,8 +24,11 @@ export type ApiErrorCode =
   | 'AUTH_UNAUTHORIZED'
   | 'CHARACTER_ALREADY_SET'
   | 'CHARACTER_NOT_SET'
+  | 'INVALID_JSON'
   | 'INVALID_FILE_EXTENSION'
   | 'INTERNAL_SERVER_ERROR'
+  | 'RESOURCE_NOT_FOUND'
+  | 'UNSUPPORTED_MEDIA_TYPE'
   | 'JWT_EXPIRED'
   | 'JWT_INVALID'
   | 'JWT_MISSING'
@@ -43,25 +46,74 @@ export type ApiErrorCode =
   | 'USER_NICK_NAME_DUPLICATED';
 
 interface ErrorResponse {
+  errors?: ErrorEntry[];
   code?: ApiErrorCode;
   message?: string;
-  errors?: FieldError[];
+}
+
+interface ErrorEntry {
+  code?: ApiErrorCode;
+  messages?: ErrorMessageEntry[];
+}
+
+interface ErrorMessageEntry {
+  field?: string | null;
+  reason?: string;
+}
+
+function resolveApiErrorCode(
+  entries: ErrorResponse['errors'],
+  fallbackCode?: ApiErrorCode,
+): ApiErrorCode | undefined {
+  if (!Array.isArray(entries)) return fallbackCode;
+
+  const matchedEntry = entries.find((entry) => typeof entry?.code === 'string');
+  if (typeof matchedEntry?.code === 'string') {
+    return matchedEntry.code;
+  }
+
+  return fallbackCode;
+}
+
+function normalizeFieldErrors(entries: ErrorResponse['errors']): FieldError[] | undefined {
+  if (!Array.isArray(entries)) return undefined;
+
+  const errors = entries.flatMap((entry) => {
+    if (!Array.isArray(entry?.messages)) return [];
+
+    return entry.messages.flatMap((message): FieldError[] => {
+      if (typeof message?.reason !== 'string' || message.reason.length === 0) {
+        return [];
+      }
+
+      if (typeof message.field === 'string' && message.field.length > 0) {
+        return [{ field: message.field, reason: message.reason }];
+      }
+
+      return [{ reason: message.reason }];
+    });
+  });
+
+  if (errors.length === 0) return undefined;
+  return errors;
 }
 
 export function toApiError(error: AxiosError<ErrorResponse>): ApiError {
   const status = error.response?.status ?? 500;
   const responseData = error.response?.data;
+  const normalizedErrors = normalizeFieldErrors(responseData?.errors);
+  const code = resolveApiErrorCode(responseData?.errors, responseData?.code);
   const message =
+    normalizedErrors?.[0]?.reason ??
     responseData?.message ??
-    responseData?.errors?.[0]?.reason ??
     error.message ??
     '알 수 없는 오류가 발생했습니다.';
 
   return {
     status,
-    code: responseData?.code,
+    code,
     message,
-    errors: responseData?.errors,
+    errors: normalizedErrors,
   };
 }
 

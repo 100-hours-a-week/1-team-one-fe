@@ -67,7 +67,7 @@ export function LoginForm({ onSubmit, isPending }: LoginFormProps) {
       if (!isApiError(error)) return;
 
       if (error.status === HTTP_STATUS.UNAUTHORIZED) {
-        setAuthErrorMessage(LOGIN_FORM_MESSAGES.ERROR.INVALID_CREDENTIALS);
+        setAuthErrorMessage(error.message || LOGIN_FORM_MESSAGES.ERROR.INVALID_CREDENTIALS);
         return;
       }
 
@@ -79,11 +79,11 @@ export function LoginForm({ onSubmit, isPending }: LoginFormProps) {
         error.status === HTTP_STATUS.TOO_MANY_REQUESTS ||
         error.status >= HTTP_STATUS.SERVER_ERROR_MIN
       ) {
-        setAuthErrorMessage(LOGIN_FORM_MESSAGES.ERROR.RETRY_LATER);
+        setAuthErrorMessage(error.message || LOGIN_FORM_MESSAGES.ERROR.RETRY_LATER);
         return;
       }
 
-      setAuthErrorMessage(LOGIN_FORM_MESSAGES.ERROR.RETRY_LATER);
+      setAuthErrorMessage(error.message || LOGIN_FORM_MESSAGES.ERROR.RETRY_LATER);
     }
   };
 
