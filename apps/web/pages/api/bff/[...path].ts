@@ -14,6 +14,7 @@ import {
   clearAuthCookies,
   getAccessTokenFromCookies,
   getRefreshTokenFromCookies,
+  isRecord,
   refreshTokens,
   setAuthCookies,
 } from '@/src/shared/lib/bff/token';
@@ -98,23 +99,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const refreshedTokens = await refreshTokens(baseUrl, refreshToken);
+  const refreshResult = await refreshTokens(baseUrl, refreshToken);
 
-  if (!refreshedTokens) {
+  if (!refreshResult.tokens) {
+    clearAuthCookies(res);
+
     if (isMomentsPath) {
       res.status(HTTP_STATUS.OK).json(NO_META_DATA_RESPONSE);
       return;
     }
+
+    if (isRecord(refreshResult.payload)) {
+      respondWithPayload(res, refreshResult.status, refreshResult.payload);
+      return;
+    }
+
     respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
   }
 
-  setAuthCookies(res, refreshedTokens);
+  setAuthCookies(res, refreshResult.tokens);
 
   const retryResponse = await forwardRequest(
     targetUrl,
     req,
-    refreshedTokens.accessToken.token,
+    refreshResult.tokens.accessToken.token,
     skipAuth,
   );
 
