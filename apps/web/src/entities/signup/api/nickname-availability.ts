@@ -23,7 +23,6 @@ export async function fetchNicknameAvailabilityFn(
 
     const normalized = normalizeAvailabilityResponse({
       payload: response.data,
-      field: 'nickname',
     });
 
     if (!normalized) {
