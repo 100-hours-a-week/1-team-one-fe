@@ -1,6 +1,5 @@
 export type {
   AvailabilityResultType,
-  DuplicationErrorResponseDTO,
   DuplicationFieldType,
   EmailAvailabilityDataType,
   EmailAvailabilityResponseDTO,

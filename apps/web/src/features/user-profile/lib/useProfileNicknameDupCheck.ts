@@ -66,11 +66,11 @@ export function useProfileNicknameDupCheck(
 
       setState({
         status: DUP_STATUSES.unavailable,
-        message: PROFILE_EDIT_MESSAGES.NICKNAME_UNAVAILABLE,
+        message: result.error?.reason ?? PROFILE_EDIT_MESSAGES.NICKNAME_UNAVAILABLE,
       });
       setError('nickname', {
         type: 'duplicate',
-        message: PROFILE_EDIT_MESSAGES.NICKNAME_UNAVAILABLE,
+        message: result.error?.reason ?? PROFILE_EDIT_MESSAGES.NICKNAME_UNAVAILABLE,
       });
     } catch {
       setState({

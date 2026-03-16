@@ -1,22 +1,24 @@
 import { addMonths, format, isValid, parse } from 'date-fns';
 
-import { isStatsMonthString, STATS_MONTH_SELECTOR_CONFIG } from '../config/constants';
+const STATS_MONTH_FORMAT = 'yyyy-MM';
+const STATS_MONTH_LABEL_FORMAT = 'yyyy년 M월';
+const STATS_MONTH_STRING_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 /**
  * YYYY-MM 문자열을 유효성 검사 후 Date로 파싱
  * 형식/유효성/역포맷 검증
  */
 function parseStatsMonth(value: string): Date | null {
-  if (!isStatsMonthString(value)) {
+  if (!STATS_MONTH_STRING_PATTERN.test(value)) {
     return null;
   }
 
-  const parsed = parse(value, STATS_MONTH_SELECTOR_CONFIG.MONTH_FORMAT, new Date());
+  const parsed = parse(value, STATS_MONTH_FORMAT, new Date());
   if (!isValid(parsed)) {
     return null;
   }
 
-  if (format(parsed, STATS_MONTH_SELECTOR_CONFIG.MONTH_FORMAT) !== value) {
+  if (format(parsed, STATS_MONTH_FORMAT) !== value) {
     return null;
   }
 
@@ -27,7 +29,7 @@ function parseStatsMonth(value: string): Date | null {
  * 현재 시각 기준 월을 YYYY-MM 문자열로 반환
  */
 export function getCurrentStatsMonth(): string {
-  return format(new Date(), STATS_MONTH_SELECTOR_CONFIG.MONTH_FORMAT);
+  return format(new Date(), STATS_MONTH_FORMAT);
 }
 
 /**
@@ -44,7 +46,7 @@ export function normalizeStatsMonth(value: string | null | undefined): string {
     return getCurrentStatsMonth();
   }
 
-  return format(parsed, STATS_MONTH_SELECTOR_CONFIG.MONTH_FORMAT);
+  return format(parsed, STATS_MONTH_FORMAT);
 }
 
 /**
@@ -53,12 +55,12 @@ export function normalizeStatsMonth(value: string | null | undefined): string {
  */
 export function shiftStatsMonth(month: string, amount: number): string {
   const normalizedMonth = normalizeStatsMonth(month);
-  const parsed = parse(normalizedMonth, STATS_MONTH_SELECTOR_CONFIG.MONTH_FORMAT, new Date());
+  const parsed = parse(normalizedMonth, STATS_MONTH_FORMAT, new Date());
   if (!isValid(parsed)) {
     return getCurrentStatsMonth();
   }
 
-  return format(addMonths(parsed, amount), STATS_MONTH_SELECTOR_CONFIG.MONTH_FORMAT);
+  return format(addMonths(parsed, amount), STATS_MONTH_FORMAT);
 }
 
 /**
@@ -66,10 +68,10 @@ export function shiftStatsMonth(month: string, amount: number): string {
  */
 export function formatStatsMonthLabel(month: string): string {
   const normalizedMonth = normalizeStatsMonth(month);
-  const parsed = parse(normalizedMonth, STATS_MONTH_SELECTOR_CONFIG.MONTH_FORMAT, new Date());
+  const parsed = parse(normalizedMonth, STATS_MONTH_FORMAT, new Date());
   if (!isValid(parsed)) {
     return normalizedMonth;
   }
 
-  return format(parsed, STATS_MONTH_SELECTOR_CONFIG.MONTH_LABEL_FORMAT);
+  return format(parsed, STATS_MONTH_LABEL_FORMAT);
 }

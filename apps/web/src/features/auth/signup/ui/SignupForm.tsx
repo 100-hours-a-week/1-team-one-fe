@@ -185,7 +185,6 @@ export function SignupForm({ onSubmit, isPending, isProfileImageUploading }: Sig
             required
             error={fieldState.invalid}
             errorMessage={fieldState.error?.message}
-            helperText="최소 8자 이상 입력해주세요."
           />
         )}
       />

@@ -1,7 +1,7 @@
 import { type NextRouter, useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-import { normalizeStatsMonth } from '@/src/features/stats-month-selector';
+import { normalizeStatsMonth } from '@/src/shared/lib/date/stats-month';
 
 import { STATS_MONTH_QUERY_KEY } from '../config/constants';
 

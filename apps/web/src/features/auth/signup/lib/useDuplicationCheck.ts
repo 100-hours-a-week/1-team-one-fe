@@ -102,13 +102,15 @@ export function useDuplicationCheck({
       }
 
       if (available === false) {
+        const unavailableMessage = availability?.error?.reason ?? messages.unavailable;
+
         setState({
           status: DUP_STATUSES.unavailable,
-          message: messages.unavailable,
+          message: unavailableMessage,
         });
         setError(field, {
           type: 'duplicate',
-          message: messages.unavailable,
+          message: unavailableMessage,
         });
         return;
       }
