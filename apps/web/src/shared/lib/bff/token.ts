@@ -5,7 +5,7 @@ import { HTTP_STATUS } from '@/src/shared/config/http-status';
 import { parseCookie } from '@/src/shared/lib/cookie/parse-cookie';
 import { serializeCookie } from '@/src/shared/lib/cookie/serialize-cookie';
 
-import type { RefreshResponse, Tokens } from './types';
+import type { RefreshTokensResult, Tokens } from './types';
 
 const BEARER_PREFIX = 'Bearer';
 const JSON_CONTENT_TYPE = 'application/json';
@@ -115,7 +115,10 @@ export function clearAuthCookies(res: NextApiResponse): void {
   res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
 }
 
-export async function refreshTokens(baseUrl: string, refreshToken: string): Promise<Tokens | null> {
+export async function refreshTokens(
+  baseUrl: string,
+  refreshToken: string,
+): Promise<RefreshTokensResult> {
   const refreshUrl = `${baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl}${REAL_API_PREFIX}${AUTH_CONFIG.REFRESH_ENDPOINT}`;
   const init: RequestInit = {
     method: 'POST',
@@ -126,15 +129,38 @@ export async function refreshTokens(baseUrl: string, refreshToken: string): Prom
   };
 
   const response = await fetch(refreshUrl, init);
-
-  if (response.status !== HTTP_STATUS.OK) return null;
-
   const contentType = response.headers.get('content-type') ?? '';
-  if (!contentType.includes(JSON_CONTENT_TYPE)) return null;
+  const hasJson = contentType.includes(JSON_CONTENT_TYPE);
+  const payload = hasJson ? ((await response.json()) as Record<string, unknown>) : null;
 
-  const json = (await response.json()) as RefreshResponse;
+  if (response.status !== HTTP_STATUS.OK) {
+    return {
+      status: response.status,
+      tokens: null,
+      payload,
+    };
+  }
 
-  if (!json?.data?.tokens) return null;
+  if (!payload) {
+    return {
+      status: response.status,
+      tokens: null,
+      payload: null,
+    };
+  }
 
-  return json.data.tokens;
+  const tokens = extractTokens(payload);
+  if (!tokens) {
+    return {
+      status: response.status,
+      tokens: null,
+      payload,
+    };
+  }
+
+  return {
+    status: response.status,
+    tokens,
+    payload,
+  };
 }
