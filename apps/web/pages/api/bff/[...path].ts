@@ -18,11 +18,38 @@ import {
   refreshTokens,
   setAuthCookies,
 } from '@/src/shared/lib/bff/token';
+import type { RefreshTokensResult } from '@/src/shared/lib/bff/types';
 
 const MOMENTS_PREFIX = 'moments';
 const REAL_API_PREFIX = '/api';
 const NO_META_DATA_RESPONSE = { code: 'NO_META_DATA', data: null } as const;
 const SHOULD_LOG_PROXY = process.env.NODE_ENV !== 'production';
+const refreshInFlightMap = new Map<string, Promise<RefreshTokensResult>>();
+
+function getRefreshInFlightKey(baseUrl: string, refreshToken: string): string {
+  return `${baseUrl}:${refreshToken}`;
+}
+
+async function refreshTokensSingleFlight(
+  baseUrl: string,
+  refreshToken: string,
+): Promise<RefreshTokensResult> {
+  const refreshKey = getRefreshInFlightKey(baseUrl, refreshToken);
+  const inFlightRequest = refreshInFlightMap.get(refreshKey);
+  if (inFlightRequest) {
+    return inFlightRequest;
+  }
+
+  const request = refreshTokens(baseUrl, refreshToken).finally(() => {
+    const latestRequest = refreshInFlightMap.get(refreshKey);
+    if (latestRequest === request) {
+      refreshInFlightMap.delete(refreshKey);
+    }
+  });
+
+  refreshInFlightMap.set(refreshKey, request);
+  return request;
+}
 
 function logProxyNotFound(
   source: 'bff' | 'real',
@@ -99,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const refreshResult = await refreshTokens(baseUrl, refreshToken);
+  const refreshResult = await refreshTokensSingleFlight(baseUrl, refreshToken);
 
   if (!refreshResult.tokens) {
     clearAuthCookies(res);
