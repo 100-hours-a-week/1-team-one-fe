@@ -9,7 +9,7 @@
     "start": "pnpm --filter web run start",
     "format": "prettier . --check",
     "format:write": "prettier . --write",
-    "test": "turbo test",
+    "test": "turbo run test",
     "check-types": "turbo run check-types",
     "prepare": "husky"
   },
@@ -22,7 +22,6 @@
     ]
   },
   "devDependencies": {
-    "@types/jest": "30.0.0",
     "eslint": "9.39.2",
     "husky": "9.1.7",
     "identity-obj-proxy": "3.0.0",
