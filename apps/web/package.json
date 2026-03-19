@@ -16,7 +16,11 @@
     "prestart": "pnpm run generate:firebase-sw",
     "start": "next start",
     "analyze": "ANALYZE=true pnpm run build",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --ci --runInBand",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@date-fns/tz": "^1.4.1",
@@ -47,17 +51,25 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/jest-dom": "6.8.0",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
     "@next/bundle-analyzer": "16.1.6",
     "@svgr/webpack": "8.1.0",
     "@tailwindcss/postcss": "4.1.18",
     "@tanstack/react-query-devtools": "5.91.2",
     "@tooling/eslint-config": "workspace:*",
+    "@tooling/jest-config": "workspace:*",
     "@tooling/sentry-config": "workspace:*",
     "@tooling/typescript-config": "workspace:*",
+    "@types/jest": "30.0.0",
     "@types/node": "22.19.7",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.2",
+    "jest": "30.1.2",
+    "jest-environment-jsdom": "30.1.2",
     "tailwindcss": "4.1.18"
   }
 }
