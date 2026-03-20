@@ -7,4 +7,10 @@ export interface Tokens {
 
 export type RefreshResponse = ApiResponse<{ tokens: Tokens }>;
 
-export type ProxyResponse = ApiResponse<Record<string, unknown>>;
+export interface RefreshTokensResult {
+  status: number;
+  tokens: Tokens | null;
+  payload: Record<string, unknown> | null;
+}
+
+export type ProxyResponse = Record<string, unknown>;

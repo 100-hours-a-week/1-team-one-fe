@@ -3,6 +3,7 @@ import { Card } from '@repo/ui/card';
 import { cn } from '@repo/ui/lib/utils';
 
 import type { LeaderboardRankItemType } from '@/src/entities/leaderboard';
+import { buildImageUrl } from '@/src/shared/lib/image';
 import { OptimizedImage } from '@/src/shared/ui/optimized-image';
 
 import { LEADERBOARD_ASSET_PATHS, type LeaderboardPodiumRankType } from '../config/constants';
@@ -17,6 +18,7 @@ export function LeaderboardPodiumItem({ rank, item }: LeaderboardPodiumItemProps
   const expLabel = item.exp.toLocaleString('ko-KR');
   const rankLabel = `${rank}${LEADERBOARD_MESSAGES.PODIUM.RANK_SUFFIX}`;
   const isChampion = rank === 1;
+  const profileImageUrl = buildImageUrl(item.profileImageUrl);
 
   return (
     <Card
@@ -28,7 +30,7 @@ export function LeaderboardPodiumItem({ rank, item }: LeaderboardPodiumItemProps
       )}
     >
       <Avatar
-        src={item.profileImageUrl}
+        src={profileImageUrl}
         name={item.nickname}
         alt={`${item.nickname} ${LEADERBOARD_MESSAGES.PODIUM.AVATAR_ALT_SUFFIX}`}
         size="sm"

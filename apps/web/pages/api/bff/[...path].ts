@@ -9,12 +9,13 @@ import {
   shouldSkipAuth,
 } from '@/src/shared/lib/bff/path';
 import { forwardRequest, respondWithPayload } from '@/src/shared/lib/bff/proxy';
+import { refreshTokensDistributedSingleFlight } from '@/src/shared/lib/bff/refresh-single-flight';
 import { maybeRevalidatePost } from '@/src/shared/lib/bff/revalidate';
 import {
   clearAuthCookies,
   getAccessTokenFromCookies,
   getRefreshTokenFromCookies,
-  refreshTokens,
+  isRecord,
   setAuthCookies,
 } from '@/src/shared/lib/bff/token';
 
@@ -98,23 +99,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const refreshedTokens = await refreshTokens(baseUrl, refreshToken);
+  const refreshResult = await refreshTokensDistributedSingleFlight({
+    baseUrl,
+    refreshToken,
+  });
 
-  if (!refreshedTokens) {
+  if (!refreshResult.tokens) {
+    clearAuthCookies(res);
+
     if (isMomentsPath) {
       res.status(HTTP_STATUS.OK).json(NO_META_DATA_RESPONSE);
       return;
     }
+
+    if (isRecord(refreshResult.payload)) {
+      respondWithPayload(res, refreshResult.status, refreshResult.payload);
+      return;
+    }
+
     respondWithPayload(res, initialResponse.status, initialResponse.json);
     return;
   }
 
-  setAuthCookies(res, refreshedTokens);
+  setAuthCookies(res, refreshResult.tokens);
 
   const retryResponse = await forwardRequest(
     targetUrl,
     req,
-    refreshedTokens.accessToken.token,
+    refreshResult.tokens.accessToken.token,
     skipAuth,
   );
 
