@@ -2,6 +2,7 @@ import { Avatar } from '@repo/ui/avatar';
 import { cn } from '@repo/ui/lib/utils';
 
 import type { LeaderboardRankItemType } from '@/src/entities/leaderboard';
+import { buildImageUrl } from '@/src/shared/lib/image';
 
 import { LEADERBOARD_MESSAGES } from '../config/messages';
 
@@ -26,6 +27,7 @@ export function LeaderboardRankRow({ item, isMyRank, totalCount }: LeaderboardRa
   const rankBadgeLabel = `${item.rank}${LEADERBOARD_MESSAGES.ROW.RANK_SUFFIX}`;
   const subtitleLabel = isMyRank ? LEADERBOARD_MESSAGES.ROW.MY_BADGE : item.nickname;
   const percentileLabel = isMyRank ? getPercentileLabel(item.rank, totalCount) : null;
+  const profileImageUrl = buildImageUrl(item.profileImageUrl);
 
   return (
     <div
@@ -39,7 +41,7 @@ export function LeaderboardRankRow({ item, isMyRank, totalCount }: LeaderboardRa
     >
       <div className="relative shrink-0">
         <Avatar
-          src={item.profileImageUrl}
+          src={profileImageUrl}
           name={item.nickname}
           alt={`${item.nickname} ${LEADERBOARD_MESSAGES.PODIUM.AVATAR_ALT_SUFFIX}`}
           size="sm"
