@@ -4,9 +4,13 @@ export type {
   CompleteStretchingSessionAcceptedResponseDTO,
   CompleteStretchingSessionRequestDTO,
   CompleteStretchingSessionResponseDataType,
+  ExerciseSessionSatisfactionValue,
   EyeKeyframeResponseType,
   ReferencePoseResponseType,
   RoutineStepResponseType,
+  SaveExerciseSessionSatisfactionDataType,
+  SaveExerciseSessionSatisfactionRequestDTO,
+  SaveExerciseSessionSatisfactionResponseDTO,
   StretchingPoseRecordFrameType,
   StretchingPoseRecordType,
   StretchingResultItemType,
@@ -16,6 +20,7 @@ export type {
   ValidStretchingSessionItemType,
   ValidStretchingSessionsResponseDTO,
 } from './dto/stretching-session.dto';
+export { saveExerciseSessionSatisfactionFn } from './exercise-session-satisfaction-patch';
 export type { StretchingSessionQueryKey, ValidStretchingSessionsQueryKey } from './query-options';
 export {
   stretchingSessionQueryOptions,
@@ -36,4 +41,11 @@ export {
   type ExerciseSessionQueryOptions,
   useExerciseSessionQuery,
 } from './useExerciseSessionQuery';
+export {
+  type ExerciseSessionSatisfaction,
+  type SaveExerciseSessionSatisfactionMutationOptions,
+  type SaveExerciseSessionSatisfactionRequest,
+  type SaveExerciseSessionSatisfactionResponseData,
+  useExerciseSessionSatisfactionMutation,
+} from './useExerciseSessionSatisfactionMutation';
 export { fetchValidStretchingSessionsFn } from './valid-stretching-sessions-get';
