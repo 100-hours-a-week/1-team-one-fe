@@ -8,6 +8,8 @@ type StretchingSessionFeedbackType = 'like' | 'dislike';
 
 type StretchingSessionCompletionFeedbackProps = {
   canSubmit: boolean;
+  isSubmitting?: boolean;
+  isSubmitted?: boolean;
   onSubmit?: (feedback: StretchingSessionFeedbackType) => void;
 };
 
@@ -26,26 +28,27 @@ const feedbackOptions = [
 
 export function StretchingSessionCompletionFeedback({
   canSubmit,
+  isSubmitting = false,
+  isSubmitted = false,
   onSubmit,
 }: StretchingSessionCompletionFeedbackProps) {
   const [selectedFeedback, setSelectedFeedback] = useState<StretchingSessionFeedbackType | null>(
     null,
   );
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
     if (canSubmit) return;
     setSelectedFeedback(null);
-    setIsSubmitted(false);
   }, [canSubmit]);
 
-  const isSubmitDisabled = !canSubmit || !selectedFeedback || isSubmitted;
+  const isSubmitDisabled = !canSubmit || !selectedFeedback || isSubmitting || isSubmitted;
 
   const handleSubmit = () => {
     if (!selectedFeedback) return;
     if (!canSubmit) return;
+    if (isSubmitting) return;
+    if (isSubmitted) return;
 
-    setIsSubmitted(true);
     onSubmit?.(selectedFeedback);
   };
 
@@ -68,7 +71,8 @@ export function StretchingSessionCompletionFeedback({
               type="button"
               variant="ghost"
               size="lg"
-              disabled={!canSubmit || isSubmitted}
+              aria-pressed={isSelected}
+              disabled={!canSubmit || isSubmitting || isSubmitted}
               onClick={() => setSelectedFeedback(value)}
               className={[
                 'h-24 flex-col gap-2 rounded-2xl border-0',
@@ -89,6 +93,7 @@ export function StretchingSessionCompletionFeedback({
         variant="primary"
         size="lg"
         fullWidth
+        isLoading={isSubmitting}
         disabled={isSubmitDisabled}
         onClick={handleSubmit}
       >

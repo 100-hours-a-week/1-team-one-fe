@@ -9,17 +9,27 @@ import {
 import { StretchingSessionCompletionNavigation } from './StretchingSessionCompletionNavigation';
 
 type StretchingSessionCompletionScreenProps = {
+  canSubmit?: boolean;
+  isSubmittingFeedback?: boolean;
+  isFeedbackSubmitted?: boolean;
   onSubmitFeedback?: (feedback: StretchingSessionFeedbackType) => void;
 };
 
 export function StretchingSessionCompletionScreen({
+  canSubmit = true,
+  isSubmittingFeedback = false,
+  isFeedbackSubmitted = false,
   onSubmitFeedback,
 }: StretchingSessionCompletionScreenProps) {
-  const title = STRETCHING_SESSION_COMPLETION_MESSAGES.COMPLETED_TITLE;
-  const description = STRETCHING_SESSION_COMPLETION_MESSAGES.COMPLETED_DESCRIPTION;
+  const title = canSubmit
+    ? STRETCHING_SESSION_COMPLETION_MESSAGES.COMPLETED_TITLE
+    : STRETCHING_SESSION_COMPLETION_MESSAGES.IN_PROGRESS_TITLE;
+  const description = canSubmit
+    ? STRETCHING_SESSION_COMPLETION_MESSAGES.COMPLETED_DESCRIPTION
+    : STRETCHING_SESSION_COMPLETION_MESSAGES.IN_PROGRESS_DESCRIPTION;
 
   return (
-    <div className="flex h-full w-full flex-col items-stretch gap-6 p-6">
+    <div className="flex h-full w-full flex-col items-stretch justify-center gap-6 p-6">
       <Card
         padding="md"
         variant="elevated"
@@ -36,7 +46,12 @@ export function StretchingSessionCompletionScreen({
           </p>
         </div>
 
-        <StretchingSessionCompletionFeedback canSubmit onSubmit={onSubmitFeedback} />
+        <StretchingSessionCompletionFeedback
+          canSubmit={canSubmit}
+          isSubmitting={isSubmittingFeedback}
+          isSubmitted={isFeedbackSubmitted}
+          onSubmit={onSubmitFeedback}
+        />
         <StretchingSessionCompletionNavigation />
       </Card>
     </div>

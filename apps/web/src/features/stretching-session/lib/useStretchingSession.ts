@@ -33,6 +33,7 @@ export type UseStretchingSessionResult = {
   videoRef: RefObject<HTMLVideoElement | null>;
   canvasRef: RefObject<HTMLCanvasElement | null>;
   isLoading: boolean;
+  routineId: number | null;
   totalSteps: number;
   currentStepIndex: number;
   currentStep?: StretchingSessionStepType;
@@ -905,6 +906,7 @@ export function useStretchingSession(
     videoRef,
     canvasRef,
     isLoading,
+    routineId: sessionData?.routineId ?? null,
     totalSteps,
     currentStepIndex,
     currentStep,
