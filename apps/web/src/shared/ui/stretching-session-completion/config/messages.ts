@@ -10,7 +10,7 @@ export const STRETCHING_SESSION_COMPLETION_MESSAGES = {
   FEEDBACK_DISLIKE: '별로에요',
   SUBMIT_LABEL: '제출하기',
   SUBMIT_DONE_LABEL: '제출 완료',
-  SUBMIT_HELPER: '평가 API는 준비 중이며 현재는 UI만 동작합니다.',
+  SUBMIT_HELPER: '평가는 루틴 만족도 개선에 반영돼요.',
   HOME_LABEL: '홈으로',
   HOME_ICON_ARIA: '홈으로 이동',
   RESULT_LABEL: '리포트 목록 이동',

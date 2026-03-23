@@ -107,6 +107,22 @@ export type CompleteStretchingSessionAcceptedDataType = {
 export type CompleteStretchingSessionAcceptedResponseDTO =
   ApiResponse<CompleteStretchingSessionAcceptedDataType>;
 
+export type SaveExerciseSessionSatisfactionRequestDTO = {
+  routineId: number;
+  satisfied: boolean;
+};
+
+export type ExerciseSessionSatisfactionValue = 1 | -1;
+
+export type SaveExerciseSessionSatisfactionDataType = {
+  exerciseSessionId: number;
+  routineId: number;
+  satisfaction: ExerciseSessionSatisfactionValue;
+};
+
+export type SaveExerciseSessionSatisfactionResponseDTO =
+  ApiResponse<SaveExerciseSessionSatisfactionDataType>;
+
 //TODO: dto 만 export 하게 수정을 고려해보기
 
 export type CompleteStretchingSessionResponseDataType = {

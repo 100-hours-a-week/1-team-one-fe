@@ -11,6 +11,10 @@ export type {
   StretchingSessionQueryOptionsType,
 } from './api/useStretchingSessionQuery';
 export { useStretchingSessionQuery } from './api/useStretchingSessionQuery';
+export {
+  type StretchingSessionSatisfactionMutationOptionsType,
+  useStretchingSessionSatisfactionMutation,
+} from './api/useStretchingSessionSatisfactionMutation';
 export type {
   ValidStretchingSessionsQueryKey,
   ValidStretchingSessionsQueryOptionsType,
