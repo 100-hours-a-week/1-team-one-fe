@@ -1,30 +1,18 @@
 import type { ApiResponse } from '@/src/shared/api';
 
-export type DuplicationField = 'email' | 'nickname';
+export type DuplicationFieldType = 'email' | 'nickname';
 
-export interface DuplicationErrorResponseDTO {
-  code: string;
-  errors: {
-    field: DuplicationField;
-    reason: string;
-  }[];
-}
-
-export interface AvailabilityResult {
+export interface AvailabilityResultType {
   available: boolean;
   error?: {
     code: string;
-    field: DuplicationField;
+    field: DuplicationFieldType;
     reason: string;
   };
 }
 
-export type EmailAvailabilityDataType = AvailabilityResult;
-export type NicknameAvailabilityDataType = AvailabilityResult;
+export type EmailAvailabilityDataType = AvailabilityResultType;
+export type NicknameAvailabilityDataType = AvailabilityResultType;
 
-export type EmailAvailabilityResponseDTO =
-  | ApiResponse<EmailAvailabilityDataType>
-  | DuplicationErrorResponseDTO;
-export type NicknameAvailabilityResponseDTO =
-  | ApiResponse<NicknameAvailabilityDataType>
-  | DuplicationErrorResponseDTO;
+export type EmailAvailabilityResponseDTO = ApiResponse<EmailAvailabilityDataType>;
+export type NicknameAvailabilityResponseDTO = ApiResponse<NicknameAvailabilityDataType>;

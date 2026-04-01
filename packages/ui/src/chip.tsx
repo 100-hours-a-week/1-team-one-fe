@@ -62,7 +62,7 @@ export interface ChipProps
   extends
     Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'disabled'>,
     VariantProps<typeof chipVariants> {
-  label: string;
+  label: React.ReactNode;
   selected?: boolean;
   disabled?: boolean;
 }

@@ -1,17 +1,51 @@
 export type {
+  CompleteExerciseSessionMutationOptions,
+  CompleteExerciseSessionRequest,
+  CompleteExerciseSessionResponseData,
+  CompleteStretchingSessionAcceptedDataType,
+  CompleteStretchingSessionAcceptedResponseDTO,
   CompleteStretchingSessionRequestDTO,
   CompleteStretchingSessionResponseDataType,
+  ExercisePoseRecordFrame,
+  ExerciseResultItem,
+  ExerciseResultStatus,
+  ExerciseSessionQueryKey,
+  ExerciseSessionQueryOptions,
+  ExerciseSessionSatisfaction,
+  ExerciseSessionSatisfactionValue,
+  EyeKeyframeResponseType,
+  ReferencePoseResponseType,
+  RoutineStepResponseType,
+  SaveExerciseSessionSatisfactionDataType,
+  SaveExerciseSessionSatisfactionMutationOptions,
+  SaveExerciseSessionSatisfactionRequest,
+  SaveExerciseSessionSatisfactionRequestDTO,
+  SaveExerciseSessionSatisfactionResponseData,
+  SaveExerciseSessionSatisfactionResponseDTO,
   StretchingPoseRecordFrameType,
+  StretchingPoseRecordType,
   StretchingResultItemType,
   StretchingResultStatusType,
+  StretchingSessionDataType,
+  StretchingSessionQueryKey,
+  StretchingSessionResponseDTO,
   ValidStretchingSessionItemType,
+  ValidStretchingSessionsQueryKey,
   ValidStretchingSessionsResponseDTO,
 } from './api';
 export {
   completeStretchingSessionFn,
   fetchStretchingSessionFn,
   fetchValidStretchingSessionsFn,
+  saveExerciseSessionSatisfactionFn,
+  stretchingSessionQueryOptions,
+  useCompleteExerciseSessionMutation,
+  useExerciseSessionQuery,
+  useExerciseSessionSatisfactionMutation,
+  validStretchingSessionsQueryOptions,
 } from './api';
+export { STRETCHING_SESSION_QUERY_KEYS } from './config/query-keys';
+export { toEyeReference } from './lib/to-eye-reference';
 export { toReferencePose } from './lib/to-reference-pose';
 export { toStretchingSession } from './lib/to-stretching-session';
 export type {

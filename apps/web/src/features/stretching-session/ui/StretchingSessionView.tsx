@@ -1,11 +1,14 @@
 import { ProgressBar } from '@repo/ui/progress-bar';
 import { toast } from '@repo/ui/toast';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import type { StretchingSessionFeedbackType } from '@/src/shared/ui/stretching-session-completion';
+import { StretchingSessionCompletionScreen } from '@/src/shared/ui/stretching-session-completion';
+
+import { useStretchingSessionSatisfactionMutation } from '../api/useStretchingSessionSatisfactionMutation';
 import { STRETCHING_SESSION_CONFIG } from '../config/constants';
 import { STRETCHING_SESSION_MESSAGES } from '../config/messages';
 import { StretchingSessionDebugOptions, useStretchingSession } from '../lib/useStretchingSession';
-import { StretchingSessionCompletionResult } from './StretchingSessionCompletionResult';
 import { StretchingSessionGuideCard } from './StretchingSessionGuideCard';
 import { StretchingSessionHomeButton } from './StretchingSessionHomeButton';
 import { StretchingSessionOverlay } from './StretchingSessionOverlay';
@@ -25,6 +28,7 @@ export function StretchingSessionView({
   const {
     videoRef,
     canvasRef,
+    routineId,
     totalSteps,
     currentStepIndex,
     currentStep,
@@ -38,10 +42,21 @@ export function StretchingSessionView({
     stepOutcome,
     isCanvasReady,
     isSessionComplete,
-    completionResult,
-    isCompleting,
+    isCompletionAccepted,
   } = useStretchingSession(sessionId, { debug: debugOptions, targetFps });
   const hasShownGuideToastRef = useRef(false);
+  const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const { mutate: submitSessionSatisfaction, isPending: isSubmittingFeedback } =
+    useStretchingSessionSatisfactionMutation({
+      sessionId,
+      onSuccess: () => {
+        setIsFeedbackSubmitted(true);
+        toast({
+          title: STRETCHING_SESSION_MESSAGES.COMPLETION.FEEDBACK_SUCCESS_TOAST,
+          variant: 'success',
+        });
+      },
+    });
 
   const accuracyColorBorderClassName =
     accuracyTone === 'danger'
@@ -82,8 +97,29 @@ export function StretchingSessionView({
     hasShownGuideToastRef.current = true;
   }, [currentStep, isCanvasReady]);
 
+  useEffect(() => {
+    setIsFeedbackSubmitted(false);
+  }, [sessionId]);
+
+  const handleSubmitFeedback = (feedback: StretchingSessionFeedbackType) => {
+    if (!isCompletionAccepted) return;
+    if (routineId === null) return;
+
+    submitSessionSatisfaction({
+      routineId,
+      satisfied: feedback === 'like',
+    });
+  };
+
   if (isSessionComplete) {
-    return <StretchingSessionCompletionResult result={completionResult} isLoading={isCompleting} />;
+    return (
+      <StretchingSessionCompletionScreen
+        canSubmit={isCompletionAccepted}
+        isSubmittingFeedback={isSubmittingFeedback}
+        isFeedbackSubmitted={isFeedbackSubmitted}
+        onSubmitFeedback={handleSubmitFeedback}
+      />
+    );
   }
 
   return (
@@ -104,7 +140,7 @@ export function StretchingSessionView({
           </div>
         )}
 
-        <div className="relative mt-4 h-full flex-1">
+        <div className="relative mt-4 h-3/5 flex-1">
           {isCanvasReady && (
             <StretchingSessionOverlay
               timeRemainingSeconds={timeRemainingSeconds}
@@ -123,7 +159,7 @@ export function StretchingSessionView({
           <video ref={videoRef} className="absolute inset-0 w-full opacity-0" playsInline muted />
           <canvas
             ref={canvasRef}
-            className={`absolute inset-0 h-full w-full rounded-2xl ${accuracyColorBorderClassName}`}
+            className={`inset-0 h-full w-full rounded-2xl ${accuracyColorBorderClassName}`}
           />
           {!isCanvasReady && (
             <div className="absolute inset-0 flex items-center justify-center">

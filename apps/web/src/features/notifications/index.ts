@@ -3,6 +3,10 @@ export {
   useNotificationsInfiniteQuery,
   useUnreadNotificationsCountQuery,
 } from './api/notifications-query';
+export {
+  notificationsInfiniteQueryOptions,
+  unreadNotificationsCountQueryOptions,
+} from './api/query-options';
 export type {
   NotificationLogItem,
   NotificationsPage,
@@ -10,6 +14,6 @@ export type {
   NotificationsReadRequest,
   UnreadNotificationsCount,
 } from './model/types';
-export { InfiniteScrollTrigger } from './ui/InfiniteScrollTrigger';
+export { useNotificationsAutoRead } from './model/useNotificationsAutoRead';
 export { NotificationItem } from './ui/NotificationItem';
 export { NotificationList } from './ui/NotificationList';

@@ -7,7 +7,7 @@ import {
   useWatch,
 } from 'react-hook-form';
 
-import type { AvailabilityResult } from '@/src/entities/signup';
+import type { AvailabilityResultType } from '@/src/entities/signup';
 
 import type { SignupFormValues } from '../model/signup-schema';
 import type { DupState } from './types';
@@ -26,7 +26,7 @@ type AvailabilityQuery = (
   value: string,
   options?: { enabled?: boolean },
 ) => {
-  refetch: () => Promise<{ data?: AvailabilityResult }>;
+  refetch: () => Promise<{ data?: AvailabilityResultType }>;
 };
 
 type UseDuplicationCheckArgs = {
@@ -102,13 +102,15 @@ export function useDuplicationCheck({
       }
 
       if (available === false) {
+        const unavailableMessage = availability?.error?.reason ?? messages.unavailable;
+
         setState({
           status: DUP_STATUSES.unavailable,
-          message: messages.unavailable,
+          message: unavailableMessage,
         });
         setError(field, {
           type: 'duplicate',
-          message: messages.unavailable,
+          message: unavailableMessage,
         });
         return;
       }

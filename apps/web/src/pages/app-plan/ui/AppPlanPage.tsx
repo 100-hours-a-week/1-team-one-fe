@@ -1,7 +1,13 @@
 import { Button } from '@repo/ui/button';
+import { Card } from '@repo/ui/card';
+import { Spinner } from '@repo/ui/spinner';
 import { useRouter } from 'next/router';
 
-import { ROUTINE_PLAN_MESSAGES, useRoutineQuery } from '@/src/features/routine-plan';
+import {
+  isRoutineGenerating,
+  ROUTINE_PLAN_MESSAGES,
+  useRoutineQuery,
+} from '@/src/features/routine-plan';
 import { ROUTES } from '@/src/shared/routes/routes';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
 import { ErrorScreen } from '@/src/shared/ui/error-screen';
@@ -32,22 +38,46 @@ export function AppPlanPage() {
         </div>
       )}
     >
-      {(routine) => (
-        <div className="flex min-h-screen flex-col gap-6 px-5 pb-6">
-          <div className="flex items-center justify-between pt-4">
-            <h1 className="text-text text-xl font-bold">{APP_PLAN_PAGE_MESSAGES.HEADER.TITLE}</h1>
-            <Button variant="outline" size="sm" onClick={handleEditSurvey}>
-              {ROUTINE_PLAN_MESSAGES.SURVEY_EDIT.BUTTON}
-            </Button>
-          </div>
+      {(routine) => {
+        const isGenerating = isRoutineGenerating(routine);
 
-          <section className="flex flex-col gap-4">
-            {routine.exercises.map((exercise) => (
-              <ExerciseCard key={exercise.exerciseId} exercise={exercise} />
-            ))}
-          </section>
-        </div>
-      )}
+        return (
+          <div className="flex min-h-screen flex-col gap-6 px-5 pb-6">
+            <div className="flex items-center justify-between pt-4">
+              <h1 className="text-text text-xl font-bold">{APP_PLAN_PAGE_MESSAGES.HEADER.TITLE}</h1>
+              <Button variant="outline" size="sm" onClick={handleEditSurvey}>
+                {ROUTINE_PLAN_MESSAGES.SURVEY_EDIT.BUTTON}
+              </Button>
+            </div>
+
+            {isGenerating && (
+              <Card
+                variant="elevated"
+                padding="none"
+                className="bg-bg-subtle text-text flex items-start gap-3 px-4 py-3 text-sm"
+                role="status"
+                aria-live="polite"
+              >
+                <Spinner size="sm" className="mt-0.5 shrink-0" />
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold">
+                    {ROUTINE_PLAN_MESSAGES.GENERATING_NOTICE.TITLE}
+                  </span>
+                  <span className="text-text-muted">
+                    {ROUTINE_PLAN_MESSAGES.GENERATING_NOTICE.DESCRIPTION}
+                  </span>
+                </div>
+              </Card>
+            )}
+
+            <section className="flex flex-col gap-4">
+              {routine.exercises.map((exercise) => (
+                <ExerciseCard key={exercise.exerciseId} exercise={exercise} />
+              ))}
+            </section>
+          </div>
+        );
+      }}
     </LoadableBoundary>
   );
 }

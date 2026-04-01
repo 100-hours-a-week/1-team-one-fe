@@ -1,5 +1,6 @@
 import { Chip } from '@repo/ui/chip';
-import Image from 'next/image';
+
+import { OptimizedImage } from '@/src/shared/ui/optimized-image';
 
 type ResultStatusColor = {
   bgClass: string;
@@ -30,7 +31,7 @@ export function StretchingSessionResultStatusCard({
       <p className={`text-base font-semibold ${color.textClass} text-center whitespace-pre`}>
         {label}
       </p>
-      <Image src={imageSrc} alt={imageAlt} width={220} height={160} priority />
+      <OptimizedImage src={imageSrc} alt={imageAlt} width={220} height={160} />
     </div>
   );
 }

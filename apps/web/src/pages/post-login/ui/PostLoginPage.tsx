@@ -6,15 +6,20 @@ import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
 import { POST_LOGIN_MESSAGES } from '@/src/pages/post-login/config/messages';
 import { ROUTES } from '@/src/shared/routes';
 
-const redirectByStatus = (status: string): string => {
-  if (status === 'completed') return ROUTES.MAIN;
-  if (status === 'incomplete') return ROUTES.ONBOARDING_SURVEY;
-  if (status === 'unauthorized') return ROUTES.LOGIN;
-  return ROUTES.LOGIN;
-};
-
 export function PostLoginPage() {
   const router = useRouter();
+
+  const redirectUrl =
+    typeof router.query.redirectUrl === 'string' && router.query.redirectUrl.startsWith('/')
+      ? router.query.redirectUrl
+      : undefined;
+
+  const redirectByStatus = (status: string): string => {
+    if (status === 'completed') return redirectUrl ?? ROUTES.MAIN;
+    if (status === 'incomplete') return ROUTES.ONBOARDING_SURVEY;
+    return ROUTES.LOGIN;
+  };
+
   const { data: onboardingStatus, isLoading } = useOnboardingStatusQuery({
     refetchOnMount: 'always',
     staleTime: 0,

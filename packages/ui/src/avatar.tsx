@@ -6,8 +6,7 @@ import { cn } from './lib/utils';
 
 const avatarVariants = cva(
   [
-    'inline-flex items-center justify-center',
-    'overflow-hidden rounded-full',
+    'inline-flex items-center justify-center overflow-hidden',
     'bg-bg-subtle text-text',
     'select-none',
   ],
@@ -18,9 +17,14 @@ const avatarVariants = cva(
         md: 'h-12 w-12 text-base',
         lg: 'h-16 w-16 text-lg',
       },
+      shape: {
+        circle: 'rounded-full',
+        squircle: 'rounded-[34%_34%_34%_34%/28%_28%_40%_40%]',
+      },
     },
     defaultVariants: {
       size: 'md',
+      shape: 'circle',
     },
   },
 );
@@ -36,6 +40,7 @@ export interface AvatarProps extends AvatarBaseProps, VariantProps<typeof avatar
   name?: string;
   fallbackText?: string;
   fallbackDelayMs?: number;
+  badge?: React.ReactNode;
 }
 
 const getInitials = (name?: string, fallbackText?: string) => {
@@ -58,6 +63,8 @@ export function Avatar({
   fallbackText,
   fallbackDelayMs = 0,
   size,
+  shape,
+  badge,
   className,
   ...props
 }: AvatarProps) {
@@ -65,19 +72,23 @@ export function Avatar({
   const initials = getInitials(name, fallbackText);
 
   return (
-    <AvatarPrimitive.Root className={cn(avatarVariants({ size }), className)} {...props}>
-      <AvatarPrimitive.Image
-        src={src ?? undefined}
-        alt={ariaLabel}
-        className="h-full w-full object-cover"
-      />
-      <AvatarPrimitive.Fallback
-        delayMs={fallbackDelayMs}
-        className="flex h-full w-full items-center justify-center font-semibold"
-      >
-        {initials}
-      </AvatarPrimitive.Fallback>
-    </AvatarPrimitive.Root>
+    <div className="relative inline-flex">
+      <AvatarPrimitive.Root className={cn(avatarVariants({ size, shape }), className)} {...props}>
+        <AvatarPrimitive.Image
+          src={src ?? undefined}
+          alt={ariaLabel}
+          className="h-full w-full object-cover"
+        />
+        <AvatarPrimitive.Fallback
+          delayMs={fallbackDelayMs}
+          className="flex h-full w-full items-center justify-center font-semibold"
+        >
+          {initials}
+        </AvatarPrimitive.Fallback>
+      </AvatarPrimitive.Root>
+
+      {badge && <div className="absolute -right-0.5 -bottom-0.5">{badge}</div>}
+    </div>
   );
 }
 

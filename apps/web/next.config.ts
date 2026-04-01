@@ -1,5 +1,10 @@
+import bundleAnalyzer from '@next/bundle-analyzer';
 import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from 'next';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const nextConfig: NextConfig = {
   output: 'standalone',
@@ -17,6 +22,16 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'storage.googleapis.com',
         pathname: '/raise-developer-dev-bucket/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'raise-developer-dev-bucket.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'raise-developer-staging-bucket.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
       },
     ],
   },
@@ -69,7 +84,7 @@ const nextConfig: NextConfig = {
 
 const isCI = process.env.CI === 'true' || process.env.CI === '1'; //CI 환경인지 감지
 
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withBundleAnalyzer(nextConfig), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 

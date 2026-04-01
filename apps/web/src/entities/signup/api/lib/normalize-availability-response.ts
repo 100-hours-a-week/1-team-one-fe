@@ -1,9 +1,8 @@
-import type { ApiResponse } from '@/src/shared/api';
+import { type ApiResponse, isApiError } from '@/src/shared/api';
 
 import type {
-  AvailabilityResult,
-  DuplicationErrorResponseDTO,
-  DuplicationField,
+  AvailabilityResultType,
+  DuplicationFieldType,
   EmailAvailabilityDataType,
   NicknameAvailabilityDataType,
 } from '../dto/availability.dto';
@@ -13,6 +12,15 @@ type AvailabilityData = EmailAvailabilityDataType | NicknameAvailabilityDataType
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
+const isFieldReasonMessage = (
+  value: unknown,
+  field: DuplicationFieldType,
+): value is { field: DuplicationFieldType; reason: string } => {
+  if (!isRecord(value)) return false;
+  if (value.field !== field) return false;
+  return typeof value.reason === 'string' && value.reason.length > 0;
+};
+
 const hasAvailabilityData = (payload: unknown): payload is ApiResponse<AvailabilityData> => {
   if (!isRecord(payload)) return false;
   if (!('data' in payload)) return false;
@@ -21,58 +29,16 @@ const hasAvailabilityData = (payload: unknown): payload is ApiResponse<Availabil
   return typeof data.available === 'boolean';
 };
 
-const hasDuplicationErrors = (payload: unknown): payload is DuplicationErrorResponseDTO => {
-  if (!isRecord(payload)) return false;
-  if (!('errors' in payload)) return false;
-  if (!Array.isArray(payload.errors)) return false;
-  if (!('code' in payload)) return false;
-  return typeof payload.code === 'string';
-};
-
-const getDuplicationError = (
-  payload: DuplicationErrorResponseDTO,
-  field: DuplicationField,
-): AvailabilityResult['error'] | null => {
-  const match = payload.errors.find(
-    (error) =>
-      isRecord(error) &&
-      error.field === field &&
-      typeof error.reason === 'string' &&
-      error.reason.length > 0,
-  );
-
-  if (!match) return null;
-
-  return {
-    code: payload.code,
-    field,
-    reason: match.reason,
-  };
-};
-
 /**
  * 서버 응답이 성공/중복 에러 두 형태일 때 타입 검사 후 동일한 포맷으로 반환하는 유틸
  */
 export function normalizeAvailabilityResponse(args: {
   payload: unknown;
-  field: DuplicationField;
-}): AvailabilityResult | null {
-  const { payload, field } = args;
+}): AvailabilityResultType | null {
+  const { payload } = args;
 
   if (hasAvailabilityData(payload)) {
     return { available: payload.data.available };
-  }
-
-  if (hasDuplicationErrors(payload)) {
-    const error = getDuplicationError(payload, field);
-    if (!error) return null;
-    return { available: false, error };
-  }
-
-  if (isRecord(payload) && hasDuplicationErrors(payload)) {
-    const error = getDuplicationError(payload, field);
-    if (!error) return null;
-    return { available: false, error };
   }
 
   return null;
@@ -83,19 +49,24 @@ export function normalizeAvailabilityResponse(args: {
  */
 export function normalizeAvailabilityResponseFromError(args: {
   error: unknown;
-  field: DuplicationField;
-}): AvailabilityResult | null {
+  field: DuplicationFieldType;
+}): AvailabilityResultType | null {
   const { error, field } = args;
-  if (!isRecord(error)) return null;
+  if (!isApiError(error)) return null;
+  if (!Array.isArray(error.errors)) return null;
 
-  const apiError = error;
-  if (!apiError.errors || !Array.isArray(apiError.errors)) return null;
+  const matchedError = error.errors.find((entry) => isFieldReasonMessage(entry, field));
 
-  return normalizeAvailabilityResponse({
-    payload: {
-      code: apiError.code ?? 'UNKNOWN_ERROR',
-      errors: apiError.errors,
+  if (!matchedError) return null;
+
+  const code = typeof error.code === 'string' ? error.code : 'UNKNOWN_ERROR';
+
+  return {
+    available: false,
+    error: {
+      code,
+      field,
+      reason: matchedError.reason,
     },
-    field,
-  });
+  };
 }

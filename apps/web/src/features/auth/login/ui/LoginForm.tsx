@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@repo/ui/button';
+import { cn } from '@repo/ui/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 
@@ -38,6 +39,7 @@ export function LoginForm({ onSubmit, isPending }: LoginFormProps) {
   const passwordValue = useWatch({ control, name: 'password' });
   const isSubmitDisabled = isPending || formState.isSubmitting;
   const isSubmitLoading = isSubmitDisabled;
+  const hasAuthError = !!authErrorMessage;
 
   useClearFieldErrorsOnChange({
     control,
@@ -65,7 +67,7 @@ export function LoginForm({ onSubmit, isPending }: LoginFormProps) {
       if (!isApiError(error)) return;
 
       if (error.status === HTTP_STATUS.UNAUTHORIZED) {
-        setAuthErrorMessage(LOGIN_FORM_MESSAGES.ERROR.INVALID_CREDENTIALS);
+        setAuthErrorMessage(error.message || LOGIN_FORM_MESSAGES.ERROR.INVALID_CREDENTIALS);
         return;
       }
 
@@ -77,11 +79,11 @@ export function LoginForm({ onSubmit, isPending }: LoginFormProps) {
         error.status === HTTP_STATUS.TOO_MANY_REQUESTS ||
         error.status >= HTTP_STATUS.SERVER_ERROR_MIN
       ) {
-        setAuthErrorMessage(LOGIN_FORM_MESSAGES.ERROR.RETRY_LATER);
+        setAuthErrorMessage(error.message || LOGIN_FORM_MESSAGES.ERROR.RETRY_LATER);
         return;
       }
 
-      setAuthErrorMessage(LOGIN_FORM_MESSAGES.ERROR.RETRY_LATER);
+      setAuthErrorMessage(error.message || LOGIN_FORM_MESSAGES.ERROR.RETRY_LATER);
     }
   };
 
@@ -120,13 +122,9 @@ export function LoginForm({ onSubmit, isPending }: LoginFormProps) {
       />
 
       <div className="min-h-5">
-        {authErrorMessage ? (
-          <p className="text-error-600 text-sm">{authErrorMessage}</p>
-        ) : (
-          <span className="text-sm text-transparent" aria-hidden="true">
-            .
-          </span>
-        )}
+        <p className={cn('text-error-600 text-sm', !hasAuthError && 'opacity-0')}>
+          {authErrorMessage ?? '유효하지 않은 이메일 또는 비밀번호입니다.'}
+        </p>
       </div>
 
       <Button type="submit" disabled={isSubmitDisabled} isLoading={isSubmitLoading}>

@@ -4,9 +4,12 @@ import { useRouter } from 'next/router';
 
 import type { LoginFormValues } from '@/src/features/auth/login';
 import { LoginForm, useLoginMutation } from '@/src/features/auth/login';
-import { ONBOARDING_STATUS_QUERY_KEYS } from '@/src/features/onboarding-status/config/query-keys';
+import { onboardingStatusQueryOptions } from '@/src/features/onboarding-status';
 import { refreshPushTokenOnLogin, usePutFcmTokenMutation } from '@/src/features/push-notifications';
 import { ROUTES } from '@/src/shared/routes';
+import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
+
+import { LoginCloseButton } from './LoginCloseButton';
 
 export function LoginPage() {
   const router = useRouter();
@@ -14,6 +17,14 @@ export function LoginPage() {
   const { mutateAsync, isPending } = useLoginMutation();
   const { mutateAsync: putFcmToken } = usePutFcmTokenMutation();
   const handleSignUp = () => router.push(ROUTES.SIGNUP);
+
+  const redirectUrl =
+    typeof router.query.redirectUrl === 'string' ? router.query.redirectUrl : undefined;
+
+  useSetHeaderAction(
+    () => <LoginCloseButton onClick={() => void router.replace(redirectUrl ?? ROUTES.MOMENTS)} />,
+    [redirectUrl, router],
+  );
 
   const handleSubmit = async (values: LoginFormValues) => {
     await mutateAsync(values, {
@@ -26,10 +37,13 @@ export function LoginPage() {
           }
         }
         await queryClient.refetchQueries({
-          queryKey: ONBOARDING_STATUS_QUERY_KEYS.onboardingStatus(),
+          queryKey: onboardingStatusQueryOptions().queryKey,
           type: 'all',
         });
-        router.push(ROUTES.POST_LOGIN);
+        const postLoginPath = redirectUrl
+          ? `${ROUTES.POST_LOGIN}?redirectUrl=${encodeURIComponent(redirectUrl)}`
+          : ROUTES.POST_LOGIN;
+        router.push(postLoginPath);
       },
     });
   };
@@ -37,7 +51,7 @@ export function LoginPage() {
   return (
     <div className="flex h-full flex-col items-center justify-center">
       <div>
-        <h1 className="text-2xl font-bold">로그인</h1>
+        <h1 className="text-2xl font-bold">개발자 키우기 로그인</h1>
       </div>
       <LoginForm onSubmit={handleSubmit} isPending={isPending} />
       <Button variant="ghost" onClick={handleSignUp}>

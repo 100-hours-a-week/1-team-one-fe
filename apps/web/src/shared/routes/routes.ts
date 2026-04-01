@@ -11,11 +11,18 @@ export const PUBLIC_ROUTES = {
   ONBOARDING_ALARM: '/onboarding/alarm',
   ONBOARDING_TUTORIAL: '/onboarding/tutorial',
   ONBOARDING_PWA_GUIDE: '/onboarding/pwa-guide',
+
+  MOMENTS: '/moments',
+  MOMENTS_NEW: '/moments/new',
 } as const;
 
 export const APP_ROUTES = {
   MAIN: '/app',
+  STATISTICS: '/app/statistics',
   PLAN: '/app/plan',
+  QUEST: '/app/quest',
+  LEADERBOARD: '/app/leaderboard',
+  REPORTS: '/app/reports',
   SETTINGS_NOTIFICATIONS: '/app/notifications',
   ALARM: '/app/alarm',
   SURVEY_EDIT: '/app/survey/edit',
@@ -28,6 +35,18 @@ export const ROUTES = {
 
 export function buildStretchSessionPath(sessionId: number | string): string {
   return `/stretch/${sessionId}`;
+}
+
+export function buildReportDetailPath(reportId: number | string): string {
+  return `/app/reports/${reportId}`;
+}
+
+export function buildMomentsDetailPath(postId: number | string): string {
+  return `/moments/post/${postId}`;
+}
+
+export function buildMomentsUserFeedPath(userId: number | string): string {
+  return `/moments/${userId}`;
 }
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];

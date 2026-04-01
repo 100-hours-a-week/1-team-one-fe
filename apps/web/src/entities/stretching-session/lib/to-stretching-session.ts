@@ -1,12 +1,37 @@
-import type { RoutineStepResponse, StretchingSessionData } from '../api/dto/stretching-session.dto';
-import type { StretchingSessionStepType, StretchingSessionType } from '../model/types';
+import type {
+  RoutineStepResponseType,
+  StretchingSessionDataType,
+} from '../api/dto/stretching-session.dto';
+import type {
+  StretchingSessionExercisePoseType,
+  StretchingSessionStepType,
+  StretchingSessionType,
+} from '../model/types';
+import { toEyeReference } from './to-eye-reference';
 import { toReferencePose } from './to-reference-pose';
 
 /**
- * @description API 응답 형태의 RoutineStepResponse 를 정확도 엔진의 input 형식으로 변환
+ * @description API 응답 형태의 RoutineStepResponseType 를 정확도 엔진의 input 형식으로 변환
  */
 
-const toStretchingSessionStep = (step: RoutineStepResponse): StretchingSessionStepType => {
+const toStretchingSessionPose = (
+  step: RoutineStepResponseType,
+): StretchingSessionExercisePoseType => {
+  if (step.exercise.type === 'EYES') {
+    return {
+      eyeReference: toEyeReference(
+        step.exercise.pose.keyFrames ?? [],
+        step.exercise.pose.totalDurationMs ?? 0,
+      ),
+    };
+  }
+
+  return {
+    referencePose: toReferencePose(step.exercise.pose.referencePose!),
+  };
+};
+
+const toStretchingSessionStep = (step: RoutineStepResponseType): StretchingSessionStepType => {
   return {
     routineStepId: step.routineStepId,
     stepOrder: step.stepOrder,
@@ -19,14 +44,12 @@ const toStretchingSessionStep = (step: RoutineStepResponse): StretchingSessionSt
       name: step.exercise.name,
       content: step.exercise.content,
       effect: step.exercise.effect,
-      pose: {
-        referencePose: toReferencePose(step.exercise.pose.referencePose),
-      },
+      pose: toStretchingSessionPose(step),
     },
   };
 };
 
-export function toStretchingSession(data: StretchingSessionData): StretchingSessionType {
+export function toStretchingSession(data: StretchingSessionDataType): StretchingSessionType {
   return {
     routineId: data.routineId,
     routineOrder: data.routineOrder,

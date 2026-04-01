@@ -12,23 +12,23 @@
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tooling/eslint-config": "workspace:*",
     "@tooling/typescript-config": "workspace:*",
-    "@types/node": "^22.15.3",
-    "@types/react": "19.2.2",
-    "@types/react-dom": "19.2.2",
-    "class-variance-authority": "^0.7.1",
+    "@types/node": "22.19.7",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "class-variance-authority": "0.7.1",
     "clsx": "^2.1.1",
-    "eslint": "^9.39.1",
+    "eslint": "9.39.2",
     "tailwind-merge": "^3.4.0",
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "lucide-react": "^0.469.0",
+    "lucide-react": "0.575.0",
     "radix-ui": "^1.4.2",
     "sonner": "^1.7.4"
   }

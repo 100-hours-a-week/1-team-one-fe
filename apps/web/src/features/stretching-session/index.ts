@@ -1,4 +1,8 @@
 export {
+  stretchingSessionQueryOptions,
+  validStretchingSessionsQueryOptions,
+} from './api/query-options';
+export {
   type CompleteStretchingSessionMutationOptionsType,
   useCompleteStretchingSessionMutation,
 } from './api/useCompleteStretchingSessionMutation';
@@ -7,6 +11,10 @@ export type {
   StretchingSessionQueryOptionsType,
 } from './api/useStretchingSessionQuery';
 export { useStretchingSessionQuery } from './api/useStretchingSessionQuery';
+export {
+  type StretchingSessionSatisfactionMutationOptionsType,
+  useStretchingSessionSatisfactionMutation,
+} from './api/useStretchingSessionSatisfactionMutation';
 export type {
   ValidStretchingSessionsQueryKey,
   ValidStretchingSessionsQueryOptionsType,
@@ -14,4 +22,4 @@ export type {
 export { useValidStretchingSessionsQuery } from './api/useValidStretchingSessionsQuery';
 export { useStretchingSession } from './lib/useStretchingSession';
 export { StretchingSessionView } from './ui/StretchingSessionView';
-export type { CompleteStretchingSessionResponseDataType } from '@/src/entities/stretching-session';
+export type { CompleteStretchingSessionAcceptedDataType } from '@/src/entities/stretching-session';

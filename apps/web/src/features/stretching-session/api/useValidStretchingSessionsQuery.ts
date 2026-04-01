@@ -1,16 +1,12 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
 import {
-  fetchValidStretchingSessionsFn,
   type ValidStretchingSessionItemType,
+  type ValidStretchingSessionsQueryKey,
+  validStretchingSessionsQueryOptions,
 } from '@/src/entities/stretching-session';
 import { type ApiError } from '@/src/shared/api';
-
-import { STRETCHING_SESSION_QUERY_KEYS } from '../config/query-keys';
-
-export type ValidStretchingSessionsQueryKey = ReturnType<
-  typeof STRETCHING_SESSION_QUERY_KEYS.valid
->;
+export type { ValidStretchingSessionsQueryKey } from '@/src/entities/stretching-session';
 
 type ValidStretchingSessionsResult = ReadonlyArray<ValidStretchingSessionItemType> | null;
 
@@ -26,8 +22,7 @@ export type ValidStretchingSessionsQueryOptionsType = Omit<
 
 export function useValidStretchingSessionsQuery(options?: ValidStretchingSessionsQueryOptionsType) {
   return useQuery({
-    queryKey: STRETCHING_SESSION_QUERY_KEYS.valid(),
-    queryFn: fetchValidStretchingSessionsFn,
+    ...validStretchingSessionsQueryOptions(),
     ...options,
   });
 }

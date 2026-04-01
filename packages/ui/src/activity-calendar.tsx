@@ -1,8 +1,8 @@
-import { Tooltip } from 'radix-ui';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
 
 import { cn } from './lib/utils';
+import { Tooltip } from './tooltip';
 
 export type Activity = {
   date: string;
@@ -58,19 +58,10 @@ export function ActivityCalendar({ data, className, renderTooltip }: ActivityCal
                 )}
               />
             </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content
-                side="top"
-                sideOffset={8}
-                className={cn(
-                  'z-50 rounded-md bg-black/60 px-3 py-2 text-white',
-                  'data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out',
-                )}
-              >
-                {renderTooltip?.(activity) ?? defaultTooltipContent(activity)}
-                <Tooltip.Arrow className="fill-black/60" />
-              </Tooltip.Content>
-            </Tooltip.Portal>
+            <Tooltip.Content>
+              {renderTooltip?.(activity) ?? defaultTooltipContent(activity)}
+              <Tooltip.Arrow />
+            </Tooltip.Content>
           </Tooltip.Root>
         ))}
       </div>

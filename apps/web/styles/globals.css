@@ -22,11 +22,22 @@
 
 :root {
   --font-sans: 'Pretendard', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --footer-nav-height: 4rem; /* FooterNav 높이 */
 }
 
 body {
   font-family: var(--font-sans);
   background-color: var(--neutral-50);
+}
+
+/* 스크롤바 숨김 유틸리티 */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 @keyframes logo-float {

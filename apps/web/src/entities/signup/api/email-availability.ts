@@ -19,7 +19,6 @@ export async function fetchEmailAvailabilityFn(email: string): Promise<EmailAvai
 
     const normalized = normalizeAvailabilityResponse({
       payload: response.data,
-      field: 'email',
     });
 
     if (!normalized) {

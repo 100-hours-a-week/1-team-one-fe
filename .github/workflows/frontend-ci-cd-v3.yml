@@ -1,0 +1,378 @@
+name: Frontend CI/CD v3 (k8s GitOps)
+
+# ============================================================
+# [v3 변경사항 요약]
+# v2: EC2 기반 Docker Compose 배포 (SSM + ASG Instance Refresh)
+# v3: Kubernetes 기반 GitOps 배포 (ArgoCD + Helm)
+#
+# [배포 흐름]
+# PR Open/Sync → 환경별 환경변수 주입 후 빌드 → ECR pr-{SHA} 태그 푸시
+# PR Merge (develop) → dev-latest 리태깅
+#                      → 클라우드 레포 helm/envs/dev/frontend-values.yaml image.tag 업데이트
+#                      → ArgoCD 감지 → dev-app 네임스페이스 파드 롤링 업데이트
+# PR Merge (main)    → production-latest 리태깅
+#                      → 클라우드 레포 helm/envs/prod/frontend-values.yaml image.tag 업데이트
+#                      → ArgoCD 감지 → prod-app 네임스페이스 파드 롤링 업데이트
+#
+# [역할 분리]
+# GitHub Actions = CI + 클라우드 레포 image.tag 업데이트 (CD 트리거)
+# ArgoCD         = 실제 클러스터 배포 (CD 실행) + 완료/실패 Discord 알림
+# ============================================================
+
+on:
+  pull_request:
+    types: [opened, synchronize, closed]
+    branches: [develop, main]
+
+permissions:
+  id-token: write # AWS OIDC 인증 (ECR 푸시용)
+  contents: write
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: frontend
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # JOB 0. 변경 사항 감지 (불필요한 빌드 방지)
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            app:
+              - "apps/web/**"
+              - "packages/**"
+              - "package.json"
+              - "pnpm-lock.yaml"
+              - "pnpm-workspace.yaml"
+              - "turbo.json"
+              - "tooling/**"
+              - "eslint.config.mjs"
+              - ".npmrc"
+              - ".github/workflows/frontend-ci-cd-v3.yml"
+
+  # JOB 1. CI - 빌드 및 ECR 이미지 푸시
+  # 결과: 환경별 환경변수로 빌드 후 ECR에 pr-{HEAD_SHA} 태그로 저장
+  #   develop PR → WEB_ENV_DEV_V2 주입
+  #   main PR    → WEB_ENV_PROD_V2 주입
+  build-and-push:
+    needs: check-changes
+    if: (github.event.action == 'opened' || github.event.action == 'synchronize') && needs.check-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # pnpm & Node 설정 (빌드 캐시용 아님, Sentry CLI 및 스크립트 실행용)
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24.13.0"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Turbo 빌드 캐시 복원
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.event.pull_request.head.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      # Next.js 빌드 캐시 복원
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/**/*.{js,ts,jsx,tsx}', 'packages/**/*.{js,ts,jsx,tsx}') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-
+
+      # 브랜치에 따라 환경변수 분기
+      # develop PR → dev 환경변수 (Merge 후 dev-latest로 dev-app 배포)
+      # main PR    → prod 환경변수 (Merge 후 production-latest로 prod-app 배포)
+      - name: Export web env
+        shell: bash
+        run: |
+          if [[ "${{ github.base_ref }}" == "main" ]]; then
+            echo "Building for PRODUCTION environment..."
+            echo "${{ secrets.WEB_ENV_PROD_V2 }}" | grep -v '^#' | grep -v '^[[:space:]]*$' >> "$GITHUB_ENV"
+            echo "NEXT_PUBLIC_RELEASE=raisedev-web@prod-${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+            echo "SENTRY_PROJECT=raisedev-prod" >> "$GITHUB_ENV"
+          else
+            echo "Building for DEV environment..."
+            echo "${{ secrets.WEB_ENV_DEV_V2 }}" | grep -v '^#' | grep -v '^[[:space:]]*$' >> "$GITHUB_ENV"
+            echo "NEXT_PUBLIC_RELEASE=raisedev-web@dev-${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+            echo "SENTRY_PROJECT=raisedev-dev" >> "$GITHUB_ENV"
+          fi
+
+      # Sentry Release 생성 (소스맵 업로드 준비)
+      - name: Create Sentry Release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+        run: |
+          npm install -g @sentry/cli
+          sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
+          sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
+
+      # Next.js 빌드
+      - name: Build Next.js application
+        run: pnpm turbo build --filter=web
+
+      # Sentry Finalize
+      - name: Finalize Sentry Release
+        if: success()
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+        run: sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
+
+      # 모노레포 standalone 경로 처리
+      - name: Bundle Artifacts
+        working-directory: apps/web
+        run: |
+          STANDALONE_ROOT=".next/standalone"
+          
+          # 모노레포 중첩 구조 찾기
+          if [ -d "$STANDALONE_ROOT/1-team-one-fe/apps/web" ]; then
+            APP_DIR="$STANDALONE_ROOT/1-team-one-fe/apps/web"
+          elif [ -d "$STANDALONE_ROOT/apps/web" ]; then
+            APP_DIR="$STANDALONE_ROOT/apps/web"
+          else
+            echo "ERROR: Cannot find standalone app directory"
+            ls -la $STANDALONE_ROOT
+            exit 1
+          fi
+
+          mkdir -p $APP_DIR/.next
+          cp -r .next/static $APP_DIR/.next/
+          cp -r public $APP_DIR/
+          cp ../../Dockerfile $STANDALONE_ROOT/Dockerfile
+
+      # AWS OIDC 인증 (ECR 접근용)
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # pr-{SHA} 태그로 푸시
+      # Merge 시 promote-image job에서 환경별 태그로 리태깅됨
+      - name: Build and Push Docker Image
+        working-directory: apps/web/.next/standalone
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:pr-$PR_HEAD_SHA .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:pr-$PR_HEAD_SHA
+
+      - name: Get Current Time
+        if: always()
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: 'YYYY-MM-DD HH:mm:ss'
+          utcOffset: "+09:00"
+          timezone: 'Asia/Seoul'
+
+      - name: Discord Notification - CI 성공
+        if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_EMBEDS: |
+            [{
+              "title": "✅ FE CI 성공",
+              "color": 5763719,
+              "fields": [
+                {"name": "Repository", "value": "${{ github.repository }}", "inline": false},
+                {"name": "Merge To", "value": "${{ github.base_ref }}", "inline": false},
+                {"name": "Triggered By", "value": "${{ github.actor }}", "inline": false},
+                {"name": "Commit/PR", "value": "${{ github.event.pull_request.title }}", "inline": false},
+                {"name": "Actions Log", "value": "[Link to Action](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": true}
+              ],
+              "footer": {
+                "text": "${{ steps.current-time.outputs.formattedTime }} KST"
+              }
+            }]
+        uses: Ilshidur/action-discord@0.4.0
+        with:
+          args: 'v3 CI 완료 - ECR 이미지 푸시 성공 <@&${{ secrets.DISCORD_ROLE_FRONTEND }}>'
+
+      - name: Discord Notification - CI 실패
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_EMBEDS: |
+            [{
+              "title": "🚨 FE CI 실패",
+              "color": 15548997,
+              "fields": [
+                {"name": "Repository", "value": "${{ github.repository }}", "inline": false},
+                {"name": "Merge To", "value": "${{ github.base_ref }}", "inline": false},
+                {"name": "Triggered By", "value": "${{ github.actor }}", "inline": false},
+                {"name": "Commit/PR", "value": "${{ github.event.pull_request.title }}", "inline": false},
+                {"name": "Actions Log", "value": "[Link to Action](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": true}
+              ],
+              "footer": {
+                "text": "${{ steps.current-time.outputs.formattedTime }} KST"
+              }
+            }]
+        uses: Ilshidur/action-discord@0.4.0
+        with:
+          args: 'v3 CI 실패 - 로그를 확인해주세요 <@&${{ secrets.DISCORD_ROLE_FRONTEND_ONCALL }}>'
+
+  # JOB 2. 이미지 리태깅 (Promote)
+  # 역할: pr-{SHA} 임시 태그 → 환경별 고정 태그로 교체
+  #   develop Merge → dev-{SHA}        (dev-app 네임스페이스용)
+  #   main Merge    → prod-{SHA}  (prod-app 네임스페이스용)
+  promote-image:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      # 이후 deploy job에서 사용할 최종 태그
+      final_image_tag: ${{ steps.retag.outputs.FINAL_TAG }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Retag Image
+        id: retag
+        env:
+          # ECR_REGISTRY 불필요: v2는 deploy job에 이미지 풀 URI 전체를 넘겨야 했지만
+          # v3는 태그명(dev-latest/production-latest)만 values.yaml에 기록하면 됨
+          # 실제 이미지 풀은 k8s가 ECR credential provider로 처리
+          SOURCE_TAG: pr-${{ github.event.pull_request.head.sha }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        run: |
+          echo "Source tag: $SOURCE_TAG"
+
+          MANIFEST=$(aws ecr batch-get-image \
+            --repository-name $ECR_REPOSITORY \
+            --image-ids imageTag=$SOURCE_TAG \
+            --query 'images[].imageManifest' \
+            --output text)
+
+          if [ -z "$MANIFEST" ] || [ "$MANIFEST" == "None" ]; then
+            echo "Error: Source image ($SOURCE_TAG) not found in ECR!"
+            exit 1
+          fi
+
+          if [[ "$BASE_BRANCH" == "develop" ]]; then
+            FINAL_TAG="dev-${{ github.event.pull_request.head.sha }}"
+          elif [[ "$BASE_BRANCH" == "main" ]]; then
+            FINAL_TAG="prod-${{ github.event.pull_request.head.sha }}"
+          fi
+
+          echo "Retagging $SOURCE_TAG → $FINAL_TAG"
+          aws ecr put-image \
+            --repository-name $ECR_REPOSITORY \
+            --image-tag $FINAL_TAG \
+            --image-manifest "$MANIFEST" || echo "Tag already exists on this digest. Skipping."
+
+          echo "FINAL_TAG=$FINAL_TAG" >> $GITHUB_OUTPUT
+
+  # JOB 3. Dev 환경 배포 (GitOps)
+  # 역할: 클라우드 레포 helm/envs/dev/frontend-values.yaml의
+  #       image.tag를 dev-{SHA}로 업데이트 후 git push
+  # 이후: ArgoCD가 변경 감지 → dev-app 네임스페이스 파드 롤링 업데이트
+  # 알림: ArgoCD Notifications에서 Sync 완료/실패 시 Discord 발송
+  deploy-dev:
+    needs: promote-image
+    if: github.event.pull_request.merged == true && github.base_ref == 'develop'
+    runs-on: ubuntu-latest
+    steps:
+      # CLOUD_REPO_PAT: Classic PAT (repo 스코프)
+      # 1-team-one-cloud 레포 push 권한 필요
+      - name: Checkout Cloud Repo
+        uses: actions/checkout@v4
+        with:
+          repository: 100-hours-a-week/1-team-one-cloud
+          token: ${{ secrets.CLOUD_REPO_PAT }}
+          ref: dev
+
+      # sed로 tag 값만 교체
+      # 변경 전: tag: "이전값"
+      # 변경 후: tag: "dev-{SHA}"
+      - name: Update dev Frontend image tag
+        run: |
+          sed -i "s/tag: .*/tag: \"${{ needs.promote-image.outputs.final_image_tag }}\"/" helm/envs/dev/frontend-values.yaml
+          echo "=== 변경된 values 확인 ==="
+          grep "tag:" helm/envs/dev/frontend-values.yaml
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add helm/envs/dev/frontend-values.yaml
+          git commit -m "cd: update dev frontend image tag to ${{ needs.promote-image.outputs.final_image_tag }} [skip ci]
+
+          PR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+          Actor: ${{ github.actor }}"
+          git push origin dev
+
+  # JOB 4. Production 환경 배포 (GitOps)
+  # 역할: 클라우드 레포 helm/envs/prod/frontend-values.yaml의
+  #       image.tag를 prod-{SHA}로 업데이트 후 git push
+  # 이후: ArgoCD가 변경 감지 → prod-app 네임스페이스 파드 롤링 업데이트
+  # 알림: ArgoCD Notifications에서 Sync 완료/실패 시 Discord 발송
+  deploy-production:
+    needs: promote-image
+    if: github.event.pull_request.merged == true && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    # GitHub Environment 승인 게이트
+    # Settings → Environments → production → Required reviewers 설정
+    environment: production
+    steps:
+      - name: Checkout Cloud Repo
+        uses: actions/checkout@v4
+        with:
+          repository: 100-hours-a-week/1-team-one-cloud
+          token: ${{ secrets.CLOUD_REPO_PAT }}
+          ref: dev
+
+      - name: Update prod Frontend image tag
+        run: |
+          sed -i "s/tag: .*/tag: \"${{ needs.promote-image.outputs.final_image_tag }}\"/" helm/envs/prod/frontend-values.yaml
+          echo "=== 변경된 values 확인 ==="
+          grep "tag:" helm/envs/prod/frontend-values.yaml
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add helm/envs/prod/frontend-values.yaml
+          git commit -m "cd: update prod frontend image tag to ${{ needs.promote-image.outputs.final_image_tag }} [skip ci]
+
+          PR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+          Actor: ${{ github.actor }}"
+          git push origin dev

@@ -1,6 +1,7 @@
 import dynamic from 'next/dynamic';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 
+import { HeaderActionContext } from '@/src/widgets/layout/header-action-context';
 import { MainHeader } from '@/src/widgets/layout/main-header';
 
 import { HeaderConfig, PageHeader } from '../../page-header';
@@ -15,9 +16,19 @@ export interface MobileShellProps {
   showFooter?: boolean;
   showHeader?: boolean;
   headerConfig?: HeaderConfig;
+  isPageScroll?: boolean;
 }
 
-export function MobileShell({ children, showFooter = true, headerConfig }: MobileShellProps) {
+export function MobileShell({
+  children,
+  showFooter = true,
+  headerConfig,
+  isPageScroll,
+}: MobileShellProps) {
+  const [contextAction, setContextAction] = useState<ReactNode | null>(null);
+
+  const shouldPageScroll = isPageScroll;
+
   const resolvedHeader =
     headerConfig &&
     (headerConfig.variant === 'main' ? (
@@ -26,26 +37,36 @@ export function MobileShell({ children, showFooter = true, headerConfig }: Mobil
       <PageHeader
         title={headerConfig.title}
         backAction={headerConfig.back ?? true}
-        action={headerConfig.action}
+        action={contextAction ?? headerConfig.action}
       />
     ));
 
   return (
-    <div className="bg-bg flex justify-center">
-      <div className="relative flex h-full w-full max-w-md flex-col">
-        {resolvedHeader}
+    <div className="bg-bg flex h-dvh flex-col justify-center">
+      {resolvedHeader ? <div className="mx-auto w-full max-w-md">{resolvedHeader}</div> : null}
 
-        <main
-          className="flex-1"
+      <HeaderActionContext.Provider value={{ setAction: setContextAction }}>
+        <div
+          className={`min-h-0 flex-1 ${shouldPageScroll ? 'overflow-y-auto' : 'overflow-hidden'}`}
           style={{
-            paddingBottom: showFooter ? 'calc(4rem + env(safe-area-inset-bottom))' : undefined,
+            paddingBottom: showFooter
+              ? 'calc(var(--footer-nav-height) + env(safe-area-inset-bottom))'
+              : undefined,
           }}
         >
-          {children}
-        </main>
+          <div
+            className={
+              shouldPageScroll
+                ? 'mx-auto min-h-full w-full max-w-md'
+                : 'mx-auto flex h-full min-h-0 w-full max-w-md flex-col'
+            }
+          >
+            {children}
+          </div>
+        </div>
+      </HeaderActionContext.Provider>
 
-        {showFooter && <FooterNav />}
-      </div>
+      {showFooter && <FooterNav />}
     </div>
   );
 }

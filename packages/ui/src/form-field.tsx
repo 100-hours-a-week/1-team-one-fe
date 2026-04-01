@@ -37,6 +37,7 @@ export interface FormFieldProps {
   accept?: string;
   placeholder?: string;
   autoComplete?: string;
+  maxLength?: number;
 
   // state
   disabled?: boolean;
@@ -46,6 +47,9 @@ export interface FormFieldProps {
 
   // size
   size?: 'sm' | 'md' | 'lg';
+
+  // variant
+  variant?: 'default' | 'borderless';
 
   // icon
   leftIcon?: ReactNode;
@@ -75,6 +79,7 @@ export function FormField({
   accept,
   placeholder,
   autoComplete,
+  maxLength,
 
   // State props
   disabled,
@@ -84,6 +89,9 @@ export function FormField({
 
   // Size
   size = 'md',
+
+  // Variant
+  variant = 'default',
 
   // Icons
   leftIcon,
@@ -106,7 +114,7 @@ export function FormField({
   const isHelperEmpty = !showErrorMessage && !showDupMessage && !showHelperText;
 
   return (
-    <Input.Root error={error} disabled={disabled} size={size}>
+    <Input.Root error={error} disabled={disabled} size={size} variant={variant}>
       {label && (
         <Input.Label htmlFor={id}>
           {label}
@@ -134,6 +142,7 @@ export function FormField({
           autoComplete={autoComplete}
           aria-describedby={ariaDescribedBy || helperId}
           aria-invalid={ariaInvalid ?? error}
+          maxLength={maxLength}
         />
 
         {duplicationCheck?.enabled ? (
@@ -191,7 +200,6 @@ export function FormField({
                     : 'default'
               : 'default'
         }
-        className="min-h-5"
         aria-hidden={isHelperEmpty}
       >
         {showErrorMessage

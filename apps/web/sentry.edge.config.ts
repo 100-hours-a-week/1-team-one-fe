@@ -8,6 +8,7 @@ import { getCommonSentryEdgeOptions } from '@tooling/sentry-config';
 
 const env = process.env.NEXT_PUBLIC_ENV;
 const isProd = env === 'production';
+const isLocal = env === 'local';
 
 //엣지 런타임에 실행되는 코드에서 발생하는 에러를 수집
 //cdn 요청 실패 에러 수집 가능 (proxy.ts 는 server.config.ts 에서 수집)
@@ -16,6 +17,7 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: env,
   release: process.env.NEXT_PUBLIC_RELEASE,
+  enabled: !isLocal,
 
   //Edge/middleware는 호출이 많을 수 있으니
   tracesSampleRate: isProd ? 0.05 : 0.2,
