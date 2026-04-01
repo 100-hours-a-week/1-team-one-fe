@@ -1,135 +1,139 @@
-# Turborepo starter
+# Growing Developer
 
-This Turborepo starter is maintained by the Turborepo core team.
+하루종일 앉아있어 건강에 위협을 받는 개발자가 바쁜 일상 속에서도 건강한 스트레칭 습관을 만들 수 있도록 돕는 PWA 기반 웹 서비스입니다.  
+온보딩 설문을 기반으로 맞춤 스트레칭을 제안하고, 알림, 세션 기록과 리포트를 제공합니다.
 
-## Using this example
+## 목차
 
-Run the following command:
+1. [서비스 소개](#1-서비스-소개)
+2. [팀원 소개](#2-팀원-소개)
+3. [FE 기술 스택](#3-fe-기술-스택)
+4. [FE 개발 컨벤션](#4-fe-개발-컨벤션)
 
-```sh
-npx create-turbo@latest
-```
+## 1. 서비스 소개
 
-## What's inside?
+![promotion](docs/raise-developer-promotion.jpg)
 
-This Turborepo includes the following packages/apps:
+### 서비스 한 줄 소개
 
-### Apps and Packages
+`Growing Developer`는 개발자의 건강한 루틴 형성을 돕기 위해, 맞춤 스트레칭 추천부터 알림, 수행, 기록까지 연결하는 서비스입니다.
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### 해결하려는 문제
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+- 개발자는 장시간 앉아서 일하는 환경 때문에 목, 어깨, 눈의 피로가 쉽게 누적됩니다.
+- 스트레칭이 필요하다는 것을 알아도, 언제 무엇을 해야 할지 몰라 실천이 어렵습니다.
+- 건강 관리를 꾸준한 습관으로 만들기 위해서는 추천, 리마인드, 동기부여가 하나의 경험으로 이어져야 합니다.
 
-### Utilities
+### 핵심 기능
 
-This Turborepo has some additional tools already setup for you:
+- 온보딩 설문을 통해 사용자 상태를 파악하고 맞춤 스트레칭 플랜을 생성합니다.
+- 알림 설정과 푸시 권한 흐름을 제공해 스트레칭 루틴을 지속하도록 돕습니다.
+- 웹 환경에서도 앱처럼 사용할 수 있도록 PWA 설치 가이드를 제공합니다.
+- 스트레칭 세션 진행, 결과 확인, 리포트와 통계를 통해 사용자 변화와 성취를 보여줍니다.
+- 캐릭터, 상태 점수, 퀘스트 등 게임화 요소로 지속적인 참여를 유도합니다.
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+## 2. 팀원 소개
 
-### Build
+## 👥 Team Members
 
-To build all apps and packages, run the following command:
+<table>
+  <tr>
+    <td align="center"><b>한경준</b></td>
+    <td align="center"><b>박지은</b></td>
+    <td align="center"><b>김연우</b></td>
+    <td align="center"><b>임준혁</b></td>
+    <td align="center"><b>김종민</b></td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/hkjbrian
+.png" width="220px" alt="한경준" />
+    </td>
+    <td align="center">
+      <img src="https://github.com/jieun0824.png" width="220px" alt="박지은" />
+    </td>
+    <td align="center">
+      <img src="https://github.com/yanwoo8
+.png" width="220px" alt="김연우" />
+    </td>
+    <td align="center">
+      <img src="https://github.com/Burnt-Waffle
+.png" width="220px" alt="임준혁" />
+    </td>
+        <td align="center">
+      <img src="https://github.com/jmKim02.png" width="220px" alt="김종민" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/hkjbrian">@hkjbrian</a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/jieun0824">@jieun0824</a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/yanwoo8">@yanwoo8</a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Burnt-Waffle">@Burnt-Waffle</a>
+    </td>
+        <td align="center">
+      <a href="https://github.com/jmKim02">@jmKim02</a>
+    </td>
+  </tr>
+</table>
 
-```
-cd my-turborepo
+## 3. FE 기술 스택
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+| 구분                 | 기술                                          |
+| -------------------- | --------------------------------------------- |
+| Framework            | `Next.js 16` (`Pages Router`)                 |
+| UI Library           | `React 19`                                    |
+| Language             | `TypeScript 5`                                |
+| Styling              | `Tailwind CSS v4`                             |
+| State / Server State | `TanStack Query v5`, `Zustand`                |
+| Form / Validation    | `React Hook Form`, `Zod`                      |
+| Monorepo             | `Turborepo`, `pnpm workspace`                 |
+| UI Package           | `@repo/ui`, `@repo/tokens`                    |
+| Testing              | `Jest`, `React Testing Library`, `user-event` |
+| Quality              | `ESLint`, `Prettier`, `husky`, `lint-staged`  |
+| Monitoring / Infra   | `Sentry`, `Firebase`, `Redis`                 |
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+### FE 아키텍처
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+- `FSD(Feature-Sliced Design)` 기반으로 레이어 책임을 분리합니다.
+- `apps/web`와 `packages/*`를 나눈 모노레포 구조를 사용합니다.
+- 공통 UI와 토큰은 패키지로 분리해 재사용성과 일관성을 높입니다.
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+## 4. FE 개발 컨벤션
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+### 1) 라우팅과 화면 구조
 
-### Develop
+- Next.js는 `Pages Router`를 사용합니다.
+- `pages/**`는 라우팅 전용으로 사용하고, 실제 화면 로직은 `src/pages/**`에 둡니다.
 
-To develop all apps and packages, run the following command:
+### 2) FSD 레이어 규칙
 
-```
-cd my-turborepo
+- 레이어는 `shared -> entities -> features -> widgets -> pages` 방향으로만 의존합니다.
+- 하위 레이어가 상위 레이어를 import 하는 역방향 의존은 금지합니다.
+- 공용으로 노출할 항목은 슬라이스 단위 `index.ts`에서 명시적으로 export 합니다.
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+### 3) 네이밍 컨벤션
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+아래 문서를 참고하도록 한다.
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+[네이밍 컨벤션 문서](https://github.com/100-hours-a-week/1-team-one-fe/wiki/%EB%84%A4%EC%9D%B4%EB%B0%8D-%EC%BB%A8%EB%B2%A4%EC%85%98)
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+### 4) 공통 에러 컨벤션 팀 규칙
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+[공통 에러 처리 정리](https://github.com/100-hours-a-week/1-team-one-fe/wiki/260130-%EA%B3%B5%ED%86%B5-%EC%97%90%EB%9F%AC-%EC%B2%98%EB%A6%AC-%EC%A0%95%EB%A6%AC)
 
-### Remote Caching
+### 5) 공통 로딩 컨벤션 팀 규칙
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+페이지 추가 혹은 새로운 컴포넌트 추가로 로딩 상태 정의가 필요하다면, 아래 문서를 참고하도록 한다.
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+-> [페이지 추가 시 참고해야 할 로딩 컨벤션](https://github.com/100-hours-a-week/1-team-one-fe/wiki/260203-%EA%B3%B5%ED%86%B5-%EB%A1%9C%EB%94%A9-%EC%84%A4%EC%A0%95-%EC%B6%94%EA%B0%80---%ED%8C%80-%EC%BB%A8%EB%B2%A4%EC%85%98-%EC%A0%95%EC%9D%98)
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+공통 로딩 구현 지점에 대한 변경 혹은 이해가 필요하다면, 아래 문서를 참고하도록 한다.
 
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+-> [공통 로딩 구현 상세](https://github.com/100-hours-a-week/1-team-one-fe/wiki/260202-%EA%B3%B5%ED%86%B5-%EB%A1%9C%EB%94%A9-%EC%84%A4%EC%A0%95-%EC%B6%94%EA%B0%80)
