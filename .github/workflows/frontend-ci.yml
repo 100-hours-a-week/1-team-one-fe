@@ -1,0 +1,310 @@
+name: Frontend CI with Docker
+
+on:
+  pull_request:
+    types: [opened, synchronize, closed]
+    branches: [develop, main]
+
+permissions:
+  id-token: write # AWS OIDC 인증용
+  contents: write
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: frontend
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # 1. 변경 사항 감지 (불필요한 빌드 방지)
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            app:
+              # 핵심 애플리케이션 코드
+              - "apps/web/**"
+              - "packages/**"
+
+              # 의존성 관리
+              - "package.json"
+              - "pnpm-lock.yaml"
+              - "pnpm-workspace.yaml"
+
+              # 빌드 설정
+              - "turbo.json"
+              - "tooling/**"
+              - "eslint.config.mjs"
+
+              # 패키지 관리자 설정
+              - ".npmrc"
+
+              # CI/CD 워크플로우
+              - ".github/workflows/frontend-ci-cd-v2.yml"
+              - ".github/workflows/deploy-dev.yml"
+              - ".github/workflows/deploy-asg-rolling.yml"
+              - ".github/workflows/frontend-ci-cd-v3.yml"
+
+  # 2. CI: 환경별 빌드 및 도커 이미지 푸시
+  build-and-push:
+    needs: check-changes
+    if: (github.event.action == 'opened' || github.event.action == 'synchronize') && needs.check-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # pnpm & Node 설정 (빌드 캐시용 아님, Sentry CLI 및 스크립트 실행용)
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24.13.0"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      # Turbo 빌드 캐시 복원  
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.event.pull_request.head.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      # Next.js 빌드 캐시 복원
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/**/*.{js,ts,jsx,tsx}', 'packages/**/*.{js,ts,jsx,tsx}') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-
+
+
+      # AWS 자격 증명 설정
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ECR 로그인
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 환경 변수 불러오기
+      - name: Export web env
+        shell: bash
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [[ "${{ github.base_ref }}" == "main" ]]; then
+            echo "Building for PROD environment..."
+            echo "${{ secrets.WEB_ENV_PROD_V2 }}" | grep -v '^#' | grep -v '^[[:space:]]*$' >> "$GITHUB_ENV"
+            echo "NEXT_PUBLIC_RELEASE=raisedev-web@prod-pr-$PR_SHA" >> "$GITHUB_ENV"
+            echo "SENTRY_PROJECT=raisedev-prod" >> "$GITHUB_ENV"
+          else
+            echo "Building for DEV environment..."
+            echo "${{ secrets.WEB_ENV_DEV_V2 }}" | grep -v '^#' | grep -v '^[[:space:]]*$' >> "$GITHUB_ENV"
+            echo "NEXT_PUBLIC_RELEASE=raisedev-web@dev-pr-$PR_SHA" >> "$GITHUB_ENV"
+            echo "SENTRY_PROJECT=raisedev-dev" >> "$GITHUB_ENV"
+          fi
+
+      # Sentry Release 생성 (소스맵 업로드 준비)
+      - name: Create Sentry Release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+        run: |
+          npm install -g @sentry/cli
+          sentry-cli releases new "$NEXT_PUBLIC_RELEASE"
+          # 조직 레포에 권한이 없어서 CI가 터지는 것을 방지하기 위해서 || true 추가
+          sentry-cli releases set-commits "$NEXT_PUBLIC_RELEASE" --auto || true
+
+      # Next.js 빌드
+      - name: Build Next.js application
+        run: pnpm turbo build --filter=web
+
+      # Sentry Finalize
+      - name: Finalize Sentry Release
+        if: success()
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+        run: sentry-cli releases finalize "$NEXT_PUBLIC_RELEASE"
+
+      # 모노레포 경로 처리
+      - name: Bundle Artifacts
+        working-directory: apps/web
+        run: |
+          STANDALONE_ROOT=".next/standalone"
+
+          # 모노레포 중첩 구조 찾기
+          if [ -d "$STANDALONE_ROOT/1-team-one-fe/apps/web" ]; then
+            APP_DIR="$STANDALONE_ROOT/1-team-one-fe/apps/web"
+          elif [ -d "$STANDALONE_ROOT/apps/web" ]; then
+            APP_DIR="$STANDALONE_ROOT/apps/web"
+          else
+            echo "ERROR: Cannot find standalone app directory"
+            ls -la $STANDALONE_ROOT
+            exit 1
+          fi
+
+          mkdir -p $APP_DIR/.next
+          cp -r .next/static $APP_DIR/.next/
+          cp -r public $APP_DIR/
+
+          cp ../../Dockerfile $STANDALONE_ROOT/Dockerfile
+
+          # 만약 CI에서 만든 .env 파일이 있다면 주석 해제해서 폴더 루트에 포함시키기
+          # cp ../../.env $STANDALONE_ROOT/.env
+
+      # 도커 이미지 빌드 및 푸시
+      - name: Build and Push Docker Image
+        id: build-image
+        working-directory: apps/web/.next/standalone
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          IMAGE_TAG="pr-$PR_HEAD_SHA"
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    #   # 현재 시간 구하기 (KST)
+    #   - name: Get Current Time
+    #     if: always()
+    #     uses: 1466587594/get-current-time@v2
+    #     id: current-time
+    #     with:
+    #       format: "YYYY-MM-DD HH:mm:ss"
+    #       utcOffset: "+09:00" # 한국 시간
+    #       timezone: "Asia/Seoul"
+
+    #   # Discord 성공 알림
+    #   - name: Discord Notification - Success
+    #     if: success()
+    #     env:
+    #       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+    #       DISCORD_EMBEDS: |
+    #         [{
+    #           "title": "✅ FE CI 성공",
+    #           "color": 5763719,
+    #           "fields": [
+    #             {"name": "Repository", "value": "${{ github.repository }}", "inline": false},
+    #             {"name": "Merge To", "value": "${{ github.base_ref }}", "inline": false},
+    #             {"name": "Triggered By", "value": "${{ github.actor }}", "inline": false},
+    #             {"name": "Commit/PR", "value": "${{ github.event.pull_request.title }}", "inline": false},
+    #             {"name": "Actions Log", "value": "[Link to Action](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": true}
+    #           ],
+    #           "footer": {
+    #             "text": "${{ steps.current-time.outputs.formattedTime }} KST"
+    #           }
+    #         }]
+    #     uses: Ilshidur/action-discord@0.4.0
+    #     with:
+    #       args: "CI 파이프라인이 성공적으로 완료되었습니다. <@&${{ secrets.DISCORD_ROLE_FRONTEND }}>"
+
+    #   # Discord 실패 알림
+    #   - name: Discord Notification - Failure
+    #     if: failure()
+    #     env:
+    #       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+    #       DISCORD_EMBEDS: |
+    #         [{
+    #           "title": "🚨 FE CI 실패",
+    #           "color": 15548997,
+    #           "fields": [
+    #             {"name": "Repository", "value": "${{ github.repository }}", "inline": false},
+    #             {"name": "Merge To", "value": "${{ github.base_ref }}", "inline": false},
+    #             {"name": "Triggered By", "value": "${{ github.actor }}", "inline": false},
+    #             {"name": "Commit/PR", "value": "${{ github.event.pull_request.title }}", "inline": false},
+    #             {"name": "Actions Log", "value": "[Link to Action](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": true}
+    #           ],
+    #           "footer": {
+    #             "text": "${{ steps.current-time.outputs.formattedTime }} KST"
+    #           }
+    #         }]
+    #     uses: Ilshidur/action-discord@0.4.0
+    #     with:
+    #       args: "CI 파이프라인 실행 중 오류가 발생했습니다. 로그를 확인해주세요. <@&${{ secrets.DISCORD_ROLE_FRONTEND_ONCALL }}> "
+
+  # 3. 이미지 리태깅 (Merge 시 실행) 불변 태그 전략
+  promote-image:
+    needs: check-changes
+    if: github.event.pull_request.merged == true && needs.check-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      final_image_uri: ${{ steps.retag.outputs.FINAL_URI }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Retag Image
+        id: retag
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          SOURCE_TAG: pr-${{ github.event.pull_request.head.sha }}
+          TARGET_TAG: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          MANIFEST=$(aws ecr batch-get-image --repository-name $ECR_REPOSITORY --image-ids imageTag=$SOURCE_TAG --query 'images[].imageManifest' --output text)
+          aws ecr put-image --repository-name $ECR_REPOSITORY --image-tag $TARGET_TAG --image-manifest "$MANIFEST"
+          echo "FINAL_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$TARGET_TAG" >> $GITHUB_OUTPUT
+
+
+  # 4. Dev 배포 (dev 브랜치 Merge 시)
+  deploy-dev:
+    needs: [promote-image, check-changes]
+    if: github.event.pull_request.merged == true && github.base_ref == 'develop' && needs.check-changes.outputs.should_run == 'true'
+    uses: ./.github/workflows/frontend-cd.yml
+    with:
+      environment: dev
+      image_uri: ${{ needs.promote-image.outputs.final_image_uri }}
+      codedeploy_group: fe-dev
+      pr_number: ${{ github.event.pull_request.number }}
+      pr_title: ${{ github.event.pull_request.title }}
+      base_ref: ${{ github.base_ref }}
+      actor: ${{ github.actor }}
+      run_id: ${{ github.run_id }}
+      repository: ${{ github.repository }}
+    secrets: inherit
+
+  # 4. Production 배포 (main 브랜치 Merge 시)
+  deploy-production:
+    needs: [promote-image, check-changes]
+    if: github.event.pull_request.merged == true && github.base_ref == 'main' && needs.check-changes.outputs.should_run == 'true'
+    uses: ./.github/workflows/frontend-cd.yml
+    with:
+      environment: production
+      image_uri: ${{ needs.promote-image.outputs.final_image_uri }}
+      codedeploy_group: fe-prod
+      pr_number: ${{ github.event.pull_request.number }}
+      pr_title: ${{ github.event.pull_request.title }}
+      base_ref: ${{ github.base_ref }}
+      actor: ${{ github.actor }}
+      run_id: ${{ github.run_id }}
+      repository: ${{ github.repository }}
+    secrets: inherit
