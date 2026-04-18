@@ -2,12 +2,12 @@ import { Avatar } from '@repo/ui/avatar';
 import { StreakBadge } from '@repo/ui/streak-badge';
 
 import type { PostAuthorType } from '@/src/entities/post';
-import StreakImoji from '@/src/shared/assets/streak-imoji.svg';
 import {
   formatNotificationDateLabel,
   formatNotificationTimeLabel,
 } from '@/src/shared/lib/date/notification-date';
 import { buildImageUrl } from '@/src/shared/lib/image';
+import { StreakImoji } from '@/src/shared/ui/StreakImoji';
 
 interface PostDetailHeaderProps {
   author: PostAuthorType;
