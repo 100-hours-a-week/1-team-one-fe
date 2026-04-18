@@ -6,6 +6,36 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
+type RemotePattern = NonNullable<NonNullable<NextConfig['images']>['remotePatterns']>[number];
+
+function createRemotePatternFromUrl(url?: string): RemotePattern | null {
+  if (!url) {
+    return null;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    const protocol = parsedUrl.protocol.replace(':', '');
+
+    if (protocol !== 'http' && protocol !== 'https') {
+      return null;
+    }
+
+    const pathname =
+      parsedUrl.pathname === '/' ? '/**' : `${parsedUrl.pathname.replace(/\/$/, '')}/**`;
+
+    return {
+      protocol,
+      hostname: parsedUrl.hostname,
+      pathname,
+    };
+  } catch {
+    return null;
+  }
+}
+
+const envImageRemotePattern = createRemotePatternFromUrl(process.env.NEXT_PUBLIC_GCS_BASE_URL);
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true,
@@ -33,6 +63,12 @@ const nextConfig: NextConfig = {
         hostname: 'raise-developer-staging-bucket.s3.ap-northeast-2.amazonaws.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'raise-developer-prod-bucket.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+      ...(envImageRemotePattern ? [envImageRemotePattern] : []),
     ],
   },
 
