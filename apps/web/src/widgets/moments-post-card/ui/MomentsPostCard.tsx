@@ -10,21 +10,31 @@ import {
   useLikePostMutationOptions,
 } from '@/src/features/moments-like';
 import { MOMENTS_LIST_CONFIG } from '@/src/features/moments-list';
+import { IMAGE_LCP_CANDIDATE } from '@/src/shared/config/image';
 import { buildImageUrl } from '@/src/shared/lib/image';
 import { buildMomentsDetailPath, buildMomentsUserFeedPath } from '@/src/shared/routes';
+import { OptimizedImage } from '@/src/shared/ui/optimized-image';
 import { PostAuthorInfo } from '@/src/widgets/post-author-info';
 
 interface MomentsPostCardItemProps {
   post: PostListItemType;
   isLoggedIn: boolean;
+  isLcpCandidate: boolean;
 }
 
-export function MomentsPostCardItem({ post, isLoggedIn }: MomentsPostCardItemProps) {
+export function MomentsPostCardItem({
+  post,
+  isLoggedIn,
+  isLcpCandidate,
+}: MomentsPostCardItemProps) {
   const router = useRouter();
   const detailHref = buildMomentsDetailPath(post.postId);
   const resolvedImageUrl = buildImageUrl(post.imageUrl);
   const optimisticHandlers = useLikePostMutationOptions();
   const { mutate: likePost } = useLikePostMutation(optimisticHandlers);
+  const imageLcpCandidate = isLcpCandidate
+    ? IMAGE_LCP_CANDIDATE.CANDIDATE
+    : IMAGE_LCP_CANDIDATE.NON_CANDIDATE;
 
   const handleLike = () => {
     likePost({ postId: post.postId, isLiked: post.isLiked });
@@ -48,14 +58,16 @@ export function MomentsPostCardItem({ post, isLoggedIn }: MomentsPostCardItemPro
         <Link href={detailHref} className="flex flex-col gap-2">
           {resolvedImageUrl && (
             <div className="overflow-hidden">
-              <Link href={detailHref} className="block">
-                <img
+              <div className="relative h-48 w-full">
+                <OptimizedImage
                   src={resolvedImageUrl}
                   alt={post.title}
-                  className="h-48 w-full object-cover"
-                  loading="lazy"
+                  fill
+                  className="object-cover"
+                  lcpCandidate={imageLcpCandidate}
+                  sizes={MOMENTS_LIST_CONFIG.CARD_IMAGE_SIZES}
                 />
-              </Link>
+              </div>
             </div>
           )}
           <h2 className="text-text text-lg font-semibold">{post.title}</h2>
