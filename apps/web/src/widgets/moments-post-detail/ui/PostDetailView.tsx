@@ -1,12 +1,12 @@
-import { ImageGallery } from '@repo/ui/image-gallery';
-import { ImageLightbox } from '@repo/ui/image-lightbox';
 import { type ReactNode, useState } from 'react';
 
 import type { PostDetailDataType } from '@/src/entities/post';
 import { buildImageUrls } from '@/src/shared/lib/image';
 import { Divider } from '@/src/shared/ui/divider';
-import { PostAuthorInfo } from '@/src/widgets/post-author-info';
 
+import { PostDetailHeader } from './PostDetailHeader';
+import { PostDetailImageGallery } from './PostDetailImageGallery';
+import { PostDetailImageLightbox } from './PostDetailImageLightbox';
 import { PostDetailTags } from './PostDetailTags';
 
 interface PostDetailViewProps {
@@ -27,18 +27,17 @@ export function PostDetailView({ data, footer }: PostDetailViewProps) {
 
   return (
     <article className="mx-auto flex w-full max-w-3xl flex-col px-4 py-6">
-      <PostAuthorInfo author={data.author} createdAt={data.createdAt} />
+      <PostDetailHeader author={data.author} createdAt={data.createdAt} />
       <h1 className="px-2 py-4 text-2xl font-bold">{data.title}</h1>
       <Divider />
 
       <div className="min-h-44 px-2 py-4 whitespace-pre-wrap">{data.content}</div>
       <Divider />
 
-      {/* 이미지 + 라이트박스 */}
-      {imageUrls.length > 0 && (
+      {imageUrls.length > 0 ? (
         <>
-          <ImageGallery images={imageUrls} onImageClick={handleImageClick} variant="carousel" />
-          <ImageLightbox
+          <PostDetailImageGallery images={imageUrls} onImageClick={handleImageClick} />
+          <PostDetailImageLightbox
             images={imageUrls}
             initialIndex={selectedImageIndex}
             open={lightboxOpen}
@@ -46,14 +45,14 @@ export function PostDetailView({ data, footer }: PostDetailViewProps) {
           />
           <Divider />
         </>
-      )}
+      ) : null}
 
-      {data.tags.length > 0 && (
+      {data.tags.length > 0 ? (
         <>
           <PostDetailTags tags={data.tags} />
           <Divider />
         </>
-      )}
+      ) : null}
 
       {footer ? <div className="flex items-center py-4">{footer}</div> : null}
     </article>
