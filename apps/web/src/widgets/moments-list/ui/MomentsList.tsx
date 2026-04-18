@@ -20,8 +20,13 @@ export function MomentsList({
 }: MomentsListProps) {
   return (
     <div className="flex flex-col gap-4">
-      {items.map((post) => (
-        <MomentsPostCardItem key={post.postId} post={post} isLoggedIn={isLoggedIn} />
+      {items.map((post, index) => (
+        <MomentsPostCardItem
+          key={post.postId}
+          post={post}
+          isLoggedIn={isLoggedIn}
+          isLcpCandidate={index === MOMENTS_LIST_CONFIG.LCP_CANDIDATE_INDEX}
+        />
       ))}
       {isFetchingNextPage && (
         <div className="text-text-muted flex justify-center text-sm">
