@@ -15,7 +15,7 @@ import {
   useProfileImageUpload,
   useUserProfileQuery,
 } from '@/src/features/user-profile';
-import StreakImoji from '@/src/shared/assets/streak-imoji.svg';
+import { StreakImoji } from '@/src/shared/assets/StreakImoji';
 import { buildImageUrl } from '@/src/shared/lib/image';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
 import { MomentsList } from '@/src/widgets/moments-list';
