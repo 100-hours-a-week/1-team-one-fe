@@ -1,7 +1,7 @@
 import { UserStatusCard } from '@repo/ui/user-status-card';
 
 import { useUserProfileQuery } from '@/src/features/user-profile/query';
-import StreakImoji from '@/src/shared/assets/streak-imoji.svg';
+import { StreakImoji } from '@/src/shared/assets/StreakImoji';
 import { buildImageUrl } from '@/src/shared/lib/image';
 
 import { UserStatusCardSectionSkeleton } from './UserStatusCardSection.skeleton';

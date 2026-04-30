@@ -2,7 +2,7 @@ import { Avatar } from '@repo/ui/avatar';
 import { StreakBadge } from '@repo/ui/streak-badge';
 
 import type { PostAuthorType } from '@/src/entities/post';
-import StreakImoji from '@/src/shared/assets/streak-imoji.svg';
+import { StreakImoji } from '@/src/shared/assets/StreakImoji';
 import {
   formatNotificationDateLabel,
   formatNotificationTimeLabel,
