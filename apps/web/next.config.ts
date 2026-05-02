@@ -46,7 +46,6 @@ const svgComponentLoader = {
 const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true,
-  transpilePackages: ['@repo/ui'],
   turbopack: {
     rules: {
       '*.svg': {

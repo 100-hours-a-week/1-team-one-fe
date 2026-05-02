@@ -30,7 +30,7 @@ import {
   type EyeStretchingReference,
   type GazeFrame,
   type WebGazerInstance,
-} from '@repo/eye-stretching-session';
+} from '../src';
 
 import { EYE_SESSION_CONFIG } from '../config/constants';
 

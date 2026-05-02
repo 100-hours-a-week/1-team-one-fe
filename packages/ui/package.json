@@ -3,10 +3,23 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    "./*": "./src/*.tsx",
-    "./lib/*": "./src/lib/*.ts"
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.mjs"
+    },
+    "./lib/*": {
+      "types": "./dist/lib/*.d.ts",
+      "default": "./dist/lib/*.mjs"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "pnpm run build:js && pnpm run build:types",
+    "build:js": "tsup",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist --pretty false",
+    "dev": "tsup --watch",
     "lint": "eslint . --max-warnings 0",
     "generate:component": "turbo gen react-component",
     "check-types": "tsc --noEmit"
@@ -25,6 +38,7 @@
     "clsx": "^2.1.1",
     "eslint": "9.39.2",
     "tailwind-merge": "^3.4.0",
+    "tsup": "8.5.1",
     "typescript": "5.9.2"
   },
   "dependencies": {
