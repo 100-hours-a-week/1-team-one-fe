@@ -13,6 +13,7 @@ export interface UserStatusCardProps extends Omit<
 > {
   avatarSrc?: string | null;
   avatarAlt?: string;
+  avatarImageSlot?: React.ReactNode;
   nickname: string;
   level: number;
   streak: number;
@@ -32,6 +33,7 @@ const getLevelLabel = (level: number) => {
 export function UserStatusCard({
   avatarSrc,
   avatarAlt,
+  avatarImageSlot,
   nickname,
   level,
   streak,
@@ -52,6 +54,7 @@ export function UserStatusCard({
           alt={avatarAlt ?? nickname}
           name={nickname}
           size="md"
+          imageSlot={avatarImageSlot}
           badge={avatarBadge ?? <StreakBadge streak={streak} icon={streakIcon} size="md" />}
         />
         <div className={cn('flex min-w-0 flex-1 flex-col gap-3', rightContentClassName)}>

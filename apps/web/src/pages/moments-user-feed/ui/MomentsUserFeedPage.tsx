@@ -16,8 +16,10 @@ import {
   useUserProfileQuery,
 } from '@/src/features/user-profile';
 import { StreakImoji } from '@/src/shared/assets/StreakImoji';
+import { AVATAR_IMAGE_QUALITY, AVATAR_IMAGE_SIZES } from '@/src/shared/config/avatar';
 import { buildImageUrl } from '@/src/shared/lib/image';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
+import { OptimizedImage } from '@/src/shared/ui/optimized-image';
 import { MomentsList } from '@/src/widgets/moments-list';
 
 import { MOMENTS_USER_FEED_MESSAGES } from '../config/messages';
@@ -94,61 +96,77 @@ export function MomentsUserFeedPage({ authorId }: MomentsUserFeedPageProps) {
           renderLoading={() => null}
           renderError={() => null}
         >
-          {(user) => (
-            <div className="relative">
-              <UserStatusCard
-                avatarSrc={
-                  isEditing && previewUrl ? previewUrl : buildImageUrl(user.profile.imagePath)
-                }
-                avatarAlt={`${user.profile.nickname} 프로필 이미지`}
-                nickname={user.profile.nickname}
-                level={user.character.level}
-                streak={user.character.streak}
-                currentExp={user.character.exp}
-                totalExp={TOTAL_EXP}
-                streakIcon={<StreakImoji className="h-7 w-7" aria-hidden="true" />}
-                avatarBadge={
-                  isEditing ? (
-                    <ProfilePencilBadge
-                      onFileSelect={imageUpload.uploadFile}
-                      isLoading={imageUpload.isUploading}
-                      accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif"
-                    />
-                  ) : undefined
-                }
-                rightContent={
-                  isEditing ? (
-                    <ProfileNicknameEditForm
-                      authorId={authorId}
-                      initialNickname={user.profile.nickname}
-                      imageUpload={imageUpload}
-                      onDone={handleEditDone}
-                      onCancel={handleEditCancel}
-                    />
-                  ) : undefined
-                }
-                rightContentClassName="min-h-24"
-              />
-              <div className="absolute top-3 right-3 flex items-center gap-2">
-                {isMyProfile && !isEditing && (
-                  <>
-                    <Chip
-                      label={MOMENTS_USER_FEED_MESSAGES.MY_FEED_LABEL}
-                      variant="default"
-                      size="sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing(true)}
-                      className="text-text-muted text-sm underline"
-                    >
-                      {MOMENTS_USER_FEED_MESSAGES.EDIT_BUTTON}
-                    </button>
-                  </>
-                )}
+          {(user) => {
+            const avatarImageSrc =
+              isEditing && previewUrl ? previewUrl : buildImageUrl(user.profile.imagePath);
+            const avatarAlt = `${user.profile.nickname} 프로필 이미지`;
+
+            return (
+              <div className="relative">
+                <UserStatusCard
+                  avatarSrc={avatarImageSrc}
+                  avatarAlt={avatarAlt}
+                  avatarImageSlot={
+                    avatarImageSrc ? (
+                      <OptimizedImage
+                        src={avatarImageSrc}
+                        alt={avatarAlt}
+                        fill
+                        className="object-cover"
+                        quality={AVATAR_IMAGE_QUALITY.MD}
+                        sizes={AVATAR_IMAGE_SIZES.MD}
+                      />
+                    ) : undefined
+                  }
+                  nickname={user.profile.nickname}
+                  level={user.character.level}
+                  streak={user.character.streak}
+                  currentExp={user.character.exp}
+                  totalExp={TOTAL_EXP}
+                  streakIcon={<StreakImoji className="h-7 w-7" aria-hidden="true" />}
+                  avatarBadge={
+                    isEditing ? (
+                      <ProfilePencilBadge
+                        onFileSelect={imageUpload.uploadFile}
+                        isLoading={imageUpload.isUploading}
+                        accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif"
+                      />
+                    ) : undefined
+                  }
+                  rightContent={
+                    isEditing ? (
+                      <ProfileNicknameEditForm
+                        authorId={authorId}
+                        initialNickname={user.profile.nickname}
+                        imageUpload={imageUpload}
+                        onDone={handleEditDone}
+                        onCancel={handleEditCancel}
+                      />
+                    ) : undefined
+                  }
+                  rightContentClassName="min-h-24"
+                />
+                <div className="absolute top-3 right-3 flex items-center gap-2">
+                  {isMyProfile && !isEditing && (
+                    <>
+                      <Chip
+                        label={MOMENTS_USER_FEED_MESSAGES.MY_FEED_LABEL}
+                        variant="default"
+                        size="sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="text-text-muted text-sm underline"
+                      >
+                        {MOMENTS_USER_FEED_MESSAGES.EDIT_BUTTON}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          }}
         </LoadableBoundary>
       </div>
 
