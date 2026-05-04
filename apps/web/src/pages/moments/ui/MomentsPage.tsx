@@ -4,9 +4,11 @@ import { useCallback, useMemo } from 'react';
 import {
   MOMENTS_LIST_CONFIG,
   MOMENTS_LIST_MESSAGES,
-  usePostsInfiniteQuery,
+  type MomentsListQueryParams,
+  useMomentsFeedQuery,
 } from '@/src/features/moments-list';
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
+import { normalizeStringList } from '@/src/shared/lib/list';
 import { ROUTES } from '@/src/shared/routes';
 import { LoadableBoundary } from '@/src/shared/ui/boundary';
 import { useSetHeaderAction } from '@/src/widgets/layout/header-action-context';
@@ -15,25 +17,19 @@ import { MomentsCreateFab } from '@/src/widgets/moments-create-fab';
 import { MomentsList } from '@/src/widgets/moments-list';
 import { MomentsTagSearch } from '@/src/widgets/moments-tag-search';
 
+import type { MomentsPageProps } from '../model/get-moments-page-server-side-props';
 import { MomentsPageSkeleton } from './MomentsPage.skeleton';
 
-const DEFAULT_QUERY_PARAMS = {
+const DEFAULT_QUERY_PARAMS: MomentsListQueryParams = {
   limit: MOMENTS_LIST_CONFIG.PAGE_LIMIT,
 } as const;
 
-export function MomentsPage() {
+export function MomentsPage({ initialPageData, initialListParams }: MomentsPageProps) {
   const router = useRouter();
   const { data: onboardingStatus } = useOnboardingStatusQuery();
   const isLoggedIn = onboardingStatus !== 'unauthorized';
 
-  const searchTags = useMemo(() => {
-    const tagQuery = router.query.tag;
-    if (!tagQuery) return [];
-
-    const rawTags = Array.isArray(tagQuery) ? tagQuery : [tagQuery];
-    const normalizedTags = rawTags.map((tag) => tag.trim()).filter(Boolean);
-    return Array.from(new Set(normalizedTags));
-  }, [router.query.tag]);
+  const searchTags = useMemo(() => normalizeStringList(router.query.tag), [router.query.tag]);
 
   const listParams = useMemo(
     () => ({
@@ -44,7 +40,11 @@ export function MomentsPage() {
   );
 
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    usePostsInfiniteQuery(listParams, { isLoggedIn });
+    useMomentsFeedQuery(listParams, {
+      isLoggedIn,
+      initialPageData,
+      initialListParams,
+    });
 
   const posts = useMemo(() => data?.pages?.flatMap((page) => page.posts) ?? [], [data]);
   const isEmpty = !isLoading && posts.length === 0;
@@ -52,7 +52,7 @@ export function MomentsPage() {
 
   const handleSearch = useCallback(
     (tags: ReadonlyArray<string>) => {
-      const normalizedTags = [...tags].map((tag) => tag.trim()).filter(Boolean);
+      const normalizedTags = normalizeStringList(tags);
       const nextQuery = { ...router.query };
 
       if ('tag' in nextQuery) {
@@ -76,7 +76,7 @@ export function MomentsPage() {
   useSetHeaderAction(() => {
     if (isLoggedIn) return null;
     return <LoginButton />;
-  }, [isLoggedIn, router]);
+  }, [isLoggedIn]);
 
   return (
     <>
