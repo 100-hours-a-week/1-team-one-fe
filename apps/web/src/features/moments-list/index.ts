@@ -1,4 +1,9 @@
-export { momentsListInfiniteQueryOptions, momentsListRootQueryOptions } from './api/query-options';
+export {
+  momentsListInfiniteQueryOptions,
+  momentsListMetaPageRootQueryOptions,
+  momentsListRootQueryOptions,
+} from './api/query-options';
+export { useMomentsFeedQuery } from './api/useMomentsFeedQuery';
 export { usePostsInfiniteQuery } from './api/usePostsInfiniteQuery';
 export { MOMENTS_LIST_CONFIG } from './config/constants';
 export { MOMENTS_LIST_MESSAGES } from './config/messages';

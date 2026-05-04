@@ -55,3 +55,20 @@ export async function fetchPostListPageFn(
 
   return response.data.data;
 }
+
+export async function fetchPublicPostListPageFn(
+  params: PostListParams,
+): Promise<PostListResponseDataType> {
+  const client = getHttpClient({ requiresAuth: false });
+  const response = await client.get<PostListResponseDTO>('/posts', {
+    params: {
+      limit: params.limit,
+      cursor: params.cursor ?? undefined,
+      'author-id': params.authorId ?? undefined,
+      tag: params.tags,
+    },
+    paramsSerializer: createQueryString,
+  });
+
+  return response.data.data;
+}

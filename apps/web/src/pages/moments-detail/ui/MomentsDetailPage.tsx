@@ -7,7 +7,10 @@ import { useDeletePostMutation } from '@/src/features/moments-detail/api/useDele
 import { usePostDetailMetaQuery } from '@/src/features/moments-detail/api/usePostDetailMetaQuery';
 import { usePostDetailQuery } from '@/src/features/moments-detail/api/usePostDetailQuery';
 import { PostDetailMenu } from '@/src/features/moments-detail/ui/PostDetailMenu';
-import { momentsListRootQueryOptions } from '@/src/features/moments-list';
+import {
+  momentsListMetaPageRootQueryOptions,
+  momentsListRootQueryOptions,
+} from '@/src/features/moments-list';
 import { useOnboardingStatusQuery } from '@/src/features/onboarding-status';
 import { isApiError } from '@/src/shared/api';
 import { LoadableBoundary } from '@/src/shared/ui/boundary/LoadableBoundary';
@@ -32,7 +35,7 @@ export function MomentsDetailPage({ initialData }: MomentsDetailPageProps) {
 
   const { data, error, isLoading } = usePostDetailQuery(postId, {
     enabled: isPostIdValid,
-    // placeholderData: initialData,
+    initialData,
   });
 
   const { data: metaData } = usePostDetailMetaQuery(postId, {
@@ -48,7 +51,12 @@ export function MomentsDetailPage({ initialData }: MomentsDetailPageProps) {
 
   const { mutate: deletePost, isPending: isDeleting } = useDeletePostMutation({
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: momentsListRootQueryOptions().queryKey });
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: momentsListRootQueryOptions().queryKey }),
+        queryClient.invalidateQueries({
+          queryKey: momentsListMetaPageRootQueryOptions().queryKey,
+        }),
+      ]);
       router.replace('/moments');
     },
   });

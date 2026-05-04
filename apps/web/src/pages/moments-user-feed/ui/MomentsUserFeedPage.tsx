@@ -6,8 +6,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useUserByIdQuery } from '@/src/entities/user';
 import {
   MOMENTS_LIST_CONFIG,
+  momentsListMetaPageRootQueryOptions,
   momentsListRootQueryOptions,
-  usePostsInfiniteQuery,
+  useMomentsFeedQuery,
 } from '@/src/features/moments-list';
 import {
   ProfileNicknameEditForm,
@@ -53,7 +54,9 @@ export function MomentsUserFeedPage({ authorId }: MomentsUserFeedPageProps) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = usePostsInfiniteQuery(listParams);
+  } = useMomentsFeedQuery(listParams, {
+    isLoggedIn: currentUser !== undefined,
+  });
 
   const posts = useMemo(() => data?.pages?.flatMap((page) => page.posts) ?? [], [data]);
   const isEmpty = !isPostsLoading && posts.length === 0;
@@ -78,7 +81,10 @@ export function MomentsUserFeedPage({ authorId }: MomentsUserFeedPageProps) {
   const handleEditDone = () => {
     imageUpload.reset();
     setIsEditing(false);
-    void queryClient.invalidateQueries({ queryKey: momentsListRootQueryOptions().queryKey });
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: momentsListRootQueryOptions().queryKey }),
+      queryClient.invalidateQueries({ queryKey: momentsListMetaPageRootQueryOptions().queryKey }),
+    ]);
   };
 
   const handleEditCancel = () => {
