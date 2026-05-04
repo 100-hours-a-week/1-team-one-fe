@@ -27,7 +27,7 @@ export {
   uploadPostImageToPresignedPutFn,
 } from './api/post-image-upload';
 export { togglePostLikeFn } from './api/post-like';
-export { fetchPostListPageFn } from './api/post-list';
+export { fetchPostListPageFn, fetchPublicPostListPageFn } from './api/post-list';
 export { fetchPostListMetaFn, fetchPostMetaFn } from './api/post-meta';
 export { updatePostFn } from './api/post-update';
 export type {
@@ -35,13 +35,17 @@ export type {
   PostDetailQueryKey,
   PostListInfiniteQueryKey,
   PostListInfiniteQueryOptions,
+  PostListMetaPageQueryKey,
+  PostListMetaPageRootQueryKey,
   PostListRootQueryKey,
 } from './api/query-options';
 export {
   postDetailMetaQueryOptions,
   postDetailQueryOptions,
   postListInfiniteQueryOptions,
+  postListMetaPageQueryOptions,
+  postListMetaPageRootQueryOptions,
   postListRootQueryOptions,
 } from './api/query-options';
-export type { PostListQueryParams } from './config/query-keys';
+export type { PostListPageQueryParams, PostListQueryParams } from './config/query-keys';
 export { POST_QUERY_KEYS } from './config/query-keys';

@@ -12,12 +12,10 @@ type MomentsListInfiniteQueryOptions = PostListInfiniteQueryOptions;
 
 export function usePostsInfiniteQuery(
   params: MomentsListQueryParams,
-  options?: MomentsListInfiniteQueryOptions & { isLoggedIn?: boolean },
+  options?: MomentsListInfiniteQueryOptions,
 ) {
-  const { isLoggedIn = false, ...queryOverrides } = options ?? {};
-
   return useInfiniteQuery({
-    ...postListInfiniteQueryOptions(params, isLoggedIn, MOMENTS_LIST_CONFIG.MAX_PAGES),
-    ...queryOverrides,
+    ...postListInfiniteQueryOptions(params, MOMENTS_LIST_CONFIG.MAX_PAGES),
+    ...(options ?? {}),
   });
 }
