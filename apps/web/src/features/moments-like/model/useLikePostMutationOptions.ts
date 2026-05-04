@@ -8,16 +8,24 @@ import {
 
 import type { LikePostMutationOptions } from '../api/useLikePostMutation';
 import {
+  applyMomentsListMetaPageQueryUpdates,
   applyMomentsListQueryUpdates,
+  getMomentsListMetaPageQuerySnapshots,
   getMomentsListQuerySnapshots,
+  getSyncMomentsListMetaPageQueryUpdates,
   getSyncMomentsListQueryUpdates,
+  getToggleMomentsListMetaPageQueryUpdates,
   getToggleMomentsListQueryUpdates,
 } from './optimistic-update-helpers';
 
 interface LikePostOptimisticContext {
-  previousQueries: Array<{
+  previousBaseQueries: Array<{
     queryKey: ReturnType<typeof getMomentsListQuerySnapshots>[number]['queryKey'];
     data: ReturnType<typeof getMomentsListQuerySnapshots>[number]['data'];
+  }>;
+  previousMetaPageQueries: Array<{
+    queryKey: ReturnType<typeof getMomentsListMetaPageQuerySnapshots>[number]['queryKey'];
+    data: ReturnType<typeof getMomentsListMetaPageQuerySnapshots>[number]['data'];
   }>;
   previousDetailMeta: {
     queryKey: ReturnType<typeof postDetailMetaQueryOptions>['queryKey'];
@@ -28,7 +36,8 @@ interface LikePostOptimisticContext {
 function isLikePostOptimisticContext(context: unknown): context is LikePostOptimisticContext {
   if (!context) return false;
   if (typeof context !== 'object') return false;
-  if (!('previousQueries' in context)) return false;
+  if (!('previousBaseQueries' in context)) return false;
+  if (!('previousMetaPageQueries' in context)) return false;
   if (!('previousDetailMeta' in context)) return false;
   return true;
 }
@@ -54,11 +63,20 @@ export function useLikePostMutationOptions(): LikePostMutationOptions {
 
   return {
     onMutate: async (variables) => {
-      const snapshots = getMomentsListQuerySnapshots(queryClient);
-      const updates = getToggleMomentsListQueryUpdates(snapshots, variables.postId);
+      const baseSnapshots = getMomentsListQuerySnapshots(queryClient);
+      const baseUpdates = getToggleMomentsListQueryUpdates(baseSnapshots, variables.postId);
+      const metaPageSnapshots = getMomentsListMetaPageQuerySnapshots(queryClient);
+      const metaPageUpdates = getToggleMomentsListMetaPageQueryUpdates(
+        metaPageSnapshots,
+        variables.postId,
+      );
       const detailMetaQueryKey = postDetailMetaQueryOptions(variables.postId).queryKey;
 
-      const previousQueries = updates.map(({ queryKey, previousData }) => ({
+      const previousBaseQueries = baseUpdates.map(({ queryKey, previousData }) => ({
+        queryKey,
+        data: previousData,
+      }));
+      const previousMetaPageQueries = metaPageUpdates.map(({ queryKey, previousData }) => ({
         queryKey,
         data: previousData,
       }));
@@ -68,17 +86,20 @@ export function useLikePostMutationOptions(): LikePostMutationOptions {
       );
 
       await Promise.all([
-        ...previousQueries.map(({ queryKey }) => queryClient.cancelQueries({ queryKey })),
+        ...previousBaseQueries.map(({ queryKey }) => queryClient.cancelQueries({ queryKey })),
+        ...previousMetaPageQueries.map(({ queryKey }) => queryClient.cancelQueries({ queryKey })),
         queryClient.cancelQueries({ queryKey: detailMetaQueryKey }),
       ]);
 
-      applyMomentsListQueryUpdates(queryClient, updates);
+      applyMomentsListQueryUpdates(queryClient, baseUpdates);
+      applyMomentsListMetaPageQueryUpdates(queryClient, metaPageUpdates);
       queryClient.setQueryData<PostMetaDataType | null>(detailMetaQueryKey, (old) =>
         patchDetailMetaLikeState(old, !variables.isLiked),
       );
 
       return {
-        previousQueries,
+        previousBaseQueries,
+        previousMetaPageQueries,
         previousDetailMeta: {
           queryKey: detailMetaQueryKey,
           data: previousDetailMeta,
@@ -89,7 +110,11 @@ export function useLikePostMutationOptions(): LikePostMutationOptions {
     onError: (_error, _variables, context) => {
       if (!isLikePostOptimisticContext(context)) return;
 
-      context.previousQueries.forEach(({ queryKey, data }) => {
+      context.previousBaseQueries.forEach(({ queryKey, data }) => {
+        if (data === undefined) return;
+        queryClient.setQueryData(queryKey, data);
+      });
+      context.previousMetaPageQueries.forEach(({ queryKey, data }) => {
         if (data === undefined) return;
         queryClient.setQueryData(queryKey, data);
       });
@@ -104,9 +129,20 @@ export function useLikePostMutationOptions(): LikePostMutationOptions {
     onSuccess: (responseData, variables) => {
       const serverData = responseData as PostLikeDataType;
       const targetPostId = serverData.postId ?? variables.postId;
-      const snapshots = getMomentsListQuerySnapshots(queryClient);
-      const updates = getSyncMomentsListQueryUpdates(snapshots, targetPostId, serverData.isLiked);
-      applyMomentsListQueryUpdates(queryClient, updates);
+      const baseSnapshots = getMomentsListQuerySnapshots(queryClient);
+      const baseUpdates = getSyncMomentsListQueryUpdates(
+        baseSnapshots,
+        targetPostId,
+        serverData.isLiked,
+      );
+      const metaPageSnapshots = getMomentsListMetaPageQuerySnapshots(queryClient);
+      const metaPageUpdates = getSyncMomentsListMetaPageQueryUpdates(
+        metaPageSnapshots,
+        targetPostId,
+        serverData.isLiked,
+      );
+      applyMomentsListQueryUpdates(queryClient, baseUpdates);
+      applyMomentsListMetaPageQueryUpdates(queryClient, metaPageUpdates);
 
       const detailMetaQueryKey = postDetailMetaQueryOptions(targetPostId).queryKey;
       queryClient.setQueryData<PostMetaDataType | null>(detailMetaQueryKey, (old) =>
