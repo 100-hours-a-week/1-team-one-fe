@@ -1,28 +1,39 @@
-# Frontend Dockerfile
-FROM node:24-alpine
+# ========== 1단계: 의존성 및 빌드 스테이지 ==========
+FROM node:24-alpine AS builder
+# Alpine 환경에서 Next.js 구동을 위해 필요한 호환 라이브러리 설치
+RUN apk add --no-cache libc6-compat
+# PNPM 글로벌 세팅 및 활성화
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
 WORKDIR /app
 
-# Alpine(musl) 환경에서 Ubuntu(glibc) 호환성을 위해 필요
-RUN apk add --no-cache libc6-compat
+# 전체 소스 복사 (포트폴리오 빌드용이므로 단순화하여 전체 복사 진행)
+COPY . .
 
-# 런타임 환경변수
+# 의존성 설치 및 Next.js 빌드 진행
+RUN pnpm install --frozen-lockfile
+RUN pnpm run build
+
+# ========== 2단계: 런타임 스테이지 ==========
+FROM node:24-alpine AS runner
+WORKDIR /app
+
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Standalone 빌드 복사 (CI에서 빌드됨)
-COPY --chown=nobody:nobody . .
+# Alpine(musl) 호환 패키지 재설치
+RUN apk add --no-cache libc6-compat
 
-# 비루트 사용자로 실행
+# 1단계 빌더에서 생성된 standalone 빌드 산출물과 정적(Static/Public) 자산만 복사
+COPY --from=builder /app/apps/web/.next/standalone ./
+COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /app/apps/web/public ./apps/web/public
+
 USER nobody
-
-# 포트 노출 (기본값)
 EXPOSE 3000
 
-# 모노레포 구조 대응
-# (만약 1-team-one-fe 폴더 구조라면 WORKDIR /app/1-team-one-fe/apps/web 로 수정)
-WORKDIR /app/apps/web
-
-# 애플리케이션 실행
-CMD ["node", "server.js"]
+# Next.js standalone 빌드 결과물의 진입점 실행
+CMD ["node", "apps/web/server.js"]
